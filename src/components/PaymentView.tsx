@@ -23,7 +23,6 @@ interface PaymentViewProps {
   onSlipUploaded?: (fileDataUrl: string) => void;
   onPlaceOrder?: (payload: { slipUrl: string; orderId: string; total: number }) => void;
   onNavigate: (view: ViewMode) => void;
-  onOpenAdmin?: () => void;
 }
 
 export const PaymentView: React.FC<PaymentViewProps> = ({
@@ -32,7 +31,6 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
   onSlipUploaded,
   onPlaceOrder,
   onNavigate,
-  onOpenAdmin,
 }) => {
   const [uploadedSlip, setUploadedSlip] = useState<string | null>(order.paymentSlipUrl || null);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
@@ -103,15 +101,6 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
             </p>
           </div>
 
-          {onOpenAdmin && (
-            <button
-              onClick={onOpenAdmin}
-              className="self-start sm:self-auto px-4 py-2 bg-[#28192A] hover:bg-[#3D2540] text-[#FFFDF8] border border-[#C9A25C]/40 text-xs tracking-wider uppercase font-medium flex items-center gap-2 transition-all shadow-xs"
-            >
-              <ShieldCheck className="w-4 h-4 text-[#C9A25C]" />
-              <span>Open Admin Panel</span>
-            </button>
-          )}
         </div>
 
         {/* If Order is already placed, render the comprehensive Confirmation View */}

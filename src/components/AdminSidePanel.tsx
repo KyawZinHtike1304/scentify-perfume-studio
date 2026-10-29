@@ -25,7 +25,8 @@ import {
   RefreshCw,
   Download,
   Check,
-  Plus
+  Plus,
+  LogOut
 } from 'lucide-react';
 import {
   DbOrder,
@@ -385,59 +386,60 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-[#28192A]/70 backdrop-blur-sm flex justify-end animate-in fade-in duration-200">
+    <div className="h-dvh min-h-screen w-full overflow-hidden overscroll-none bg-[#FFFDF8] flex">
       
       {/* Toast notification */}
       {notification && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-60 bg-[#28192A] text-[#FFFDF8] border border-[#C9A25C] px-5 py-3 rounded-none shadow-2xl text-xs flex items-center gap-2 animate-in slide-in-from-top-4">
+        <div className="fixed top-3 left-3 right-3 sm:top-6 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-60 bg-[#28192A] text-[#FFFDF8] border border-[#C9A25C] px-4 sm:px-5 py-3 rounded-none shadow-2xl text-xs flex items-center gap-2 animate-in slide-in-from-top-4">
           <CheckCircle2 className="w-4 h-4 text-[#C9A25C]" />
           <span>{notification}</span>
         </div>
       )}
 
       {/* Main Admin Panel Container */}
-      <div className="w-full max-w-6xl bg-[#FFFDF8] h-full shadow-2xl flex flex-col border-l border-[#DAD1C5] animate-in slide-in-from-right duration-300">
+      <div className="w-full min-w-0 h-full min-h-0 bg-[#FFFDF8] flex flex-col">
         
         {/* Top Header Bar */}
-        <div className="bg-[#28192A] text-[#FFFDF8] px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#C9A25C]/30 shrink-0">
-          <div className="flex items-center gap-3">
+        <div className="bg-[#28192A] text-[#FFFDF8] px-3 py-3 sm:px-6 sm:py-4 flex items-center justify-between gap-2 sm:gap-4 border-b border-[#C9A25C]/30 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="w-9 h-9 rounded-none border border-[#C9A25C] bg-[#3D2540] flex items-center justify-center text-[#C9A25C]">
               <Database className="w-5 h-5 stroke-[1.5]" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="font-serif text-lg tracking-wider text-[#FFFDF8]">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="font-serif text-sm sm:text-lg tracking-wider text-[#FFFDF8] truncate">
                   LOREM STUDIO ADMIN PANEL
                 </span>
               </div>
-              <p className="text-[11px] text-[#DAD1C5]/70 font-light">
+              <p className="hidden sm:block text-[11px] text-[#DAD1C5]/70 font-light">
                 Reporting Orders, Sales Analytics &amp; Inventory Management
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <button
               onClick={handleExportCSV}
-              className="px-3.5 py-1.5 bg-[#FFFDF8]/10 hover:bg-[#FFFDF8]/20 border border-[#DAD1C5]/30 text-xs text-[#FFFDF8] flex items-center gap-1.5 transition-colors"
+              className="px-2.5 sm:px-3.5 py-2 sm:py-1.5 bg-[#FFFDF8]/10 hover:bg-[#FFFDF8]/20 border border-[#DAD1C5]/30 text-xs text-[#FFFDF8] flex items-center gap-1.5 transition-colors"
               title="Export complete orders and revenue table to CSV"
             >
               <Download className="w-3.5 h-3.5 text-[#C9A25C]" />
-              <span>Export Sales CSV</span>
+              <span className="hidden sm:inline">Export Sales CSV</span>
             </button>
 
             <button
               onClick={onClose}
-              className="p-2 text-[#DAD1C5] hover:text-[#FFFDF8] hover:bg-[#FFFDF8]/10 transition-colors"
-              aria-label="Close admin panel"
+              className="px-2 sm:px-3 py-2 text-[#DAD1C5] hover:text-[#FFFDF8] hover:bg-[#FFFDF8]/10 transition-colors flex items-center gap-2"
+              aria-label="Log out of admin panel"
             >
-              <X className="w-6 h-6" />
+              <LogOut className="w-5 h-5" />
+              <span className="hidden sm:inline text-xs">Log out</span>
             </button>
           </div>
         </div>
 
         {/* Database Diagram Entity Badges */}
-        <div className="bg-[#FBF7F0] border-b border-[#DAD1C5] px-6 py-2 flex items-center gap-2 overflow-x-auto text-[10px] font-mono text-[#6B6166] shrink-0">
+        <div className="hidden sm:flex bg-[#FBF7F0] border-b border-[#DAD1C5] px-4 sm:px-6 py-2 items-center gap-2 overflow-x-auto text-[10px] font-mono text-[#6B6166] shrink-0">
           <span className="font-bold text-[#28192A] uppercase flex items-center gap-1">
             <Layers className="w-3.5 h-3.5 text-[#C9A25C]" />
             Schema Tables:
@@ -458,58 +460,62 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
         </div>
 
         {/* Navigation Tabs */}
-        <div className="border-b border-[#DAD1C5] px-6 flex space-x-8 bg-[#FFFDF8] shrink-0 overflow-x-auto">
+        <div className="border-b border-[#DAD1C5] px-2 sm:px-6 grid grid-cols-4 sm:flex sm:space-x-8 bg-[#FFFDF8] shrink-0">
           <button
             onClick={() => setActiveTab('sales')}
-            className={`py-3.5 text-xs uppercase tracking-wider font-medium border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
+            className={`min-w-0 justify-center px-1 sm:px-0 py-2.5 sm:py-3.5 text-[9px] sm:text-xs uppercase tracking-wider font-medium border-b-2 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 transition-colors whitespace-nowrap ${
               activeTab === 'sales'
                 ? 'border-[#28192A] text-[#28192A] font-semibold'
                 : 'border-transparent text-[#6B6166] hover:text-[#28192A]'
             }`}
           >
             <TrendingUp className="w-4 h-4 text-[#C9A25C]" />
-            <span>Sales Reports &amp; Analytics</span>
+            <span className="sm:hidden">Sales</span>
+            <span className="hidden sm:inline">Sales Reports &amp; Analytics</span>
           </button>
 
           <button
             onClick={() => setActiveTab('orders')}
-            className={`py-3.5 text-xs uppercase tracking-wider font-medium border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
+            className={`min-w-0 justify-center px-1 sm:px-0 py-2.5 sm:py-3.5 text-[9px] sm:text-xs uppercase tracking-wider font-medium border-b-2 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 transition-colors whitespace-nowrap ${
               activeTab === 'orders'
                 ? 'border-[#28192A] text-[#28192A] font-semibold'
                 : 'border-transparent text-[#6B6166] hover:text-[#28192A]'
             }`}
           >
             <Package className="w-4 h-4 text-[#C9A25C]" />
-            <span>Order Management ({orders.length})</span>
+            <span className="sm:hidden">Orders</span>
+            <span className="hidden sm:inline">Order Management ({orders.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('inventory')}
-            className={`py-3.5 text-xs uppercase tracking-wider font-medium border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
+            className={`min-w-0 justify-center px-1 sm:px-0 py-2.5 sm:py-3.5 text-[9px] sm:text-xs uppercase tracking-wider font-medium border-b-2 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 transition-colors whitespace-nowrap ${
               activeTab === 'inventory'
                 ? 'border-[#28192A] text-[#28192A] font-semibold'
                 : 'border-transparent text-[#6B6166] hover:text-[#28192A]'
             }`}
           >
             <Layers className="w-4 h-4 text-[#C9A25C]" />
-            <span>Formulas &amp; Ingredients ({ingredients.length})</span>
+            <span className="sm:hidden">Stock</span>
+            <span className="hidden sm:inline">Formulas &amp; Ingredients ({ingredients.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('users')}
-            className={`py-3.5 text-xs uppercase tracking-wider font-medium border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
+            className={`min-w-0 justify-center px-1 sm:px-0 py-2.5 sm:py-3.5 text-[9px] sm:text-xs uppercase tracking-wider font-medium border-b-2 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 transition-colors whitespace-nowrap ${
               activeTab === 'users'
                 ? 'border-[#28192A] text-[#28192A] font-semibold'
                 : 'border-transparent text-[#6B6166] hover:text-[#28192A]'
             }`}
           >
             <Users className="w-4 h-4 text-[#C9A25C]" />
-            <span>Customer Directory ({users.length})</span>
+            <span className="sm:hidden">Users</span>
+            <span className="hidden sm:inline">Customer Directory ({users.length})</span>
           </button>
         </div>
 
         {/* Tab Content Body */}
-        <div className="flex-1 overflow-y-auto p-6 bg-[#FFFDF8]">
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-3 sm:p-6 bg-[#FFFDF8]">
           
           {/* TAB 1: SALES REPORTS & ANALYTICS */}
           {activeTab === 'sales' && (
@@ -716,13 +722,13 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
                   />
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1.5 text-xs">
+                  <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 text-xs min-w-0">
                     <span className="text-[#6B6166] text-[11px] uppercase">Status:</span>
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value as any)}
-                      className="bg-[#FFFDF8] border border-[#DAD1C5] px-2.5 py-2 text-xs text-[#28192A] focus:outline-none"
+                        className="w-full sm:w-auto min-w-0 bg-[#FFFDF8] border border-[#DAD1C5] px-2.5 py-2 text-xs text-[#28192A] focus:outline-none"
                     >
                       <option value="all">All Statuses</option>
                       <option value="pending">Pending</option>
@@ -732,12 +738,12 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
                     </select>
                   </div>
 
-                  <div className="flex items-center gap-1.5 text-xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 text-xs min-w-0">
                     <span className="text-[#6B6166] text-[11px] uppercase">Payment:</span>
                     <select
                       value={paymentFilter}
                       onChange={(e) => setPaymentFilter(e.target.value as any)}
-                      className="bg-[#FFFDF8] border border-[#DAD1C5] px-2.5 py-2 text-xs text-[#28192A] focus:outline-none"
+                      className="w-full sm:w-auto min-w-0 bg-[#FFFDF8] border border-[#DAD1C5] px-2.5 py-2 text-xs text-[#28192A] focus:outline-none"
                     >
                       <option value="all">All Payments</option>
                       <option value="verified">Verified</option>
@@ -749,8 +755,8 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
               </div>
 
               {/* Orders Table */}
-              <div className="bg-[#FFFDF8] border border-[#DAD1C5] overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
+              <div className="max-w-full bg-[#FFFDF8] border border-[#DAD1C5] overflow-x-auto">
+              <table className="w-full min-w-[900px] text-left border-collapse text-xs">
                   <thead>
                     <tr className="bg-[#FBF7F0] border-b border-[#DAD1C5] text-[10px] uppercase font-mono tracking-wider text-[#6B6166]">
                       <th className="py-3 px-4">Order ID</th>
@@ -918,7 +924,7 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
             <div className="space-y-8 animate-in fade-in duration-200">
               
               {/* Ingredients Table */}
-              <div className="bg-[#FFFDF8] border border-[#DAD1C5] p-6">
+              <div className="bg-[#FFFDF8] border border-[#DAD1C5] p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#DAD1C5]/50 mb-6 gap-2">
                   <div>
                     <h3 className="font-serif text-2xl text-[#28192A]">Ingredient Library Inventory</h3>
@@ -983,7 +989,7 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
               </div>
 
               {/* Bottle Specifications Table */}
-              <div className="bg-[#FFFDF8] border border-[#DAD1C5] p-6">
+              <div className="bg-[#FFFDF8] border border-[#DAD1C5] p-4 sm:p-6">
                 <h3 className="font-serif text-2xl text-[#28192A] mb-1">Bottle Catalog (`bottle` table)</h3>
                 <p className="text-xs text-[#6B6166] mb-5">Flacon sizes and retail prices configured for custom perfumes</p>
 
@@ -1009,7 +1015,7 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
           {/* TAB 4: CUSTOMER DIRECTORY */}
           {activeTab === 'users' && (
             <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="bg-[#FFFDF8] border border-[#DAD1C5] p-6">
+              <div className="bg-[#FFFDF8] border border-[#DAD1C5] p-4 sm:p-6">
                 <div className="flex items-center justify-between pb-4 border-b border-[#DAD1C5]/50 mb-6">
                   <div>
                     <h3 className="font-serif text-2xl text-[#28192A]">Registered Users (`user` table)</h3>
@@ -1020,8 +1026,8 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
                   </span>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-xs">
+                <div className="max-w-full overflow-x-auto">
+                  <table className="w-full min-w-[720px] text-left border-collapse text-xs">
                     <thead>
                       <tr className="bg-[#FBF7F0] border-b border-[#DAD1C5] text-[10px] uppercase font-mono tracking-wider text-[#6B6166]">
                         <th className="py-3 px-4">User ID</th>
@@ -1066,8 +1072,8 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
 
       {/* DETAIL MODAL: RELATIONAL ORDER INSPECTION */}
       {selectedOrder && (
-        <div className="fixed inset-0 z-60 bg-[#28192A]/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#FFFDF8] border border-[#DAD1C5] max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-60 bg-[#28192A]/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4">
+          <div className="bg-[#FFFDF8] border border-[#DAD1C5] max-w-3xl w-full max-h-[calc(100dvh-1rem)] sm:max-h-[90vh] overflow-y-auto p-4 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-150">
             
             <div className="flex items-center justify-between pb-4 border-b border-[#DAD1C5] mb-6">
               <div>

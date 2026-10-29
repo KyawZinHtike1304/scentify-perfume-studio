@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { HomeView } from './components/HomeView';
@@ -94,7 +93,7 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [isAdminUser, setIsAdminUser] = useState<boolean>(false);
   const [adminUser, setAdminUser] = useState<string>('LOREM Studio Master Perfumer');
-  const [isAdminOpen, setIsAdminOpen] = useState<boolean>(false);
+  const [isAuthResolved, setIsAuthResolved] = useState<boolean>(false);
 
   // Modals
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -114,9 +113,14 @@ export default function App() {
             snap.exists() && snap.data()?.displayName
               ? snap.data().displayName
               : firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Studio Member';
-          setCurrentUser(name);
+          const isAdmin =
+            Boolean(snap.exists() && snap.data()?.role === 'admin') ||
+            Boolean(firebaseUser.email?.toLowerCase().includes('admin'));
+          setIsAdminUser(isAdmin);
+          setAdminUser(name);
+          setCurrentUser(isAdmin ? null : name);
           
-          if (snap.exists()) {
+          if (!isAdmin && snap.exists()) {
             const data = snap.data();
             const savedAddr = data.shippingAddress;
             setOrder((prev) => ({
@@ -129,26 +133,26 @@ export default function App() {
               country: savedAddr?.country || prev.country,
               phone: savedAddr?.phone || prev.phone,
             }));
-          } else {
+          } else if (!isAdmin) {
             setOrder((prev) => ({ ...prev, customerName: name }));
           }
-          const isAdmin =
-            Boolean(snap.exists() && snap.data()?.role === 'admin') ||
-            Boolean(firebaseUser.email?.toLowerCase().includes('admin'));
-          setIsAdminUser(isAdmin);
         } catch (e) {
           console.warn('Notice reading user profile from Firestore:', e);
           const fallback =
             firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Studio Member';
-          setCurrentUser(fallback);
-          setIsAdminUser(Boolean(firebaseUser.email?.toLowerCase().includes('admin')));
-          setOrder((prev) => ({ ...prev, customerName: fallback }));
+          const isAdmin = Boolean(firebaseUser.email?.toLowerCase().includes('admin'));
+          setIsAdminUser(isAdmin);
+          setAdminUser(fallback);
+          setCurrentUser(isAdmin ? null : fallback);
+          if (!isAdmin) {
+            setOrder((prev) => ({ ...prev, customerName: fallback }));
+          }
         }
       } else {
         setCurrentUser(null);
         setIsAdminUser(false);
-        setIsAdminOpen(false);
       }
+      setIsAuthResolved(true);
     });
 
     return () => unsubscribe();
@@ -449,7 +453,6 @@ export default function App() {
     }
     setCurrentUser(null);
     setIsAdminUser(false);
-    setIsAdminOpen(false);
     setOrder((prev) => ({ ...prev, customerName: '' }));
     setCurrentView('home');
   };
@@ -459,6 +462,35 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  if (!isAuthResolved) {
+    return <div className="min-h-screen bg-[#FFFDF8]" aria-busy="true" />;
+  }
+
+  if (isAdminUser) {
+    return (
+      <AdminSidePanel
+        isOpen
+        onClose={handleLogout}
+        adminUser={adminUser}
+        orders={dbOrders}
+        users={dbUsers}
+        shippings={dbShippings}
+        payments={dbPayments}
+        ingredients={dbIngredients}
+        formulas={dbFormulas}
+        formulaDetails={dbFormulaDetails}
+        orderItems={dbOrderItems}
+        onConfirmOrder={handleAdminConfirmOrder}
+        onCancelOrder={handleAdminCancelOrder}
+        onUpdateOrderStatus={(orderId, status) => {
+          setDbOrders((prev) =>
+            prev.map((o) => (o.order_id === orderId ? { ...o, status } : o))
+          );
+        }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#FFFDF8] text-[#28192A] flex flex-col font-sans selection:bg-[#C9A25C]/20">
       
@@ -467,9 +499,7 @@ export default function App() {
         currentView={currentView}
         onNavigate={navigateTo}
         cartCount={cartItems.reduce((acc, i) => acc + i.quantity, 0)}
-        userName={isAdminUser ? adminUser : currentUser}
-        isAdmin={isAdminUser}
-        onOpenAdmin={() => setIsAdminOpen(true)}
+        userName={currentUser}
         onOpenAuth={(mode = 'signup') => {
           setAuthModalMode(mode);
           setAuthModalOpen(true);
@@ -562,7 +592,6 @@ export default function App() {
             onSlipUploaded={handleSlipUploaded}
             onPlaceOrder={handlePlaceOrder}
             onNavigate={navigateTo}
-            onOpenAdmin={() => setIsAdminOpen(true)}
           />
         )}
 
@@ -576,42 +605,14 @@ export default function App() {
         )}
 
         {currentView === 'profile' && (
-          isAdminUser ? (
-            <div className="min-h-[70vh] flex items-center justify-center px-4 bg-[#FFFDF8]">
-              <div className="max-w-md w-full p-8 bg-[#FBF7F0] border border-[#DAD1C5] text-center space-y-4">
-                <div className="w-12 h-12 mx-auto rounded-full bg-[#28192A] text-[#C9A25C] flex items-center justify-center">
-                  <ShieldCheck className="w-6 h-6 stroke-[1.5]" />
-                </div>
-                <h2 className="font-serif text-2xl text-[#28192A]">Admin Console Session</h2>
-                <p className="text-xs text-[#6B6166] leading-relaxed">
-                  You are currently authenticated as <strong>{adminUser}</strong>. Customer profiles, shopping bag checkout, and personal shipping addresses are reserved strictly for customer store roles.
-                </p>
-                <div className="pt-2 flex flex-col gap-2">
-                  <button
-                    onClick={() => setIsAdminOpen(true)}
-                    className="w-full py-3 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-wider font-medium hover:bg-[#3D2540] transition-colors"
-                  >
-                    Open Admin Console
-                  </button>
-                  <button
-                    onClick={() => navigateTo('home')}
-                    className="text-xs text-[#6B6166] hover:text-[#28192A] underline py-1"
-                  >
-                    Return to Home
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <ProfileView
-              userName={currentUser || 'Studio Member'}
-              userEmail={auth.currentUser?.email || undefined}
-              order={order}
-              onUpdateAddress={handleAddressUpdate}
-              onLogout={handleLogout}
-              onNavigate={navigateTo}
-            />
-          )
+          <ProfileView
+            userName={currentUser || 'Studio Member'}
+            userEmail={auth.currentUser?.email || undefined}
+            order={order}
+            onUpdateAddress={handleAddressUpdate}
+            onLogout={handleLogout}
+            onNavigate={navigateTo}
+          />
         )}
 
         {currentView === 'about' && (
@@ -636,7 +637,6 @@ export default function App() {
             setIsAdminUser(true);
             setAdminUser(name);
             setCurrentUser(null); // Admin should not access to normal user role!
-            setIsAdminOpen(true);
           } else {
             setCurrentUser(name);
             setIsAdminUser(false);
@@ -646,29 +646,6 @@ export default function App() {
         onAdminLogin={() => {
           setIsAdminUser(true);
           setCurrentUser(null); // Admin should not access to normal user role!
-          setIsAdminOpen(true);
-        }}
-      />
-
-      {/* Admin Side Panel based on Database Diagram */}
-      <AdminSidePanel
-        isOpen={isAdminOpen}
-        onClose={() => setIsAdminOpen(false)}
-        adminUser={adminUser}
-        orders={dbOrders}
-        users={dbUsers}
-        shippings={dbShippings}
-        payments={dbPayments}
-        ingredients={dbIngredients}
-        formulas={dbFormulas}
-        formulaDetails={dbFormulaDetails}
-        orderItems={dbOrderItems}
-        onConfirmOrder={handleAdminConfirmOrder}
-        onCancelOrder={handleAdminCancelOrder}
-        onUpdateOrderStatus={(orderId, status) => {
-          setDbOrders((prev) =>
-            prev.map((o) => (o.order_id === orderId ? { ...o, status } : o))
-          );
         }}
       />
 

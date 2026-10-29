@@ -25,7 +25,6 @@ interface ProfileViewProps {
   onUpdateAddress: (addressData: Partial<OrderDetails>) => void;
   onLogout: () => void;
   onNavigate: (view: ViewMode) => void;
-  onOpenAdmin?: () => void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
@@ -35,7 +34,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onUpdateAddress,
   onLogout,
   onNavigate,
-  onOpenAdmin,
 }) => {
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -127,16 +125,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            {onOpenAdmin && (
-              <button
-                onClick={onOpenAdmin}
-                className="inline-flex items-center gap-2 px-4 py-2.5 border border-[#C9A25C] text-[#C9A25C] hover:bg-[#C9A25C] hover:text-[#FFFDF8] text-xs uppercase tracking-wider font-mono font-medium transition-colors shadow-xs"
-                title="Open Studio Admin Side Panel"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span>Admin Operations</span>
-              </button>
-            )}
             <button
               onClick={() => onNavigate('atelier')}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-wider hover:bg-[#3D2540] transition-colors shadow-xs"

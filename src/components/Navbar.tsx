@@ -7,8 +7,6 @@ interface NavbarProps {
   onNavigate: (view: ViewMode) => void;
   cartCount: number;
   userName?: string | null;
-  isAdmin?: boolean;
-  onOpenAdmin?: () => void;
   onOpenAuth: (mode?: 'login' | 'signup') => void;
   onLogout?: () => void;
   onOpenSearch: () => void;
@@ -19,8 +17,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onNavigate,
   cartCount,
   userName,
-  isAdmin,
-  onOpenAdmin,
   onOpenAuth,
   onLogout,
   onOpenSearch,
@@ -129,30 +125,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {/* User Account / Auth */}
-            {isAdmin ? (
-              <div className="hidden sm:flex items-center gap-2">
-                <div className="px-2.5 py-1 bg-[#28192A] text-[#FFFDF8] text-[10px] font-mono uppercase tracking-wider flex items-center gap-1.5 border border-[#C9A25C]/60 shadow-xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#C9A25C] animate-pulse" />
-                  <span>Admin: {userName || 'Studio Perfumer'}</span>
-                </div>
-                {onOpenAdmin && (
-                  <button
-                    onClick={onOpenAdmin}
-                    className="px-2.5 py-1 bg-[#C9A25C] text-[#28192A] hover:bg-[#d8b36e] text-[11px] font-medium tracking-wide transition-colors"
-                  >
-                    Console
-                  </button>
-                )}
-                {onLogout && (
-                  <button
-                    onClick={onLogout}
-                    className="text-[11px] text-[#6B6166] hover:text-red-700 underline transition-colors"
-                  >
-                    Log out
-                  </button>
-                )}
-              </div>
-            ) : userName ? (
+            {userName ? (
               <div className="hidden sm:flex items-center gap-2">
                 <button
                   onClick={() => onNavigate('profile')}
@@ -304,36 +277,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               Compose Perfume
             </button>
-            {isAdmin ? (
-              <div className="flex flex-col gap-2 p-3 bg-[#28192A] text-[#FFFDF8] border border-[#C9A25C]/60 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase font-mono tracking-wider text-[#C9A25C]">Admin Console Session</span>
-                  <span className="text-[10px] font-mono text-[#DAD1C5]">{userName || 'Studio Perfumer'}</span>
-                </div>
-                {onOpenAdmin && (
-                  <button
-                    onClick={() => {
-                      onOpenAdmin();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full py-2 bg-[#C9A25C] text-[#28192A] font-medium text-xs text-center"
-                  >
-                    Open Admin Console
-                  </button>
-                )}
-                {onLogout && (
-                  <button
-                    onClick={() => {
-                      onLogout();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="text-[11px] text-[#DAD1C5]/80 hover:text-white underline text-center pt-1"
-                  >
-                    Log out Admin
-                  </button>
-                )}
-              </div>
-            ) : userName ? (
+            {userName ? (
               <div className="flex items-center justify-between py-2.5 px-3 bg-[#FFFDF8] border border-[#DAD1C5] text-xs">
                 <button
                   onClick={() => {
