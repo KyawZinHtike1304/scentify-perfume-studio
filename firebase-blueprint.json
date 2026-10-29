@@ -1,0 +1,189 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User account profile and role matching diagram",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID"
+        },
+        "name": {
+          "type": "string",
+          "description": "User full name"
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Contact telephone number"
+        },
+        "address": {
+          "type": "string",
+          "description": "Delivery address"
+        },
+        "role": {
+          "type": "string",
+          "description": "User access role: customer or admin",
+          "enum": ["customer", "admin"]
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of account creation"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last update"
+        }
+      },
+      "required": ["uid", "email"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Perfume order record matching database diagram",
+      "type": "object",
+      "properties": {
+        "order_id": {
+          "type": "string",
+          "description": "Unique order identifier"
+        },
+        "shipping_id": {
+          "type": "string",
+          "description": "Foreign key to shipping record"
+        },
+        "user_id": {
+          "type": "string",
+          "description": "Foreign key to user"
+        },
+        "order_date": {
+          "type": "string",
+          "description": "Timestamp of order"
+        },
+        "status": {
+          "type": "string",
+          "description": "Order processing status",
+          "enum": ["pending", "processing", "completed", "cancelled"]
+        },
+        "total_price": {
+          "type": "number",
+          "description": "Total price in THB"
+        },
+        "prep_photo_url": {
+          "type": "string",
+          "description": "URL to perfumer preparation bottle photo"
+        }
+      },
+      "required": ["order_id", "user_id", "status", "total_price"]
+    },
+    "Shipping": {
+      "title": "Shipping",
+      "description": "Courier and tracking details",
+      "type": "object",
+      "properties": {
+        "shipping_id": {
+          "type": "string",
+          "description": "Shipping record PK"
+        },
+        "shipping_fee": {
+          "type": "number",
+          "description": "Delivery fee"
+        },
+        "tracking_number": {
+          "type": "string",
+          "description": "Courier tracking number"
+        },
+        "courier_name": {
+          "type": "string",
+          "description": "Name of carrier service"
+        },
+        "shipping_address": {
+          "type": "string",
+          "description": "Destination address"
+        }
+      },
+      "required": ["shipping_id", "shipping_address"]
+    },
+    "Payment": {
+      "title": "Payment",
+      "description": "PromptPay payment transaction record",
+      "type": "object",
+      "properties": {
+        "payment_id": {
+          "type": "string",
+          "description": "Payment transaction ID"
+        },
+        "order_id": {
+          "type": "string",
+          "description": "Foreign key to order"
+        },
+        "qr_receipt_url": {
+          "type": "string",
+          "description": "PromptPay slip image URL"
+        },
+        "status": {
+          "type": "string",
+          "description": "Payment verification status",
+          "enum": ["pending", "verified", "failed"]
+        },
+        "verified_at": {
+          "type": "string",
+          "description": "Verification timestamp"
+        }
+      },
+      "required": ["payment_id", "order_id", "status"]
+    },
+    "Ingredient": {
+      "title": "Ingredient",
+      "description": "Botanical aroma library stock item",
+      "type": "object",
+      "properties": {
+        "ingredient_id": {
+          "type": "number",
+          "description": "Ingredient PK"
+        },
+        "name": {
+          "type": "string",
+          "description": "Botanical name"
+        },
+        "category": {
+          "type": "string",
+          "description": "Scent family category"
+        },
+        "stock_qty": {
+          "type": "number",
+          "description": "Stock count"
+        }
+      },
+      "required": ["ingredient_id", "name", "category", "stock_qty"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/User"
+      },
+      "description": "Private user profile document"
+    },
+    "/users/{userId}/orders/{orderId}": {
+      "schema": {
+        "$ref": "#/entities/Order"
+      },
+      "description": "User purchase orders"
+    },
+    "/orders/{orderId}": {
+      "schema": {
+        "$ref": "#/entities/Order"
+      },
+      "description": "Global orders collection for studio order and sales reports"
+    },
+    "/ingredients/{ingredientId}": {
+      "schema": {
+        "$ref": "#/entities/Ingredient"
+      },
+      "description": "Atelier ingredient inventory records"
+    }
+  }
+}
