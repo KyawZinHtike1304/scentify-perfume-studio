@@ -42,7 +42,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
                   className="w-full object-contain filter drop-shadow-sm"
                 />
                 <div className="mt-4 pt-4 border-t border-[#DAD1C5]/30 flex justify-between items-center text-[11px] text-[#6B6166]">
-                  <span>Atelier Still Life Study</span>
+                  <span>Scentify Still Life Study</span>
                   <span className="font-mono">Chiang Rai, 2026</span>
                 </div>
               </div>
@@ -72,7 +72,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
               </div>
 
               <p>
-                Through our digital atelier, we grant you direct control over the formulation pyamid. You choose the luminous opening, the emotional floral heart, and the lingering woody base that together tell your story.
+                Through our digital Scentify, we grant you direct control over the formulation pyamid. You choose the luminous opening, the emotional floral heart, and the lingering woody base that together tell your story.
               </p>
             </div>
 
@@ -137,7 +137,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
                 <div className="w-12 h-12 bg-[#FBF7F0] border border-[#DAD1C5]/60 flex items-center justify-center text-[#C9A25C] mb-6">
                   <Compass className="w-6 h-6 stroke-[1.5]" />
                 </div>
-                <span className="text-xs font-mono text-[#C9A25C] tracking-widest block mb-1">03 / ATELIER</span>
+                <span className="text-xs font-mono text-[#C9A25C] tracking-widest block mb-1">03 / Scentify</span>
                 <h3 className="font-serif text-2xl text-[#28192A] mb-3">Individual Formulation</h3>
                 <p className="text-xs sm:text-sm text-[#6B6166] font-light leading-relaxed">
                   Your formula is archived in our studio records under your personal account. Whenever you wish to re-blend or adjust notes, your history is waiting.
@@ -154,7 +154,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* Scent Atelier Invitation Banner */}
+      {/* Scent Scentify Invitation Banner */}
       <section className="py-20 bg-[#FFFDF8]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-[#28192A] text-[#FFFDF8] p-10 sm:p-16 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
@@ -166,7 +166,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
                 Begin your fragrance journey today.
               </h2>
               <p className="text-xs sm:text-sm text-[#DAD1C5]/80 font-light leading-relaxed">
-                Explore our six botanical families or enter the atelier to formulate your custom 50 ml eau de parfum.
+                Explore our six botanical families or enter the Scentify to formulate your custom 50 ml eau de parfum.
               </p>
             </div>
 
@@ -187,7 +187,6 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
           </div>
         </div>
       </section>
-
     </div>
   );
 };

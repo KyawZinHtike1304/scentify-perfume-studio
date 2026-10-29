@@ -41,7 +41,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="flex flex-col items-start text-left group focus:outline-none"
           >
             <span className="font-serif text-2xl sm:text-3xl font-medium tracking-[0.2em] text-[#28192A] group-hover:text-[#C9A25C] transition-colors">
-              LOREM
+              Scentify
             </span>
             <span className="text-[9px] sm:text-[10px] tracking-[0.35em] text-[#6B6166] uppercase -mt-0.5 font-light">
               PERFUME STUDIO
@@ -241,7 +241,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               }}
               className="text-left text-base font-serif text-[#28192A] py-1 border-b border-[#DAD1C5]/30 flex justify-between items-center"
             >
-              <span>Create Your Perfume (Atelier)</span>
+              <span>Create Your Perfume (Scentify)</span>
               <span className="text-xs font-sans text-[#C9A25C]">03</span>
             </button>
             <button

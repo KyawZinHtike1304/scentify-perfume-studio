@@ -4,7 +4,7 @@ import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { HomeView } from './components/HomeView';
 import { IngredientLibraryView } from './components/IngredientLibraryView';
-import { AtelierView } from './components/AtelierView';
+import { AtelierView } from './components/ScentifyView';
 import { ReviewFragranceView } from './components/ReviewFragranceView';
 import { CartView } from './components/CartView';
 import { ReviewOrderView } from './components/ReviewOrderView';
