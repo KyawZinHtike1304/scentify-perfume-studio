@@ -126,7 +126,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
 
           <div className="flex flex-wrap items-center gap-3">
             <button
-              onClick={() => onNavigate('atelier')}
+              onClick={() => onNavigate('scentify')}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-wider hover:bg-[#3D2540] transition-colors shadow-xs"
             >
               <Sparkles className="w-3.5 h-3.5 text-[#C9A25C]" />
@@ -169,7 +169,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   <div className="mt-1 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
                     <span className="text-[10px] uppercase font-mono tracking-wider text-emerald-800">
-                      Verified Atelier Account
+                      Verified Scentify Account
                     </span>
                   </div>
                 </div>
@@ -178,7 +178,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <div className="pt-4 text-xs space-y-2 text-[#6B6166]">
                 <div className="flex justify-between">
                   <span>Membership:</span>
-                  <span className="font-medium text-[#28192A]">LOREM Studio Patron</span>
+                  <span className="font-medium text-[#28192A]">Scentify Studio Patron</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Joined:</span>

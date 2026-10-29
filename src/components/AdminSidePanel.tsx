@@ -73,7 +73,7 @@ interface AdminSidePanelProps {
 export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
   isOpen,
   onClose,
-  adminUser = 'LOREM Studio Master Perfumer',
+  adminUser = 'Scentify Studio Master Perfumer',
   orders: propOrders,
   users: propUsers,
   shippings: propShippings,
@@ -376,7 +376,7 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `LOREM_Sales_Report_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `Scentify_Sales_Report_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -408,7 +408,7 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
             <div>
               <div className="flex items-center gap-2 min-w-0">
                 <span className="font-serif text-sm sm:text-lg tracking-wider text-[#FFFDF8] truncate">
-                  LOREM STUDIO ADMIN PANEL
+                  SCENTIFY STUDIO ADMIN PANEL
                 </span>
               </div>
               <p className="hidden sm:block text-[11px] text-[#DAD1C5]/70 font-light">
@@ -929,7 +929,7 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
                   <div>
                     <h3 className="font-serif text-2xl text-[#28192A]">Ingredient Library Inventory</h3>
                     <p className="text-xs text-[#6B6166]">
-                      Tracks raw botanical essences from `ingredient` table used in the Atelier
+                      Tracks raw botanical essences from `ingredient` table used in Scentify
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

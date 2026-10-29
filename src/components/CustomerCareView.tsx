@@ -62,7 +62,7 @@ export const CustomerCareView: React.FC<CustomerCareViewProps> = ({
             We are here to help.
           </h1>
           <p className="text-xs sm:text-sm text-[#6B6166] font-light mt-1">
-            Chat directly with the LOREM perfume studio about your order or fragrance.
+            Chat directly with the Scentify perfume studio about your order or fragrance.
           </p>
         </div>
 
@@ -80,7 +80,7 @@ export const CustomerCareView: React.FC<CustomerCareViewProps> = ({
                 </div>
                 <div>
                   <h3 className="font-serif text-base text-[#28192A] font-medium leading-tight">
-                    LOREM Perfume Studio
+                    Scentify Perfume Studio
                   </h3>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-600"></span>

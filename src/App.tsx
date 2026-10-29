@@ -3,7 +3,7 @@ import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { HomeView } from './components/HomeView';
 import { IngredientLibraryView } from './components/IngredientLibraryView';
-import { AtelierView } from './components/ScentifyView';
+import { ScentifyView } from './components/ScentifyView';
 import { ReviewFragranceView } from './components/ReviewFragranceView';
 import { CartView } from './components/CartView';
 import { ReviewOrderView } from './components/ReviewOrderView';
@@ -92,7 +92,7 @@ export default function App() {
   // User State: start without log in (null)
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [isAdminUser, setIsAdminUser] = useState<boolean>(false);
-  const [adminUser, setAdminUser] = useState<string>('LOREM Studio Master Perfumer');
+  const [adminUser, setAdminUser] = useState<string>('Scentify Studio Master Perfumer');
   const [isAuthResolved, setIsAuthResolved] = useState<boolean>(false);
 
   // Modals
@@ -179,7 +179,7 @@ export default function App() {
     setCurrentView('cart');
   };
 
-  const handleAddIngredientToAtelier = (ingredient: Ingredient) => {
+  const handleAddIngredientToScentify = (ingredient: Ingredient) => {
     if (ingredient.familyId === 'citrus') {
       setComposition((prev) => ({ ...prev, topNote: ingredient.name }));
     } else if (ingredient.familyId === 'floral') {
@@ -208,7 +208,7 @@ export default function App() {
       let reply = 'Thank you for reaching out to the studio. Our master perfumer has noted your request.';
       const lower = text.toLowerCase();
       if (lower.includes('oud') || lower.includes('soft') || lower.includes('adjust') || lower.includes('change')) {
-        reply = 'Of course! We have adjusted your formula notes in the atelier to balance the warmth and let the floral heart shine. 🌿';
+        reply = 'Of course! We have adjusted your formula notes in Scentify to balance the warmth and let the floral heart shine. 🌿';
       } else if (lower.includes('delivery') || lower.includes('timeline') || lower.includes('order')) {
         reply = `Your order #${order.orderId} is currently prepared with care. Standard delivery to ${order.city} is 2–4 business days with DHL Express tracking.`;
       } else if (lower.includes('slip') || lower.includes('payment') || lower.includes('promptpay')) {
@@ -259,7 +259,7 @@ export default function App() {
     const newPaymentId = 300 + dbPayments.length + 1;
 
     const custName = order.customerName || currentUser || 'Studio Client';
-    const custEmail = auth.currentUser?.email || 'customer@studio.lorem.com';
+    const custEmail = auth.currentUser?.email || 'customer@studio.scentify.com';
     const custPhone = order.phone || '+66 81 234 5678';
     const fullAddr = `${order.address}, ${order.city}, ${order.province} ${order.postalCode}, ${order.country}`;
 
@@ -520,12 +520,12 @@ export default function App() {
         {currentView === 'collection' && (
           <IngredientLibraryView
             onNavigate={navigateTo}
-            onSelectIngredientToAtelier={handleAddIngredientToAtelier}
+            onSelectIngredientToScentify={handleAddIngredientToScentify}
           />
         )}
 
-        {currentView === 'atelier' && (
-          <AtelierView
+        {currentView === 'scentify' && (
+          <ScentifyView
             composition={composition}
             onUpdateComposition={setComposition}
             onNavigate={navigateTo}
@@ -652,16 +652,16 @@ export default function App() {
       <SearchModal
         isOpen={searchModalOpen}
         onClose={() => setSearchModalOpen(false)}
-        onSelectIngredient={handleAddIngredientToAtelier}
+        onSelectIngredient={handleAddIngredientToScentify}
         onNavigate={navigateTo}
       />
 
       <StoryModal
         isOpen={storyModalOpen}
         onClose={() => setStoryModalOpen(false)}
-        onOpenAtelier={() => {
+        onOpenScentify={() => {
           setStoryModalOpen(false);
-          navigateTo('atelier');
+          navigateTo('scentify');
         }}
       />
 

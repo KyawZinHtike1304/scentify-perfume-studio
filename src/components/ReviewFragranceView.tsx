@@ -68,10 +68,10 @@ export const ReviewFragranceView: React.FC<ReviewFragranceViewProps> = ({
               <div>
                 <span className="text-[10px] tracking-widest text-[#6B6166] uppercase">ORDER #LUM-8941</span>
                 <h2 className="font-serif text-2xl text-[#28192A] mt-0.5">Your Custom Fragrance</h2>
-                <span className="text-xs text-[#6B6166] font-light">Prepared by the LOREM Perfume Studio</span>
+                <span className="text-xs text-[#6B6166] font-light">Prepared by the Scentify Perfume Studio</span>
               </div>
               <button
-                onClick={() => onNavigate('atelier')}
+                onClick={() => onNavigate('scentify')}
                 className="text-xs text-[#C9A25C] hover:text-[#28192A] flex items-center gap-1"
                 title="Edit Formula"
               >
@@ -201,7 +201,7 @@ export const ReviewFragranceView: React.FC<ReviewFragranceViewProps> = ({
               </blockquote>
               <div className="mt-4 text-xs tracking-wider text-[#6B6166] flex items-center gap-2">
                 <span className="w-4 h-px bg-[#DAD1C5]"></span>
-                <span>LOREM Perfume Studio</span>
+                <span>Scentify Perfume Studio</span>
               </div>
             </div>
 

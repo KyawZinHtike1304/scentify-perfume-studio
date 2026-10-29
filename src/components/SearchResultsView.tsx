@@ -8,8 +8,8 @@ interface SearchResultsViewProps {
   onSearch: (query: string) => void;
   onNavigate: (view: ViewMode) => void;
   onAddToCart: (item: CartItem) => void;
-  onSelectIngredientToAtelier: (ingredient: Ingredient) => void;
-  onLoadPerfumeIntoAtelier?: (notes: { topNote: string; heartNote: string; baseNote: string; name?: string }) => void;
+  onSelectIngredientToScentify: (ingredient: Ingredient) => void;
+  onLoadPerfumeIntoScentify?: (notes: { topNote: string; heartNote: string; baseNote: string; name?: string }) => void;
 }
 
 type FilterCategory = 'all' | 'perfumes' | 'ingredients' | 'families';
@@ -19,8 +19,8 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
   onSearch,
   onNavigate,
   onAddToCart,
-  onSelectIngredientToAtelier,
-  onLoadPerfumeIntoAtelier,
+  onSelectIngredientToScentify,
+  onLoadPerfumeIntoScentify,
 }) => {
   const [searchInput, setSearchInput] = useState(initialQuery);
   const [activeFilter, setActiveFilter] = useState<FilterCategory>('all');
@@ -67,15 +67,15 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
   };
 
   const handleCustomizePerfume = (perfume: typeof CATALOG_PERFUMES[0]) => {
-    if (onLoadPerfumeIntoAtelier) {
-      onLoadPerfumeIntoAtelier({
+    if (onLoadPerfumeIntoScentify) {
+      onLoadPerfumeIntoScentify({
         topNote: perfume.topNotes[0] || 'Bergamot',
         heartNote: perfume.heartNotes[0] || 'Jasmine',
         baseNote: perfume.baseNotes[0] || 'Sandalwood',
         name: perfume.name,
       });
     }
-    onNavigate('atelier');
+    onNavigate('scentify');
   };
 
   // Perform search filtering
@@ -151,11 +151,11 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
               <span className="text-[#28192A] font-medium">Search Results</span>
             </div>
             <button
-              onClick={() => onNavigate('atelier')}
+              onClick={() => onNavigate('scentify')}
               className="text-xs uppercase tracking-wider text-[#C9A25C] hover:text-[#28192A] font-medium flex items-center gap-1.5 transition-colors"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Go to Atelier</span>
+              <span>Go to Scentify</span>
             </button>
           </div>
         </div>
@@ -177,7 +177,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
             )}
           </h1>
           <p className="text-sm text-[#6B6166] max-w-lg mx-auto font-light">
-            Explore ready-to-wear signature perfumes, raw botanical notes, and rare accords distilled in our Chiang Rai atelier.
+            Explore ready-to-wear signature perfumes, raw botanical notes, and rare accords distilled in Scentify.
           </p>
         </div>
 
@@ -305,7 +305,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
                 Browse Ingredient Library
               </button>
               <button
-                onClick={() => onNavigate('atelier')}
+                onClick={() => onNavigate('scentify')}
                 className="px-6 py-2.5 border border-[#28192A] text-[#28192A] text-xs uppercase tracking-[0.2em] font-medium hover:bg-[#28192A] hover:text-[#FFFDF8] transition-colors"
               >
                 Create Custom Fragrance
@@ -429,7 +429,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
                   Botanical Notes & Ingredients ({matchedIngredients.length})
                 </h2>
               </div>
-              <span className="text-xs text-[#6B6166] hidden sm:inline">Select note to blend in Atelier</span>
+              <span className="text-xs text-[#6B6166] hidden sm:inline">Select note to blend in Scentify</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -460,12 +460,12 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
 
                   <button
                     onClick={() => {
-                      onSelectIngredientToAtelier(ing);
-                      onNavigate('atelier');
+                      onSelectIngredientToScentify(ing);
+                      onNavigate('scentify');
                     }}
                     className="w-full py-2 px-3 border border-[#DAD1C5] hover:border-[#28192A] hover:bg-[#28192A] hover:text-[#FFFDF8] text-[#28192A] text-xs uppercase tracking-wider font-medium flex items-center justify-center gap-1.5 transition-colors"
                   >
-                    <span>Blend in Atelier</span>
+                    <span>Blend in Scentify</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>

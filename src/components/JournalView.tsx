@@ -148,10 +148,10 @@ export const JournalView: React.FC<JournalViewProps> = ({ onNavigate }) => {
 
                   <div className="pt-2">
                     <button
-                      onClick={() => onNavigate('atelier')}
+                      onClick={() => onNavigate('scentify')}
                       className="inline-flex items-center gap-2 text-xs font-medium tracking-wider uppercase text-[#28192A] hover:text-[#C9A25C] transition-colors"
                     >
-                      <span>Explore this scent profile in Atelier</span>
+                      <span>Explore this scent profile in Scentify</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -177,14 +177,14 @@ export const JournalView: React.FC<JournalViewProps> = ({ onNavigate }) => {
               Translate these botanical studies into your personal bottle.
             </h3>
             <p className="text-xs text-[#6B6166] mt-1 font-light">
-              Visit our digital atelier to combine citrus, floral, and woody essences in balanced proportions.
+              Visit Scentify to combine citrus, floral, and woody essences in balanced proportions.
             </p>
           </div>
           <button
-            onClick={() => onNavigate('atelier')}
+            onClick={() => onNavigate('scentify')}
             className="shrink-0 px-6 py-3 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-widest hover:bg-[#3D2540] transition-colors"
           >
-            Formulate in Atelier →
+            Formulate in Scentify →
           </button>
         </div>
 

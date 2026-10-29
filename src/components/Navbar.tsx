@@ -67,9 +67,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               Collection
             </button>
             <button
-              onClick={() => onNavigate('atelier')}
+              onClick={() => onNavigate('scentify')}
               className={`text-sm tracking-wide transition-colors flex items-center gap-1.5 ${
-                currentView === 'atelier'
+                currentView === 'scentify'
                   ? 'text-[#C9A25C] font-medium'
                   : 'text-[#28192A]/80 hover:text-[#28192A]'
               }`}
@@ -161,7 +161,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Primary Action Button */}
             {/*<button
-              onClick={() => onNavigate('atelier')}
+              onClick={() => onNavigate('scentify')}
               className="hidden lg:inline-flex items-center justify-center px-6 py-2.5 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-[0.2em] font-medium hover:bg-[#3D2540] transition-colors shadow-xs"
             >
               Shop Now
@@ -209,7 +209,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
             <button
               onClick={() => {
-                onNavigate('atelier');
+                onNavigate('scentify');
                 setMobileMenuOpen(false);
               }}
               className="text-left text-base font-serif text-[#28192A] py-1 border-b border-[#DAD1C5]/30 flex justify-between items-center"
@@ -270,7 +270,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="pt-4 flex flex-col gap-3">
             <button
               onClick={() => {
-                onNavigate('atelier');
+                onNavigate('scentify');
                 setMobileMenuOpen(false);
               }}
               className="w-full py-3 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-[0.2em] font-medium text-center"

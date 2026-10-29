@@ -119,7 +119,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
                       onClick={() => {
                         onSelectIngredient(ing);
                         onClose();
-                        onNavigate('atelier');
+                        onNavigate('scentify');
                       }}
                       className="px-2.5 py-1.5 bg-[#28192A] text-[#FFFDF8] hover:bg-[#3D2540] text-[11px] uppercase tracking-wider transition-colors flex items-center gap-1 cursor-pointer"
                     >

@@ -19,7 +19,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
             </span>
             <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-[#28192A] tracking-tight leading-[1.15]">
               The Story of <br />
-              <span className="italic font-normal">LOREM Perfume Studio.</span>
+              <span className="italic font-normal">Scentify Perfume Studio.</span>
             </h1>
             <p className="text-base sm:text-lg text-[#6B6166] font-light mt-6 leading-relaxed max-w-2xl">
               Founded in the mist-veiled hills of Chiang Rai, Northern Thailand, we honor the ancient communion between botanical flora and personal memory.
@@ -38,7 +38,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
               <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-6 sm:p-10 relative">
                 <img
                   src="/assets/botanicals/hero_display.png"
-                  alt="LOREM Studio bottles and botanicals"
+                  alt="Scentify Studio bottles and botanicals"
                   className="w-full object-contain filter drop-shadow-sm"
                 />
                 <div className="mt-4 pt-4 border-t border-[#DAD1C5]/30 flex justify-between items-center text-[11px] text-[#6B6166]">
@@ -55,7 +55,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
               </h2>
               
               <p>
-                In an era of mass-produced, uniform fragrances, LOREM was established with a singular conviction: your scent should be as personal and unrepeatable as your signature.
+                In an era of mass-produced, uniform fragrances, Scentify was established with a singular conviction: your scent should be as personal and unrepeatable as your signature.
               </p>
 
               <p>
@@ -67,7 +67,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
                   “A true bespoke perfume is not a mask for the world to notice; it is a quiet invitation into who you are.”
                 </blockquote>
                 <span className="text-[10px] tracking-[0.2em] uppercase text-[#6B6166] block mt-2 font-medium">
-                  Master Perfumer · LOREM Studio
+                  Master Perfumer · Scentify Studio
                 </span>
               </div>
 
@@ -172,7 +172,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
 
             <div className="flex flex-wrap items-center gap-4">
               <button
-                onClick={() => onNavigate('atelier')}
+                onClick={() => onNavigate('scentify')}
                 className="px-7 py-3.5 bg-[#FFFDF8] text-[#28192A] text-xs uppercase tracking-[0.2em] font-medium hover:bg-[#FBF7F0] transition-colors shadow-xs"
               >
                 Create Scent →

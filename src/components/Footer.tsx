@@ -42,7 +42,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               Our Story
             </button>
             <button
-              onClick={() => onNavigate('atelier')}
+              onClick={() => onNavigate('scentify')}
               className="hover:text-[#C9A25C] transition-colors"
             >
               Create Your Own
@@ -85,7 +85,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
         {/* Bottom copyright and legal */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#DAD1C5]/50 gap-4">
-          <p>© 2026 LOREM Perfume Studio. All rights reserved.</p>
+          <p>© 2026 Scentify Perfume Studio. All rights reserved.</p>
           <div className="flex space-x-6">
             <a href="#privacy" onClick={(e) => e.preventDefault()} className="hover:text-[#FFFDF8] transition-colors">
               Privacy Policy

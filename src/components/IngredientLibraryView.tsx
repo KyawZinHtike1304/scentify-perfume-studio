@@ -5,20 +5,20 @@ import { SCENT_FAMILIES } from '../data/perfumeData';
 
 interface IngredientLibraryViewProps {
   onNavigate: (view: ViewMode) => void;
-  onSelectIngredientToAtelier: (ingredient: Ingredient) => void;
+  onSelectIngredientToScentify: (ingredient: Ingredient) => void;
 }
 
 export const IngredientLibraryView: React.FC<IngredientLibraryViewProps> = ({
   onNavigate,
-  onSelectIngredientToAtelier,
+  onSelectIngredientToScentify,
 }) => {
   const [selectedIngredient, setSelectedIngredient] = useState<Ingredient | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const handleQuickAdd = (ing: Ingredient, e: React.MouseEvent) => {
     e.stopPropagation();
-    onSelectIngredientToAtelier(ing);
-    setToastMessage(`Added ${ing.name} to your Atelier blend.`);
+    onSelectIngredientToScentify(ing);
+    setToastMessage(`Added ${ing.name} to your Scentify blend.`);
     setTimeout(() => setToastMessage(null), 3000);
   };
 
@@ -31,10 +31,10 @@ export const IngredientLibraryView: React.FC<IngredientLibraryViewProps> = ({
           <Check className="w-4 h-4 text-[#C9A25C]" />
           <span>{toastMessage}</span>
           <button
-            onClick={() => onNavigate('atelier')}
+            onClick={() => onNavigate('scentify')}
             className="ml-2 text-[#C9A25C] underline font-medium hover:text-[#FFFDF8]"
           >
-            Open Atelier →
+            Open Scentify →
           </button>
         </div>
       )}
@@ -44,7 +44,7 @@ export const IngredientLibraryView: React.FC<IngredientLibraryViewProps> = ({
         {/* Header */}
         <div className="mb-12 sm:mb-16">
           <span className="text-[11px] sm:text-xs uppercase tracking-[0.25em] text-[#6B6166] font-medium block mb-3">
-            The LOREM Ingredient Library
+            The Scentify Ingredient Library
           </span>
           <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-[#28192A] tracking-tight">
             An alphabet of scent.
@@ -119,10 +119,10 @@ export const IngredientLibraryView: React.FC<IngredientLibraryViewProps> = ({
 
                 <div className="mt-5 pt-3 border-t border-[#DAD1C5]/30 flex justify-between items-center">
                   <button
-                    onClick={() => onNavigate('atelier')}
+                    onClick={() => onNavigate('scentify')}
                     className="text-[11px] tracking-wider uppercase text-[#C9A25C] hover:text-[#28192A] font-medium flex items-center gap-1.5 transition-colors"
                   >
-                    <span>Blend in Atelier</span>
+                    <span>Blend in Scentify</span>
                     <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
@@ -131,21 +131,21 @@ export const IngredientLibraryView: React.FC<IngredientLibraryViewProps> = ({
           ))}
         </div>
 
-        {/* Bottom Atelier Quick CTA */}
+        {/* Bottom Scentify Quick CTA */}
         <div className="mt-16 p-8 bg-[#FBF7F0] border border-[#DAD1C5] flex flex-col sm:flex-row items-center justify-between gap-6">
           <div>
             <h3 className="font-serif text-xl sm:text-2xl text-[#28192A]">
               Ready to compose your personal formula?
             </h3>
             <p className="text-xs text-[#6B6166] mt-1">
-              Combine top citrus accents, romantic florals, and deep grounding woods in our digital atelier.
+              Combine top citrus accents, romantic florals, and deep grounding woods in Scentify.
             </p>
           </div>
           <button
-            onClick={() => onNavigate('atelier')}
+            onClick={() => onNavigate('scentify')}
             className="shrink-0 px-6 py-3 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-widest hover:bg-[#3D2540] transition-colors"
           >
-            Open Scent Atelier →
+            Open Scentify →
           </button>
         </div>
 
@@ -174,13 +174,13 @@ export const IngredientLibraryView: React.FC<IngredientLibraryViewProps> = ({
             <div className="mt-6 pt-4 border-t border-[#DAD1C5]/40 flex justify-between items-center">
               <button
                 onClick={() => {
-                  onSelectIngredientToAtelier(selectedIngredient);
+                  onSelectIngredientToScentify(selectedIngredient);
                   setSelectedIngredient(null);
-                  onNavigate('atelier');
+                  onNavigate('scentify');
                 }}
                 className="px-5 py-2.5 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-widest hover:bg-[#3D2540] transition-colors"
               >
-                Add to Atelier Blend
+                Add to Scentify Blend
               </button>
               <button
                 onClick={() => setSelectedIngredient(null)}

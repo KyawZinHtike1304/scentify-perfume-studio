@@ -46,8 +46,8 @@ export const INITIAL_DB_USERS: DbUser[] = [
   },
   {
     id: 99,
-    name: 'LOREM Studio Master Perfumer',
-    email: 'admin@lorem.com',
+    name: 'Scentify Studio Master Perfumer',
+    email: 'admin@scentify.com',
     phone: '+66 2 123 4567',
     address: '123 Riverside Botanical Studio, Muang District, Chiang Rai 57000',
     role: 'admin',

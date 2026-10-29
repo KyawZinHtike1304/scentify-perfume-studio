@@ -33,7 +33,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, onOpenStoryModal
 
               <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                 <button
-                  onClick={() => onNavigate('atelier')}
+                  onClick={() => onNavigate('scentify')}
                   className="inline-flex items-center gap-3 px-7 py-3.5 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-[0.2em] font-medium hover:bg-[#3D2540] transition-all shadow-sm hover:shadow-md group"
                 >
                   <span>Create your perfume</span>
@@ -60,7 +60,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, onOpenStoryModal
                 <div className="w-full flex justify-center">
                   <img
                     src="/assets/botanicals/hero_display.png"
-                    alt="LOREM Signature Bottles: Violet, Magnolia, Pansy"
+                    alt="Scentify Signature Bottles: Violet, Magnolia, Pansy"
                     className="w-full max-h-[460px] object-contain drop-shadow-sm select-none"
                     onError={(e) => {
                       // Fallback in case of image load delay
@@ -126,7 +126,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, onOpenStoryModal
             
             {/* 01 Citrus */}
             <div
-              onClick={() => onNavigate('atelier')}
+              onClick={() => onNavigate('scentify')}
               className="group cursor-pointer bg-[#FFFDF8] p-8 border border-[#DAD1C5]/50 hover:border-[#C9A25C] transition-all flex flex-col justify-between hover:shadow-md"
             >
               <div>
@@ -156,7 +156,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, onOpenStoryModal
 
             {/* 02 Floral */}
             <div
-              onClick={() => onNavigate('atelier')}
+              onClick={() => onNavigate('scentify')}
               className="group cursor-pointer bg-[#FFFDF8] p-8 border border-[#DAD1C5]/50 hover:border-[#C9A25C] transition-all flex flex-col justify-between hover:shadow-md"
             >
               <div>
@@ -186,7 +186,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, onOpenStoryModal
 
             {/* 03 Woody */}
             <div
-              onClick={() => onNavigate('atelier')}
+              onClick={() => onNavigate('scentify')}
               className="group cursor-pointer bg-[#FFFDF8] p-8 border border-[#DAD1C5]/50 hover:border-[#C9A25C] transition-all flex flex-col justify-between hover:shadow-md"
             >
               <div>
@@ -237,7 +237,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, onOpenStoryModal
 
             <div className="relative z-10 shrink-0">
               <button
-                onClick={() => onNavigate('atelier')}
+                onClick={() => onNavigate('scentify')}
                 className="inline-flex items-center gap-3 px-8 py-4 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-[0.2em] font-medium hover:bg-[#3D2540] transition-colors shadow-xs"
               >
                 <span>Begin creating</span>

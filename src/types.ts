@@ -71,7 +71,7 @@ export interface ChatMessage {
 export type ViewMode = 
   | 'home'
   | 'collection'
-  | 'atelier'
+  | 'scentify'
   | 'review-fragrance'
   | 'cart'
   | 'review-order'
@@ -181,4 +181,3 @@ export type FormulaRecord = DbFormula;
 export type FormulaDetailRecord = DbFormulaDetail;
 export type IngredientRecord = DbIngredient;
 export type AdminOrderFull = EnrichedOrder;
-

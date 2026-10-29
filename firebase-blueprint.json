@@ -183,7 +183,7 @@
       "schema": {
         "$ref": "#/entities/Ingredient"
       },
-      "description": "Atelier ingredient inventory records"
+      "description": "Scentify ingredient inventory records"
     }
   }
 }

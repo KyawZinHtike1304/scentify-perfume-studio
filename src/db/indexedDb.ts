@@ -1,5 +1,5 @@
 /**
- * IndexedDB Database Service for LOREM Perfume Studio
+ * IndexedDB Database Service for Scentify Perfume Studio
  * Provides transactional, client-side database persistence for users,
  * sessions, saved perfume formulations, and order history.
  */

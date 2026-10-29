@@ -57,7 +57,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
 
   const handleSimulateSampleSlip = () => {
     // Generate a sleek sample Thai PromptPay banking transfer slip
-    const sampleSlip = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="600" viewBox="0 0 400 600" fill="%23FFFFFF"><rect width="400" height="600" rx="16" fill="%23FBF7F0" stroke="%23DAD1C5" stroke-width="2"/><rect x="24" y="24" width="352" height="70" rx="8" fill="%2328192A"/><text x="44" y="55" fill="%23FFFDF8" font-family="serif" font-size="20">PromptPay Transfer</text><text x="44" y="75" fill="%23C9A25C" font-family="sans-serif" font-size="12">Successful Transaction</text><text x="44" y="140" fill="%236B6166" font-family="sans-serif" font-size="12">TO</text><text x="44" y="165" fill="%2328192A" font-family="serif" font-size="18" font-weight="bold">LOREM Perfume Studio</text><text x="44" y="220" fill="%236B6166" font-family="sans-serif" font-size="12">AMOUNT</text><text x="44" y="260" fill="%2328192A" font-family="serif" font-size="32" font-weight="bold">฿ ${total.toLocaleString()}.00</text><line x1="44" y1="290" x2="356" y2="290" stroke="%23DAD1C5"/><text x="44" y="330" fill="%236B6166" font-family="sans-serif" font-size="12">ORDER REF</text><text x="44" y="355" fill="%2328192A" font-family="sans-serif" font-size="14" font-weight="bold">${order.orderId}</text><text x="44" y="400" fill="%236B6166" font-family="sans-serif" font-size="12">DATE &amp; TIME</text><text x="44" y="425" fill="%2328192A" font-family="sans-serif" font-size="14">28 Oct 2026, 11:15</text><circle cx="200" cy="510" r="30" fill="%2328192A"/><path d="M190 510 L197 517 L212 502" fill="none" stroke="%23C9A25C" stroke-width="3"/></svg>`;
+    const sampleSlip = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="600" viewBox="0 0 400 600" fill="%23FFFFFF"><rect width="400" height="600" rx="16" fill="%23FBF7F0" stroke="%23DAD1C5" stroke-width="2"/><rect x="24" y="24" width="352" height="70" rx="8" fill="%2328192A"/><text x="44" y="55" fill="%23FFFDF8" font-family="serif" font-size="20">PromptPay Transfer</text><text x="44" y="75" fill="%23C9A25C" font-family="sans-serif" font-size="12">Successful Transaction</text><text x="44" y="140" fill="%236B6166" font-family="sans-serif" font-size="12">TO</text><text x="44" y="165" fill="%2328192A" font-family="serif" font-size="18" font-weight="bold">Scentify Perfume Studio</text><text x="44" y="220" fill="%236B6166" font-family="sans-serif" font-size="12">AMOUNT</text><text x="44" y="260" fill="%2328192A" font-family="serif" font-size="32" font-weight="bold">฿ ${total.toLocaleString()}.00</text><line x1="44" y1="290" x2="356" y2="290" stroke="%23DAD1C5"/><text x="44" y="330" fill="%236B6166" font-family="sans-serif" font-size="12">ORDER REF</text><text x="44" y="355" fill="%2328192A" font-family="sans-serif" font-size="14" font-weight="bold">${order.orderId}</text><text x="44" y="400" fill="%236B6166" font-family="sans-serif" font-size="12">DATE &amp; TIME</text><text x="44" y="425" fill="%2328192A" font-family="sans-serif" font-size="14">28 Oct 2026, 11:15</text><circle cx="200" cy="510" r="30" fill="%2328192A"/><path d="M190 510 L197 517 L212 502" fill="none" stroke="%23C9A25C" stroke-width="3"/></svg>`;
     setUploadedSlip(sampleSlip);
   };
 
@@ -318,7 +318,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
 
                   <div className="text-xs text-[#6B6166] mb-4 space-y-0.5 font-mono">
                     <p>Order <strong className="text-[#28192A]">#{order.orderId}</strong></p>
-                    <p className="font-sans">LOREM Perfume Studio</p>
+                    <p className="font-sans">Scentify Perfume Studio</p>
                   </div>
 
                   {/* PromptPay QR Code Image */}
@@ -331,7 +331,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
                   </div>
 
                   <p className="text-[11px] text-[#6B6166] mt-4 font-light max-w-xs leading-relaxed">
-                    Account: <strong>LOREM Perfume Studio Co., Ltd.</strong> · Scan with any Thai banking app.
+                    Account: <strong>Scentify Perfume Studio Co., Ltd.</strong> · Scan with any Thai banking app.
                   </p>
                 </div>
 

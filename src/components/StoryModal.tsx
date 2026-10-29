@@ -4,13 +4,13 @@ import { X, Play, Volume2, Sparkles } from 'lucide-react';
 interface StoryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onOpenAtelier: () => void;
+  onOpenScentify: () => void;
 }
 
 export const StoryModal: React.FC<StoryModalProps> = ({
   isOpen,
   onClose,
-  onOpenAtelier,
+  onOpenScentify,
 }) => {
   if (!isOpen) return null;
 
@@ -37,7 +37,7 @@ export const StoryModal: React.FC<StoryModalProps> = ({
         <div className="relative bg-[#28192A] aspect-video w-full flex flex-col items-center justify-center text-center p-6 border border-[#DAD1C5]/40 shadow-inner overflow-hidden group">
           <img
             src="/assets/botanicals/hero_display.png"
-            alt="LOREM bottles and pressed botanicals"
+            alt="Scentify bottles and pressed botanicals"
             className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:scale-105 transition-transform duration-700 select-none"
           />
 
@@ -64,7 +64,7 @@ export const StoryModal: React.FC<StoryModalProps> = ({
             <button
               onClick={() => {
                 onClose();
-                onOpenAtelier();
+                onOpenScentify();
               }}
               className="px-5 py-2.5 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-wider hover:bg-[#3D2540] transition-colors"
             >

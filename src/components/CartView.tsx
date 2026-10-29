@@ -32,11 +32,11 @@ export const CartView: React.FC<CartViewProps> = ({
 
   const handleApplyPromo = () => {
     if (!promoCode.trim()) return;
-    if (promoCode.trim().toUpperCase() === 'LOREM10' || promoCode.trim().toUpperCase() === 'STUDIO') {
+    if (promoCode.trim().toUpperCase() === 'SCENTIFY10' || promoCode.trim().toUpperCase() === 'STUDIO') {
       setPromoApplied(true);
       setPromoError(null);
     } else {
-      setPromoError('Try code: LOREM10');
+      setPromoError('Try code: SCENTIFY10');
     }
   };
 
@@ -134,10 +134,10 @@ export const CartView: React.FC<CartViewProps> = ({
 
             <div className="mt-8 pt-4">
               <button
-                onClick={() => onNavigate('atelier')}
+                onClick={() => onNavigate('scentify')}
                 className="text-xs text-[#6B6166] hover:text-[#28192A] underline transition-colors"
               >
-                ← Return to Atelier &amp; Ingredients
+                ← Return to Scentify &amp; Ingredients
               </button>
             </div>
           </div>
@@ -181,10 +181,10 @@ export const CartView: React.FC<CartViewProps> = ({
               Compose your personal scent or explore the signature botanical collection.
             </p>
             <button
-              onClick={() => onNavigate('atelier')}
+              onClick={() => onNavigate('scentify')}
               className="px-6 py-3 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-widest hover:bg-[#3D2540] transition-colors"
             >
-              Compose in Atelier →
+              Compose in Scentify →
             </button>
           </div>
         ) : (
@@ -294,7 +294,7 @@ export const CartView: React.FC<CartViewProps> = ({
                     type="text"
                     value={promoCode}
                     onChange={(e) => setPromoCode(e.target.value)}
-                    placeholder="Promo code (e.g. LOREM10)"
+                    placeholder="Promo code (e.g. SCENTIFY10)"
                     disabled={promoApplied}
                     className="flex-1 bg-[#FFFDF8] border border-[#DAD1C5] px-3.5 py-2.5 text-xs text-[#28192A] placeholder-[#6B6166]/60 focus:outline-none focus:border-[#28192A]"
                   />

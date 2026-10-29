@@ -3,13 +3,13 @@ import { Check, Plus, ArrowRight, Sparkles, RefreshCw, AlertCircle, Info } from 
 import { Composition, ViewMode, Ingredient } from '../types';
 import { SCENT_FAMILIES } from '../data/perfumeData';
 
-interface AtelierViewProps {
+interface ScentifyViewProps {
   composition: Composition;
   onUpdateComposition: (comp: Composition) => void;
   onNavigate: (view: ViewMode) => void;
 }
 
-export const AtelierView: React.FC<AtelierViewProps> = ({
+export const ScentifyView: React.FC<ScentifyViewProps> = ({
   composition,
   onUpdateComposition,
   onNavigate,
@@ -92,7 +92,7 @@ export const AtelierView: React.FC<AtelierViewProps> = ({
             
             <div className="lg:col-span-7">
               <span className="text-[11px] sm:text-xs uppercase tracking-[0.25em] text-[#6B6166] font-medium block mb-3">
-                The LOREM Atelier / 01
+                Scentify Studio / 01
               </span>
               <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-[#28192A] tracking-tight leading-[1.1]">
                 Create your own <br />perfume.
@@ -107,7 +107,7 @@ export const AtelierView: React.FC<AtelierViewProps> = ({
               <div className="p-3 bg-[#FBF7F0]/60 rounded-xl border border-[#DAD1C5]/30">
                 <img
                   src="/assets/botanicals/hero_bottles.png"
-                  alt="Atelier formulation bottles"
+                  alt="Scentify formulation bottles"
                   className="max-h-48 sm:max-h-56 object-contain"
                 />
               </div>

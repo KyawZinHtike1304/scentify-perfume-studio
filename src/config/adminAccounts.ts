@@ -1,5 +1,5 @@
 /**
- * LOREM Perfume Studio - Admin Console Accounts Configuration
+ * Scentify Perfume Studio - Admin Console Accounts Configuration
  * -------------------------------------------------------------
  * This file contains the authorized administrative accounts that have
  * access to the Admin Console (Order Management, Sales Reports, Inventory).
@@ -23,10 +23,10 @@ export const ADMIN_ACCOUNTS: AdminAccount[] = [
     id: 'admin-01',
     email: 'admin@gmail.com',
     password: 'admin123',
-    name: 'LOREM Studio Master Perfumer',
+    name: 'Scentify Studio Master Perfumer',
     role: 'admin',
     title: 'Studio Director & Master Perfumer',
-    department: 'Executive Atelier & Order Verification',
+    department: 'Executive Scentify & Order Verification',
     createdAt: '2026-10-28',
   },
   // ADD MORE ADMIN ACCOUNTS HERE:
