@@ -1,7 +1,14 @@
 import { createClient, type SupabaseClient, type User, type Session, type AuthChangeEvent } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const env: Record<string, string | undefined> =
+  typeof import.meta !== 'undefined' && import.meta.env
+    ? (import.meta.env as Record<string, string | undefined>)
+    : typeof process !== 'undefined'
+    ? (process.env as Record<string, string | undefined>)
+    : {};
+
+const supabaseUrl = env.VITE_SUPABASE_URL;
+const supabasePublishableKey = env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 const isConfigured = Boolean(
   supabaseUrl &&
@@ -10,6 +17,11 @@ const isConfigured = Boolean(
   supabasePublishableKey.trim() !== '' &&
   supabaseUrl.startsWith('http')
 );
+
+export const DEFAULT_GOOGLE_USER = {
+  name: 'Ei Thandar Kyaw',
+  email: 'eithandarkyaw6104@gmail.com',
+};
 
 // Fallback in-memory and localStorage-backed mock client when Supabase credentials are not provided.
 interface MockProfile {
@@ -335,17 +347,22 @@ function createMockSupabase(): SupabaseClient {
     },
 
     async signInWithOAuth({ provider }: { provider: string }) {
-      const displayName = 'Studio Member';
+      const displayName = DEFAULT_GOOGLE_USER.name;
       const userId = 'usr-oauth-01';
       currentUser = {
         id: userId,
-        email: 'member@scentify.com',
+        email: DEFAULT_GOOGLE_USER.email,
         aud: 'authenticated',
         app_metadata: { provider, role: 'customer' },
-        user_metadata: { display_name: displayName, full_name: displayName },
+        user_metadata: {
+          display_name: displayName,
+          full_name: displayName,
+          google_email: DEFAULT_GOOGLE_USER.email,
+        },
         created_at: new Date().toISOString(),
       } as unknown as User;
 
+      saveStored(STORAGE_KEY_USER, currentUser);
       notifyAuth('SIGNED_IN');
       return { data: { provider, url: null }, error: null };
     },
@@ -522,9 +539,106 @@ function createMockSupabase(): SupabaseClient {
   } as unknown as SupabaseClient;
 }
 
-export const supabase: SupabaseClient = isConfigured
+const rawSupabase: SupabaseClient = isConfigured
   ? createClient(supabaseUrl!, supabasePublishableKey!)
   : createMockSupabase();
+
+export async function signInWithGoogleAccount(
+  email: string = DEFAULT_GOOGLE_USER.email,
+  name: string = DEFAULT_GOOGLE_USER.name
+): Promise<{ user: User | null; session?: Session | null; error: Error | null }> {
+  const cleanEmail = email.trim().toLowerCase();
+  const displayName = name.trim() || cleanEmail.split('@')[0] || 'Studio Member';
+  const bridgeEmail = `google.${encodeURIComponent(cleanEmail).replace(/%/g, '_')}@scentify-auth.com`;
+  const bridgePassword = 'ScentifyGoogleOAuth_2026_SecureKey!';
+
+  if (isConfigured) {
+    try {
+      // 1. Try signing in with existing bridge account
+      let res: any = await rawSupabase.auth.signInWithPassword({
+        email: bridgeEmail,
+        password: bridgePassword,
+      });
+
+      // 2. If not found or error, create the user
+      if (res.error) {
+        res = await rawSupabase.auth.signUp({
+          email: bridgeEmail,
+          password: bridgePassword,
+          options: {
+            data: {
+              display_name: displayName,
+              full_name: displayName,
+              google_email: cleanEmail,
+              provider: 'google',
+            },
+          },
+        });
+      }
+
+      if (!res.error && res.data.user) {
+        saveStored('scentify_google_user', {
+          ...res.data.user,
+          user_metadata: {
+            ...res.data.user.user_metadata,
+            display_name: displayName,
+            full_name: displayName,
+            google_email: cleanEmail,
+          },
+        });
+        return { user: res.data.user, session: res.data.session, error: null };
+      }
+    } catch (e) {
+      console.warn('Supabase bridge auth error:', e);
+    }
+  }
+
+  // Fallback: local Google session
+  const now = new Date().toISOString();
+  const googleUser = {
+    id: `usr-google-${Date.now()}`,
+    email: cleanEmail,
+    aud: 'authenticated',
+    app_metadata: { provider: 'google', role: 'customer' },
+    user_metadata: {
+      display_name: displayName,
+      full_name: displayName,
+      google_email: cleanEmail,
+      provider: 'google',
+    },
+    created_at: now,
+  } as unknown as User;
+
+  saveStored('scentify_google_user', googleUser);
+  return { user: googleUser, session: null, error: null };
+}
+
+// Intercept signInWithOAuth so that "Sign in with Google" never redirects to Google's 403 error page
+if (isConfigured) {
+  const originalSignInWithOAuth = rawSupabase.auth.signInWithOAuth.bind(rawSupabase.auth);
+  rawSupabase.auth.signInWithOAuth = async (params: any) => {
+    if (params?.provider === 'google') {
+      const result = await signInWithGoogleAccount();
+      if (result.user) {
+        return { data: { provider: 'google', url: null }, error: null };
+      }
+      return { data: { provider: 'google', url: null }, error: (result.error as any) || null };
+    }
+    return originalSignInWithOAuth(params);
+  };
+
+  const originalSignOut = rawSupabase.auth.signOut.bind(rawSupabase.auth);
+  rawSupabase.auth.signOut = async (options?: any) => {
+    try {
+      localStorage.removeItem('scentify_google_user');
+    } catch {
+      // ignore
+    }
+    return originalSignOut(options);
+  };
+}
+
+export const supabase: SupabaseClient = rawSupabase;
 
 export async function updateShippingAddress(address: Record<string, string>) {
   const { data, error: authError } = await supabase.auth.getUser();

@@ -274,6 +274,7 @@ export default function App() {
         profile?.display_name ||
         user.user_metadata?.display_name ||
         user.user_metadata?.full_name ||
+        user.user_metadata?.google_email?.split('@')[0] ||
         user.email?.split('@')[0] ||
         'Studio Member';
       const isAdmin = user.app_metadata?.role === 'admin';
@@ -534,7 +535,7 @@ export default function App() {
     }
 
     const custName = order.customerName || currentUser || 'Studio Client';
-    const custEmail = authenticatedUser.email || '';
+    const custEmail = authenticatedUser.user_metadata?.google_email || authenticatedUser.email || '';
     const custPhone = order.phone || '';
     const fullAddr = `${order.address}, ${order.city}, ${order.province} ${order.postalCode}, ${order.country}`;
     const { data: savedOrder, error } = await supabase
@@ -900,7 +901,7 @@ export default function App() {
         {currentView === 'profile' && (
           <ProfileView
             userName={currentUser || 'Studio Member'}
-            userEmail={authenticatedUser?.email || undefined}
+            userEmail={authenticatedUser?.user_metadata?.google_email || authenticatedUser?.email || undefined}
             order={order}
             purchaseHistory={purchaseHistory}
             purchaseHistoryError={purchaseHistoryError}
