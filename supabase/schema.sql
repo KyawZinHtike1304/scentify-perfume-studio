@@ -31,6 +31,9 @@ create index if not exists orders_user_id_created_at_idx
 alter table public.profiles enable row level security;
 alter table public.orders enable row level security;
 
+grant select, insert, update, delete on table public.orders to authenticated;
+grant usage, select on sequence public.orders_order_id_seq to authenticated;
+
 drop policy if exists "Users can read their profile and admins can read profiles"
   on public.profiles;
 create policy "Users can read their profile and admins can read profiles"

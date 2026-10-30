@@ -61,6 +61,14 @@ export interface OrderDetails {
   perfumerNote?: string;
 }
 
+export interface PurchaseHistoryOrder {
+  orderId: string;
+  date: string;
+  status: string;
+  total: number;
+  items: CartItem[];
+}
+
 export interface ChatMessage {
   id: string;
   sender: 'user' | 'studio';
@@ -101,6 +109,7 @@ export interface DbOrder {
   status: 'pending' | 'processing' | 'completed' | 'cancelled';
   total_price: number;
   prep_photo_url?: string;
+  items?: CartItem[];
 }
 
 export interface DbShipping {

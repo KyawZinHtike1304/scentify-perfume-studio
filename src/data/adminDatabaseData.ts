@@ -283,35 +283,57 @@ export function buildEnrichedOrders(
 
     // Filter order items for this order
     const matchedItems = orderItems.filter((oi) => oi.order_id === order.order_id);
-    const enrichedItems = matchedItems.map((oi) => {
-      const bottle = bottles.find((b) => b.bottle_id === oi.bottle_id) || {
-        bottle_id: oi.bottle_id,
-        size: 50,
-        price: 1680,
-      };
-
-      const detail = formulaDetails.find((fd) => fd.formula_detail_id === oi.formula_detail_id);
-      const formula = formulas.find((f) => f.formula_id === detail?.formula_id) || {
-        formula_id: 1,
-        formula_name: 'Artisanal Perfume Formulation',
-        created_at: order.order_date,
-      };
-
-      // Gather ingredients associated with this formula
-      const allFormulaDetails = formulaDetails.filter((fd) => fd.formula_id === formula.formula_id);
-      const ingList = allFormulaDetails
-        .map((fd) => ingredients.find((ing) => ing.ingredient_id === fd.ingredient_id))
-        .filter((ing): ing is DbIngredient => Boolean(ing));
-
+    const savedItems = order.items?.map((item, index) => {
+      const size = Number.parseInt(item.details?.size || '', 10) || 50;
       return {
-        order_item_id: oi.order_item_id,
-        formula_name: formula.formula_name,
-        ingredients: ingList,
-        bottle,
-        qty: oi.qty,
-        price: bottle.price,
+        order_item_id: index + 1,
+        formula_name: item.title,
+        ingredients: (item.details?.notes || []).map((name, noteIndex) => ({
+          ingredient_id: -(noteIndex + 1),
+          name,
+          category: 'Custom',
+          stock_qty: 0,
+        })),
+        bottle: {
+          bottle_id: -(index + 1),
+          size,
+          price: item.price,
+        },
+        qty: item.quantity,
+        price: item.price,
       };
     });
+    const enrichedItems = savedItems?.length
+      ? savedItems
+      : matchedItems.map((oi) => {
+          const bottle = bottles.find((b) => b.bottle_id === oi.bottle_id) || {
+            bottle_id: oi.bottle_id,
+            size: 50,
+            price: 1680,
+          };
+
+          const detail = formulaDetails.find((fd) => fd.formula_detail_id === oi.formula_detail_id);
+          const formula = formulas.find((f) => f.formula_id === detail?.formula_id) || {
+            formula_id: 1,
+            formula_name: 'Artisanal Perfume Formulation',
+            created_at: order.order_date,
+          };
+
+          // Gather ingredients associated with this formula
+          const allFormulaDetails = formulaDetails.filter((fd) => fd.formula_id === formula.formula_id);
+          const ingList = allFormulaDetails
+            .map((fd) => ingredients.find((ing) => ing.ingredient_id === fd.ingredient_id))
+            .filter((ing): ing is DbIngredient => Boolean(ing));
+
+          return {
+            order_item_id: oi.order_item_id,
+            formula_name: formula.formula_name,
+            ingredients: ingList,
+            bottle,
+            qty: oi.qty,
+            price: bottle.price,
+          };
+      });
 
     return {
       order,

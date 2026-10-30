@@ -35,6 +35,7 @@ import {
   DbFormula,
   DbFormulaDetail,
   DbOrderItem,
+  PurchaseHistoryOrder,
 } from './types';
 import {
   INITIAL_ORDER,
@@ -50,6 +51,49 @@ import {
   INITIAL_DB_FORMULA_DETAILS,
   INITIAL_DB_ORDER_ITEMS,
 } from './data/adminDatabaseData';
+
+function parseOrderItems(value: unknown): CartItem[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap((entry, index) => {
+    if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) return [];
+
+    const record = entry as Record<string, unknown>;
+    const rawDetails = record.details;
+    const details =
+      typeof rawDetails === 'object' && rawDetails !== null && !Array.isArray(rawDetails)
+        ? (rawDetails as Record<string, unknown>)
+        : null;
+    const itemSize = typeof record.size === 'string' ? record.size : undefined;
+    const notes = Array.isArray(details?.notes)
+      ? details.notes.filter((note): note is string => typeof note === 'string')
+      : undefined;
+    const price = typeof record.price === 'number' && Number.isFinite(record.price)
+      ? record.price
+      : 0;
+    const quantity = typeof record.quantity === 'number' && Number.isFinite(record.quantity)
+      ? record.quantity
+      : 1;
+
+    return [{
+      id: typeof record.id === 'string' ? record.id : `order-item-${index + 1}`,
+      title: typeof record.title === 'string' ? record.title : 'Perfume',
+      subtitle: typeof record.subtitle === 'string' ? record.subtitle : '',
+      description: typeof record.description === 'string' ? record.description : undefined,
+      price,
+      quantity,
+      image: typeof record.image === 'string' ? record.image : '',
+      details: details
+        ? {
+            notes,
+            size: typeof details.size === 'string' ? details.size : itemSize,
+          }
+        : itemSize
+        ? { size: itemSize }
+        : undefined,
+    }];
+  });
+}
 
 export default function App() {
   // Navigation State
@@ -86,6 +130,8 @@ export default function App() {
   // User State: start without log in (null)
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [authenticatedUser, setAuthenticatedUser] = useState<User | null>(null);
+  const [purchaseHistory, setPurchaseHistory] = useState<PurchaseHistoryOrder[]>([]);
+  const [purchaseHistoryError, setPurchaseHistoryError] = useState<string | null>(null);
   const [isAdminUser, setIsAdminUser] = useState<boolean>(false);
   const [adminUser, setAdminUser] = useState<string>('Scentify Studio Master Perfumer');
   const [isAuthResolved, setIsAuthResolved] = useState<boolean>(false);
@@ -106,6 +152,8 @@ export default function App() {
           setAuthenticatedUser(null);
           setCurrentUser(null);
           setIsAdminUser(false);
+          setPurchaseHistory([]);
+          setPurchaseHistoryError(null);
           setIsAuthResolved(true);
         }
         return;
@@ -136,6 +184,44 @@ export default function App() {
         setCurrentUser(isAdmin ? null : name);
 
         if (!isAdmin) {
+          const { data: customerOrders, error: customerOrdersError } = await supabase
+            .from('orders')
+            .select('order_id, order_number, status, payment_status, total, items, created_at')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+
+          if (customerOrdersError) {
+            console.error('Failed to load purchase history from Supabase:', customerOrdersError);
+            if (active) {
+              setPurchaseHistory([]);
+              setPurchaseHistoryError(
+                `Could not load purchase history: ${customerOrdersError.message}`
+              );
+            }
+          } else if (active && customerOrders) {
+            setPurchaseHistory(
+              customerOrders.map((row) => ({
+                orderId: row.order_number || String(row.order_id),
+                date: row.created_at,
+                status:
+                  row.status === 'cancelled'
+                    ? 'Cancelled'
+                    : row.status === 'completed'
+                    ? 'Completed'
+                    : row.status === 'processing'
+                    ? 'Preparing'
+                    : row.payment_status === 'verified'
+                    ? 'Payment verified'
+                    : row.payment_status === 'failed'
+                    ? 'Payment failed'
+                    : 'Awaiting payment verification',
+                total: Number(row.total),
+                items: parseOrderItems(row.items),
+              }))
+            );
+            setPurchaseHistoryError(null);
+          }
+
           const savedAddress = profile?.shipping_address || {};
           setOrder((prev) => ({
             ...prev,
@@ -148,6 +234,8 @@ export default function App() {
             phone: savedAddress.phone || prev.phone,
           }));
         } else {
+          setPurchaseHistory([]);
+          setPurchaseHistoryError(null);
           const { data: rows, error: ordersError } = await supabase
             .from('orders')
             .select(
@@ -180,6 +268,7 @@ export default function App() {
                   status,
                   total_price: Number(row.total),
                   prep_photo_url: '',
+                  items: parseOrderItems(row.items),
                 } satisfies DbOrder,
               };
             });
@@ -358,12 +447,7 @@ export default function App() {
         status: 'pending',
         payment_status: 'pending',
         payment_slip_url: payload.slipUrl,
-        items: cartItems.map((item) => ({
-          title: item.title,
-          price: item.price,
-          quantity: item.quantity,
-          size: item.details?.size || '50 ml',
-        })),
+        items: cartItems.map((item) => ({ ...item })),
       })
       .select('order_id, created_at')
       .single();
@@ -371,6 +455,18 @@ export default function App() {
     if (error) {
       throw error;
     }
+
+    setPurchaseHistory((previous) => [
+      {
+        orderId: payload.orderId,
+        date: savedOrder.created_at,
+        status: 'Awaiting payment verification',
+        total: payload.total,
+        items: cartItems.map((item) => ({ ...item })),
+      },
+      ...previous,
+    ]);
+    setPurchaseHistoryError(null);
 
     const numericOrderId = Number(savedOrder.order_id);
     const newUserId = 1_000_000 + numericOrderId;
@@ -684,6 +780,8 @@ export default function App() {
             userName={currentUser || 'Studio Member'}
             userEmail={authenticatedUser?.email || undefined}
             order={order}
+            purchaseHistory={purchaseHistory}
+            purchaseHistoryError={purchaseHistoryError}
             onUpdateAddress={handleAddressUpdate}
             onLogout={handleLogout}
             onNavigate={navigateTo}

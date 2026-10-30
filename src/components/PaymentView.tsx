@@ -17,6 +17,27 @@ import {
 } from 'lucide-react';
 import { OrderDetails, CartItem, ViewMode } from '../types';
 
+function getPlaceOrderErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+
+  if (typeof error === 'object' && error !== null) {
+    const details = error as Record<string, unknown>;
+    const message = typeof details.message === 'string' ? details.message : null;
+    const code = typeof details.code === 'string' ? details.code : null;
+    const hint = typeof details.hint === 'string' ? details.hint : null;
+    const extraDetails = typeof details.details === 'string' ? details.details : null;
+    const diagnostic = [code && `Code: ${code}`, extraDetails, hint && `Hint: ${hint}`]
+      .filter(Boolean)
+      .join(' ');
+
+    if (message) {
+      return diagnostic ? `${message} (${diagnostic})` : message;
+    }
+  }
+
+  return 'An unexpected error occurred while saving the order. Please try again.';
+}
+
 interface PaymentViewProps {
   order: OrderDetails;
   items: CartItem[];
@@ -80,9 +101,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
     } catch (error) {
       console.error('Failed to place order:', error);
       setIsOrderPlaced(false);
-      setPlaceOrderError(
-        error instanceof Error ? error.message : 'The order could not be saved. Please try again.'
-      );
+      setPlaceOrderError(`The order could not be saved: ${getPlaceOrderErrorMessage(error)}`);
     } finally {
       setIsPlacingOrder(false);
     }

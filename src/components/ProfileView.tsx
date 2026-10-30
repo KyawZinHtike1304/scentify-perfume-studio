@@ -13,13 +13,15 @@ import {
   ExternalLink,
   Save,
 } from 'lucide-react';
-import { OrderDetails, ViewMode } from '../types';
+import { OrderDetails, PurchaseHistoryOrder, ViewMode } from '../types';
 import { updateShippingAddress } from '../supabase';
 
 interface ProfileViewProps {
   userName: string;
   userEmail?: string;
   order: OrderDetails;
+  purchaseHistory: PurchaseHistoryOrder[];
+  purchaseHistoryError?: string | null;
   onUpdateAddress: (addressData: Partial<OrderDetails>) => void;
   onLogout: () => void;
   onNavigate: (view: ViewMode) => void;
@@ -29,6 +31,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   userName,
   userEmail,
   order,
+  purchaseHistory,
+  purchaseHistoryError,
   onUpdateAddress,
   onLogout,
   onNavigate,
@@ -317,17 +321,74 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   <h2 className="font-serif text-2xl text-[#28192A]">Purchase History</h2>
                 </div>
                 <span className="text-xs text-[#6B6166]">
-                  0 orders recorded
+                  {purchaseHistory.length} {purchaseHistory.length === 1 ? 'order' : 'orders'} recorded
                 </span>
               </div>
 
-              <div className="py-12 text-center border border-dashed border-[#DAD1C5] bg-[#FBF7F0]/40">
-                <ShoppingBag className="w-9 h-9 text-[#C9A25C] mx-auto mb-3 stroke-1" />
-                <h3 className="font-serif text-xl text-[#28192A]">No purchases yet</h3>
-                <p className="text-xs text-[#6B6166] mt-2">
-                  Your completed orders will appear here.
+              {purchaseHistoryError ? (
+                <p className="py-8 text-center text-sm text-rose-800" role="alert">
+                  {purchaseHistoryError}
                 </p>
-              </div>
+              ) : purchaseHistory.length === 0 ? (
+                <div className="py-12 text-center border border-dashed border-[#DAD1C5] bg-[#FBF7F0]/40">
+                  <ShoppingBag className="w-9 h-9 text-[#C9A25C] mx-auto mb-3 stroke-1" />
+                  <h3 className="font-serif text-xl text-[#28192A]">No purchases yet</h3>
+                  <p className="text-xs text-[#6B6166] mt-2">
+                    Your orders will appear here after you place one.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {purchaseHistory.map((purchase) => (
+                    <div
+                      key={purchase.orderId}
+                      className="border border-[#DAD1C5]/70 bg-[#FBF7F0]/40 p-5 space-y-4"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#DAD1C5]/40">
+                        <div>
+                          <span className="text-[10px] tracking-widest uppercase text-[#6B6166]">
+                            ORDER REF
+                          </span>
+                          <h4 className="font-mono text-sm font-semibold text-[#28192A]">
+                            #{purchase.orderId}
+                          </h4>
+                          <span className="text-[11px] text-[#6B6166]">
+                            {new Date(purchase.date).toLocaleDateString('en-GB', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <span className="inline-block px-2.5 py-1 text-[11px] font-medium border border-amber-200 text-amber-800 bg-amber-50">
+                            {purchase.status}
+                          </span>
+                          <div className="font-serif text-base font-semibold text-[#28192A] mt-1">
+                            ฿ {purchase.total.toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 text-xs">
+                        {purchase.items.map((item) => (
+                          <div key={item.id} className="flex justify-between gap-4 text-[#6B6166]">
+                            <div>
+                              <span className="font-medium text-[#28192A]">{item.title}</span>
+                              <span className="text-[11px] block">
+                                {item.subtitle || item.details?.notes?.join(' · ')}
+                              </span>
+                            </div>
+                            <span className="shrink-0 font-medium text-[#28192A]">
+                              Qty {item.quantity} · ฿ {item.price.toLocaleString()}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Bottom inquiry prompt */}
               <div className="mt-8 pt-6 border-t border-[#DAD1C5]/40 flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#FBF7F0] p-4">
