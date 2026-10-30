@@ -35,21 +35,24 @@ export const ReviewFragranceView: React.FC<ReviewFragranceViewProps> = ({
   const price = matchedBottle.price;
 
   const handleConfirm = () => {
+    const activeNotes = [composition.topNote, composition.heartNote, composition.baseNote].filter(Boolean);
     const customItem: CartItem = {
       id: `custom-${Date.now()}`,
-      title: 'Custom Fragrance',
-      subtitle: `${composition.topNote} · ${composition.heartNote} · ${composition.baseNote} · ${selectedSize}`,
+      title: 'Bespoke Perfume',
+      subtitle: `${activeNotes.join(' · ')} · ${selectedSize}`,
       description: 'Handcrafted personal eau de parfum formulation',
       price: price,
       quantity: 1,
       image: '/assets/botanicals/custom_bottle.png',
       details: {
-        notes: [composition.topNote, composition.heartNote, composition.baseNote],
+        notes: activeNotes,
         size: selectedSize,
       },
     };
     onConfirmAndShip(customItem);
   };
+
+  const activeNotesList = [composition.topNote, composition.heartNote, composition.baseNote].filter(Boolean);
 
   return (
     <div className="min-h-screen bg-[#FBF7F0] py-12 sm:py-16 px-4 sm:px-6 lg:px-8 text-[#28192A]">
@@ -118,32 +121,16 @@ export const ReviewFragranceView: React.FC<ReviewFragranceViewProps> = ({
               {/* Formulation details & Dynamic Bottle Picker */}
               <div className="sm:col-span-7 space-y-4">
                 <div className="space-y-3 pb-3 border-b border-[#DAD1C5]/30">
-                  <div>
-                    <span className="text-[9px] tracking-[0.2em] uppercase text-[#6B6166] font-medium block">
-                      TOP NOTE
-                    </span>
-                    <span className="font-serif text-base text-[#28192A]">
-                      {composition.topNote || 'Bergamot'}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="text-[9px] tracking-[0.2em] uppercase text-[#6B6166] font-medium block">
-                      HEART NOTE
-                    </span>
-                    <span className="font-serif text-base text-[#28192A]">
-                      {composition.heartNote || 'Jasmine'}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="text-[9px] tracking-[0.2em] uppercase text-[#6B6166] font-medium block">
-                      BASE NOTE
-                    </span>
-                    <span className="font-serif text-base text-[#28192A]">
-                      {composition.baseNote || 'Sandalwood'}
-                    </span>
-                  </div>
+                  {activeNotesList.map((note, index) => (
+                    <div key={note}>
+                      <span className="text-[9px] tracking-[0.2em] uppercase text-[#6B6166] font-medium block">
+                        NOTE {index + 1}
+                      </span>
+                      <span className="font-serif text-base text-[#28192A]">
+                        {note}
+                      </span>
+                    </div>
+                  ))}
 
                   <div>
                     <span className="text-[9px] tracking-[0.2em] uppercase text-[#6B6166] font-medium block">

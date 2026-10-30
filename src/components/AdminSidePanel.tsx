@@ -103,6 +103,7 @@ interface AdminSidePanelProps {
   onCancelOrder?: (orderId: number) => void | Promise<void>;
   onUpdateOrderStatus?: (orderId: number, status: DbOrder['status']) => void | Promise<void>;
   onVerifyPayment?: (paymentId: number, orderId: number) => void | Promise<void>;
+  onSaveShippingDetails?: (shippingId: number, orderId: number, courier: string, tracking: string) => void | Promise<void>;
   onSwitchToStorefront?: () => void;
 }
 
@@ -134,6 +135,7 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
   onCancelOrder,
   onUpdateOrderStatus,
   onVerifyPayment,
+  onSaveShippingDetails,
   onSwitchToStorefront,
 }) => {
   // Navigation Tabs
@@ -1054,7 +1056,7 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
         await onConfirmOrder(orderId);
       } else {
         await handleVerifyPayment(1_000_000 + orderId, orderId);
-        await handleUpdateOrderStatus(orderId, 'processing');
+        await handleUpdateOrderStatus(orderId, 'preparing');
       }
     } catch (error) {
       console.error('Failed to confirm order:', error);
@@ -1063,7 +1065,7 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
     }
 
     setOrders((prev) =>
-      prev.map((ord) => (ord.order_id === orderId ? { ...ord, status: 'processing' } : ord))
+      prev.map((ord) => (ord.order_id === orderId ? { ...ord, status: 'preparing' } : ord))
     );
     setPayments((prev) =>
       prev.map((p) =>
@@ -1076,14 +1078,14 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
         prev
           ? {
               ...prev,
-              order: { ...prev.order, status: 'processing' },
+              order: { ...prev.order, status: 'preparing' },
               payment: { ...prev.payment, status: 'verified', verified_at: now },
             }
           : null
       );
     }
 
-    showToast(`Order #${orderId} verified and advanced to PREPARATION!`);
+    showToast(`Order #${orderId} payment verified! Status changed to PREPARING.`);
   };
 
   const handleCancelOrder = async (orderId: number) => {
@@ -1117,30 +1119,65 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
     showToast(`Order #${orderId} cancelled by Admin.`);
   };
 
-  const handleSaveShipping = (shippingId: number) => {
+  const handleSaveShipping = async (shippingId: number) => {
+    const orderId = selectedOrder?.order.order_id;
+    const courier = shippingForm.courier || selectedOrder?.shipping.courier_name || 'DHL Express';
+    const tracking = shippingForm.tracking || selectedOrder?.shipping.tracking_number || (orderId ? `DHL-TH-${orderId}` : 'PENDING');
+
+    if (orderId) {
+      try {
+        if (onSaveShippingDetails) {
+          await onSaveShippingDetails(shippingId, orderId, courier, tracking);
+        } else {
+          await onUpdateOrderStatus?.(orderId, 'delivering');
+        }
+      } catch (err) {
+        console.error('Failed to save shipping details:', err);
+        showToast(err instanceof Error ? err.message : 'Courier details could not be saved.');
+        return;
+      }
+    }
+
     setShippings((prev) =>
       prev.map((s) =>
         s.shipping_id === shippingId
           ? {
               ...s,
-              courier_name: shippingForm.courier || s.courier_name,
-              tracking_number: shippingForm.tracking || s.tracking_number,
+              courier_name: courier,
+              tracking_number: tracking,
             }
           : s
       )
     );
+
+    if (orderId) {
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.order_id === orderId
+            ? { ...o, status: 'delivering', courier_name: courier, tracking_number: tracking }
+            : o
+        )
+      );
+    }
+
     setIsEditingShipping(false);
-    showToast('Shipping courier and tracking details updated.');
+    showToast(`Courier details saved! Order #${orderId || ''} status set to DELIVERING.`);
 
     if (selectedOrder && selectedOrder.shipping.shipping_id === shippingId) {
       setSelectedOrder((prev) =>
         prev
           ? {
               ...prev,
+              order: {
+                ...prev.order,
+                status: 'delivering',
+                courier_name: courier,
+                tracking_number: tracking,
+              },
               shipping: {
                 ...prev.shipping,
-                courier_name: shippingForm.courier || prev.shipping.courier_name,
-                tracking_number: shippingForm.tracking || prev.shipping.tracking_number,
+                courier_name: courier,
+                tracking_number: tracking,
               },
             }
           : null
@@ -3242,24 +3279,30 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
             </div>
 
             {/* Quick Status Adjustments */}
-            <div className="flex items-center justify-between pt-4 border-t border-[#DAD1C5]/40 text-xs">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-between pt-4 border-t border-[#DAD1C5]/40 text-xs gap-3">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="text-[#6B6166]">Status:</span>
                 <button
-                  onClick={() => handleUpdateOrderStatus(selectedOrder.order.order_id, 'processing')}
-                  className="px-2 py-1 bg-amber-100 text-amber-800 uppercase font-mono font-bold text-[10px]"
+                  onClick={() => handleUpdateOrderStatus(selectedOrder.order.order_id, 'preparing')}
+                  className="px-2 py-1 bg-amber-100 text-amber-800 uppercase font-mono font-bold text-[10px] hover:bg-amber-200"
                 >
-                  Set Processing
+                  Set Preparing
+                </button>
+                <button
+                  onClick={() => handleUpdateOrderStatus(selectedOrder.order.order_id, 'delivering')}
+                  className="px-2 py-1 bg-sky-100 text-sky-800 uppercase font-mono font-bold text-[10px] hover:bg-sky-200"
+                >
+                  Set Delivering
                 </button>
                 <button
                   onClick={() => handleUpdateOrderStatus(selectedOrder.order.order_id, 'completed')}
-                  className="px-2 py-1 bg-emerald-100 text-emerald-800 uppercase font-mono font-bold text-[10px]"
+                  className="px-2 py-1 bg-emerald-100 text-emerald-800 uppercase font-mono font-bold text-[10px] hover:bg-emerald-200"
                 >
                   Set Completed
                 </button>
                 <button
                   onClick={() => handleCancelOrder(selectedOrder.order.order_id)}
-                  className="px-2 py-1 bg-red-100 text-red-800 uppercase font-mono font-bold text-[10px]"
+                  className="px-2 py-1 bg-red-100 text-red-800 uppercase font-mono font-bold text-[10px] hover:bg-red-200"
                 >
                   Cancel Order
                 </button>

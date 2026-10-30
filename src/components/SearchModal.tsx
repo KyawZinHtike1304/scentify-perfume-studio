@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, X, Sparkles, ArrowRight } from 'lucide-react';
+import { Search, X, Sparkles, ArrowRight, CornerDownLeft, ExternalLink } from 'lucide-react';
 import { SCENT_FAMILIES } from '../data/perfumeData';
 import { Ingredient, ViewMode, ScentFamily } from '../types';
 
@@ -8,6 +8,7 @@ interface SearchModalProps {
   onClose: () => void;
   onSelectIngredient?: (ingredient: Ingredient) => void;
   onNavigate: (view: ViewMode) => void;
+  onSearchFullPage?: (query: string) => void;
   scentFamilies?: ScentFamily[];
 }
 
@@ -16,6 +17,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
   onClose,
   onSelectIngredient,
   onNavigate,
+  onSearchFullPage,
   scentFamilies = SCENT_FAMILIES,
 }) => {
   const [query, setQuery] = useState('');
@@ -28,6 +30,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
   const filteredIngredients = useMemo(() => {
     return allIngredients.filter((item: Ingredient) => {
       const matchQuery =
+        !query ||
         item.name.toLowerCase().includes(query.toLowerCase()) ||
         item.description.toLowerCase().includes(query.toLowerCase()) ||
         item.familyName.toLowerCase().includes(query.toLowerCase());
@@ -36,15 +39,27 @@ export const SearchModal: React.FC<SearchModalProps> = ({
     });
   }, [allIngredients, query, selectedFamily]);
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = query.trim();
+    if (onSearchFullPage) {
+      onSearchFullPage(trimmed);
+    } else {
+      onNavigate('search');
+    }
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 bg-[#28192A]/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div className="bg-[#FBF7F0] border border-[#DAD1C5] max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[85vh] flex flex-col">
+        
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-1.5 text-[#6B6166] hover:text-[#28192A] transition-colors"
+          className="absolute top-5 right-5 p-1.5 text-[#6B6166] hover:text-[#28192A] transition-colors cursor-pointer"
           aria-label="Close search"
         >
           <X className="w-5 h-5" />
@@ -53,26 +68,46 @@ export const SearchModal: React.FC<SearchModalProps> = ({
         <span className="text-[10px] uppercase font-mono tracking-widest text-[#C9A25C] font-semibold block mb-1">
           STUDIO BOTANICAL ARCHIVE
         </span>
-        <h3 className="font-serif text-2xl text-[#28192A] mb-4">Search Notes &amp; Ingredients</h3>
+        <h3 className="font-serif text-2xl text-[#28192A] mb-4">Search Available Scents</h3>
 
-        {/* Search input */}
-        <div className="relative mb-4">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6B6166]" />
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search bergamot, jasmine, sandalwood, oud..."
-            autoFocus
-            className="w-full bg-[#FBF7F0] border border-[#DAD1C5] pl-10 pr-4 py-3 text-xs text-[#28192A] placeholder-[#6B6166]/60 focus:outline-none focus:border-[#28192A]"
-          />
-        </div>
+        {/* Search input with Form for Enter key */}
+        <form onSubmit={handleSearchSubmit} className="mb-3">
+          <div className="relative flex items-center">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6B6166]" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search bergamot, jasmine, sandalwood, oud..."
+              autoFocus
+              className="w-full bg-[#FBF7F0] border border-[#DAD1C5] pl-10 pr-24 py-3 text-xs text-[#28192A] placeholder-[#6B6166]/60 focus:outline-none focus:border-[#28192A]"
+            />
+            <button
+              type="submit"
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-[#28192A] text-[#FFFDF8] hover:bg-[#3D2540] text-[10px] uppercase tracking-wider font-medium flex items-center gap-1 transition-colors cursor-pointer"
+              title="Show results in full page"
+            >
+              <span>Search</span>
+              <CornerDownLeft className="w-3 h-3 text-[#C9A25C]" />
+            </button>
+          </div>
+          <p className="text-[10px] text-[#6B6166] mt-1.5 flex items-center justify-between">
+            <span>Press <kbd className="px-1 py-0.5 bg-[#DAD1C5]/50 text-[#28192A] rounded-xs font-mono font-semibold">Enter ↵</kbd> to view all available scents in full page</span>
+            <button
+              type="submit"
+              className="text-[#C9A25C] hover:text-[#28192A] underline cursor-pointer inline-flex items-center gap-1 font-medium"
+            >
+              <span>Open in Full Page</span>
+              <ExternalLink className="w-2.5 h-2.5" />
+            </button>
+          </p>
+        </form>
 
         {/* Scent family filter pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-3 mb-3 border-b border-[#DAD1C5]/40 text-xs">
           <button
             onClick={() => setSelectedFamily('all')}
-            className={`px-3 py-1 rounded-none text-[11px] uppercase tracking-wider transition-colors ${
+            className={`px-3 py-1 rounded-none text-[11px] uppercase tracking-wider transition-colors cursor-pointer shrink-0 ${
               selectedFamily === 'all'
                 ? 'bg-[#28192A] text-[#FFFDF8]'
                 : 'bg-[#FBF7F0] text-[#6B6166] hover:text-[#28192A] border border-[#DAD1C5]'
@@ -80,11 +115,11 @@ export const SearchModal: React.FC<SearchModalProps> = ({
           >
             All Families
           </button>
-          {SCENT_FAMILIES.map((fam) => (
+          {scentFamilies.map((fam) => (
             <button
               key={fam.id}
               onClick={() => setSelectedFamily(fam.id)}
-              className={`px-3 py-1 rounded-none text-[11px] uppercase tracking-wider whitespace-nowrap transition-colors ${
+              className={`px-3 py-1 rounded-none text-[11px] uppercase tracking-wider whitespace-nowrap transition-colors cursor-pointer shrink-0 ${
                 selectedFamily === fam.id
                   ? 'bg-[#28192A] text-[#FFFDF8]'
                   : 'bg-[#FBF7F0] text-[#6B6166] hover:text-[#28192A] border border-[#DAD1C5]'
@@ -100,6 +135,14 @@ export const SearchModal: React.FC<SearchModalProps> = ({
           {filteredIngredients.length === 0 ? (
             <div className="text-center py-10 text-xs text-[#6B6166]">
               No botanical notes found matching "{query}".
+              <div className="mt-3">
+                <button
+                  onClick={handleSearchSubmit}
+                  className="text-[#28192A] underline hover:text-[#C9A25C] text-xs font-medium cursor-pointer"
+                >
+                  Search on full page anyway →
+                </button>
+              </div>
             </div>
           ) : (
             filteredIngredients.map((ing: Ingredient) => (
@@ -135,19 +178,16 @@ export const SearchModal: React.FC<SearchModalProps> = ({
           )}
         </div>
 
-        {/* Bottom CTA */}
+        {/* Bottom CTA Bar */}
         <div className="mt-4 pt-3 border-t border-[#DAD1C5]/40 flex items-center justify-between text-xs">
           <span className="text-[#6B6166]">
             Showing {filteredIngredients.length} notes
           </span>
           <button
-            onClick={() => {
-              onClose();
-              onNavigate('collection');
-            }}
-            className="text-[#28192A] underline hover:text-[#C9A25C] flex items-center gap-1 cursor-pointer"
+            onClick={handleSearchSubmit}
+            className="text-[#28192A] underline hover:text-[#C9A25C] flex items-center gap-1 cursor-pointer font-medium"
           >
-            <span>Explore Full Ingredient Library</span>
+            <span>View All Available Scents in Full Page</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>

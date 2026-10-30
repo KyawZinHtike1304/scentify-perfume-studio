@@ -16,6 +16,7 @@ import { AuthModal } from './components/AuthModal';
 import { SearchModal } from './components/SearchModal';
 import { StoryModal } from './components/StoryModal';
 import { AdminSidePanel } from './components/AdminSidePanel';
+import { SearchResultsView } from './components/SearchResultsView';
 
 import { supabase } from './supabase';
 import type { User } from '@supabase/supabase-js';
@@ -109,14 +110,17 @@ export default function App() {
   // Navigation State
   const [currentView, setCurrentView] = useState<ViewMode>('home');
   
-  // Custom Perfume Formulation State
+  // Custom Perfume Formulation State: no ingredients pre-selected
   const [composition, setComposition] = useState<Composition>({
-    topNote: 'Bergamot',
-    heartNote: 'Jasmine',
-    baseNote: 'Sandalwood',
+    topNote: '',
+    heartNote: '',
+    baseNote: '',
     bottleSize: '50 ml',
-    bottleType: 'Classic',
+    bottleType: 'Classic Flacon',
   });
+
+  // Warning when customer attempts to add a 4th ingredient
+  const [craftingWarning, setCraftingWarning] = useState<string | null>(null);
 
   // Shopping Bag / Cart State
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -241,6 +245,7 @@ export default function App() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup' | 'admin'>('signup');
   const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [storyModalOpen, setStoryModalOpen] = useState(false);
 
   // Resolve the current Supabase session and load the signed-in user's profile.
@@ -291,7 +296,7 @@ export default function App() {
         if (!isAdmin) {
           const { data: customerOrders, error: customerOrdersError } = await supabase
             .from('orders')
-            .select('order_id, order_number, status, payment_status, total, items, created_at')
+            .select('order_id, order_number, status, payment_status, total, items, created_at, courier_name, tracking_number')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false });
 
@@ -307,19 +312,25 @@ export default function App() {
             setPurchaseHistory(
               customerOrders.map((row) => ({
                 orderId: row.order_number || String(row.order_id),
+                numericOrderId: Number(row.order_id),
                 date: row.created_at,
                 status:
                   row.status === 'cancelled'
                     ? 'Cancelled'
                     : row.status === 'completed'
                     ? 'Completed'
-                    : row.status === 'processing'
+                    : row.status === 'delivering'
+                    ? 'Delivering'
+                    : row.status === 'preparing' || row.status === 'processing'
                     ? 'Preparing'
                     : row.payment_status === 'verified'
-                    ? 'Payment verified'
+                    ? 'Preparing'
                     : row.payment_status === 'failed'
                     ? 'Payment failed'
                     : 'Awaiting payment verification',
+                rawStatus: row.status as any,
+                courierName: row.courier_name || 'DHL Express',
+                trackingNumber: row.tracking_number,
                 total: Number(row.total),
                 items: parseOrderItems(row.items),
               }))
@@ -344,7 +355,7 @@ export default function App() {
           const { data: rows, error: ordersError } = await supabase
             .from('orders')
             .select(
-              'order_id, user_id, customer_name, customer_email, customer_phone, shipping_address, total, status, payment_status, payment_slip_url, items, created_at, verified_at'
+              'order_id, user_id, customer_name, customer_email, customer_phone, shipping_address, total, status, payment_status, payment_slip_url, items, created_at, verified_at, courier_name, tracking_number'
             )
             .order('created_at', { ascending: false });
 
@@ -355,6 +366,8 @@ export default function App() {
               const id = Number(row.order_id);
               const adminId = 1_000_000 + id;
               const status: DbOrder['status'] =
+                row.status === 'delivering' ||
+                row.status === 'preparing' ||
                 row.status === 'processing' ||
                 row.status === 'completed' ||
                 row.status === 'cancelled'
@@ -372,6 +385,8 @@ export default function App() {
                   status,
                   total_price: Number(row.total),
                   prep_photo_url: '',
+                  courier_name: row.courier_name || 'DHL Express',
+                  tracking_number: row.tracking_number || 'PENDING-VERIFICATION',
                   items: parseOrderItems(row.items),
                 } satisfies DbOrder,
               };
@@ -401,8 +416,8 @@ export default function App() {
               ...savedOrders.map(({ row, adminId }) => ({
                 shipping_id: adminId,
                 shipping_fee: Number(row.total) > 1500 ? 0 : 50,
-                tracking_number: 'PENDING-VERIFICATION',
-                courier_name: 'DHL Express',
+                tracking_number: row.tracking_number || 'PENDING-VERIFICATION',
+                courier_name: row.courier_name || 'DHL Express',
                 shipping_address: row.shipping_address,
               })),
               ...current.filter(
@@ -468,13 +483,34 @@ export default function App() {
   };
 
   const handleAddIngredientToScentify = (ingredient: Ingredient) => {
-    if (ingredient.familyId === 'citrus') {
-      setComposition((prev) => ({ ...prev, topNote: ingredient.name }));
-    } else if (ingredient.familyId === 'floral') {
-      setComposition((prev) => ({ ...prev, heartNote: ingredient.name }));
-    } else {
-      setComposition((prev) => ({ ...prev, baseNote: ingredient.name }));
+    const currentNotes = [composition.topNote, composition.heartNote, composition.baseNote].filter(Boolean);
+
+    // If note is already selected, take to scentify
+    if (currentNotes.includes(ingredient.name)) {
+      setCraftingWarning(null);
+      setCurrentView('scentify');
+      return;
     }
+
+    // Maximum 3 ingredients blocking rule: if 4th is attempted, show warning and return with existing 3 ingredients
+    if (currentNotes.length >= 3) {
+      setCraftingWarning(
+        `Maximum of 3 ingredients per bespoke perfume. You have already selected 3 ingredients (${currentNotes.join(
+          ', '
+        )}). Please remove one of your 3 selected ingredients if you want to add "${ingredient.name}".`
+      );
+      setCurrentView('scentify');
+      return;
+    }
+
+    // Add to next open note slot
+    setComposition((prev) => {
+      if (!prev.topNote) return { ...prev, topNote: ingredient.name };
+      if (!prev.heartNote) return { ...prev, heartNote: ingredient.name };
+      return { ...prev, baseNote: ingredient.name };
+    });
+    setCraftingWarning(null);
+    setCurrentView('scentify');
   };
 
   // Chat message send handler with automatic studio perfumer response
@@ -551,6 +587,8 @@ export default function App() {
         status: 'pending',
         payment_status: 'pending',
         payment_slip_url: payload.slipUrl,
+        courier_name: 'DHL Express',
+        tracking_number: 'PENDING-VERIFICATION',
         items: cartItems.map((item) => ({ ...item })),
       })
       .select('order_id, created_at')
@@ -560,11 +598,17 @@ export default function App() {
       throw error;
     }
 
+    const numericOrderId = Number(savedOrder.order_id);
+
     setPurchaseHistory((previous) => [
       {
         orderId: payload.orderId,
+        numericOrderId,
         date: savedOrder.created_at,
         status: 'Awaiting payment verification',
+        rawStatus: 'pending',
+        courierName: 'DHL Express',
+        trackingNumber: 'PENDING-VERIFICATION',
         total: payload.total,
         items: cartItems.map((item) => ({ ...item })),
       },
@@ -572,7 +616,6 @@ export default function App() {
     ]);
     setPurchaseHistoryError(null);
 
-    const numericOrderId = Number(savedOrder.order_id);
     const newUserId = 1_000_000 + numericOrderId;
     const newShippingId = newUserId;
     const newPaymentId = newUserId;
@@ -605,6 +648,8 @@ export default function App() {
       status: 'pending',
       total_price: payload.total,
       prep_photo_url: '',
+      courier_name: 'DHL Express',
+      tracking_number: 'PENDING-VERIFICATION',
     };
     const newFormulaId = 1_000_000 + numericOrderId;
     const formulaName =
@@ -636,14 +681,24 @@ export default function App() {
       status: 'slip_uploaded',
       total: payload.total,
     }));
+
+    // Clear cart and reset composition for a new craft
+    setCartItems([]);
+    setComposition({
+      topNote: '',
+      heartNote: '',
+      baseNote: '',
+      bottleSize: '50 ml',
+      bottleType: 'Classic Flacon',
+    });
   };
 
-  // Admin verifies slip and confirms the order
+  // Admin verifies payment slip: status changes to preparing
   const handleAdminConfirmOrder = async (orderId: number) => {
     const now = new Date().toISOString();
     const { error } = await supabase
       .from('orders')
-      .update({ status: 'processing', payment_status: 'verified', verified_at: now })
+      .update({ status: 'preparing', payment_status: 'verified', verified_at: now })
       .eq('order_id', orderId);
     if (error) {
       console.error('Failed to confirm Supabase order:', error);
@@ -651,17 +706,104 @@ export default function App() {
     }
 
     setDbOrders((prev) =>
-      prev.map((o) => (o.order_id === orderId ? { ...o, status: 'processing' } : o))
+      prev.map((o) => (o.order_id === orderId ? { ...o, status: 'preparing' } : o))
     );
     setDbPayments((prev) =>
       prev.map((p) =>
         p.order_id === orderId ? { ...p, status: 'verified', verified_at: now } : p
       )
     );
+    setPurchaseHistory((prev) =>
+      prev.map((po) =>
+        po.numericOrderId === orderId || po.orderId === `ORD-${orderId}`
+          ? { ...po, status: 'Preparing', rawStatus: 'preparing' }
+          : po
+      )
+    );
     setOrder((prev) =>
       Number(prev.orderId.replace(/\D/g, '')) === orderId
         ? { ...prev, status: 'verified' }
         : prev
+    );
+  };
+
+  // Admin saves courier and tracking ID: status changes to delivering
+  const handleAdminSaveShipping = async (
+    shippingId: number,
+    orderId: number,
+    courier: string,
+    tracking: string
+  ) => {
+    const { error } = await supabase
+      .from('orders')
+      .update({
+        status: 'delivering',
+        courier_name: courier,
+        tracking_number: tracking,
+      })
+      .eq('order_id', orderId);
+
+    if (error) {
+      console.error('Failed to update courier tracking in Supabase:', error);
+      throw new Error(`Could not update courier tracking: ${error.message}`);
+    }
+
+    setDbShippings((prev) =>
+      prev.map((s) =>
+        s.shipping_id === shippingId
+          ? { ...s, courier_name: courier, tracking_number: tracking }
+          : s
+      )
+    );
+
+    setDbOrders((prev) =>
+      prev.map((o) =>
+        o.order_id === orderId
+          ? { ...o, status: 'delivering', courier_name: courier, tracking_number: tracking }
+          : o
+      )
+    );
+
+    setPurchaseHistory((prev) =>
+      prev.map((po) =>
+        po.numericOrderId === orderId || po.orderId === `ORD-${orderId}`
+          ? {
+              ...po,
+              status: 'Delivering',
+              rawStatus: 'delivering',
+              courierName: courier,
+              trackingNumber: tracking,
+            }
+          : po
+      )
+    );
+  };
+
+  // Customer clicks "Received Order": status changes to completed in both customer and admin side
+  const handleCustomerReceiveOrder = async (orderIdRef: string, numericId?: number) => {
+    const numId = numericId || Number(orderIdRef.replace(/\D/g, ''));
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: 'completed' })
+      .eq('order_id', numId);
+
+    if (error) {
+      console.error('Failed to mark order completed in Supabase:', error);
+      throw new Error(`Could not update order status: ${error.message}`);
+    }
+
+    // Update customer purchase history
+    setPurchaseHistory((prev) =>
+      prev.map((po) =>
+        po.orderId === orderIdRef || po.numericOrderId === numId
+          ? { ...po, status: 'Completed', rawStatus: 'completed' }
+          : po
+      )
+    );
+
+    // Update admin orders
+    setDbOrders((prev) =>
+      prev.map((o) => (o.order_id === numId ? { ...o, status: 'completed' } : o))
     );
   };
 
@@ -682,6 +824,13 @@ export default function App() {
     setDbPayments((prev) =>
       prev.map((p) => (p.order_id === orderId ? { ...p, status: 'failed' } : p))
     );
+    setPurchaseHistory((prev) =>
+      prev.map((po) =>
+        po.numericOrderId === orderId || po.orderId === `ORD-${orderId}`
+          ? { ...po, status: 'Cancelled', rawStatus: 'cancelled' }
+          : po
+      )
+    );
     setOrder((prev) =>
       Number(prev.orderId.replace(/\D/g, '')) === orderId
         ? { ...prev, status: 'cancelled' }
@@ -699,24 +848,53 @@ export default function App() {
     setDbOrders((prev) =>
       prev.map((order) => (order.order_id === orderId ? { ...order, status } : order))
     );
+
+    const displayStatus =
+      status === 'completed'
+        ? 'Completed'
+        : status === 'delivering'
+        ? 'Delivering'
+        : status === 'preparing' || status === 'processing'
+        ? 'Preparing'
+        : status === 'cancelled'
+        ? 'Cancelled'
+        : 'Pending';
+
+    setPurchaseHistory((prev) =>
+      prev.map((po) =>
+        po.numericOrderId === orderId || po.orderId === `ORD-${orderId}`
+          ? { ...po, status: displayStatus, rawStatus: status }
+          : po
+      )
+    );
   };
 
   const handleAdminVerifyPayment = async (_paymentId: number, orderId: number) => {
     const now = new Date().toISOString();
     const { error } = await supabase
       .from('orders')
-      .update({ payment_status: 'verified', verified_at: now })
+      .update({ status: 'preparing', payment_status: 'verified', verified_at: now })
       .eq('order_id', orderId);
     if (error) {
       console.error('Failed to verify Supabase payment:', error);
       throw new Error(`Could not verify payment: ${error.message}`);
     }
 
+    setDbOrders((prev) =>
+      prev.map((o) => (o.order_id === orderId ? { ...o, status: 'preparing' } : o))
+    );
     setDbPayments((prev) =>
       prev.map((payment) =>
         payment.order_id === orderId
           ? { ...payment, status: 'verified', verified_at: now }
           : payment
+      )
+    );
+    setPurchaseHistory((prev) =>
+      prev.map((po) =>
+        po.numericOrderId === orderId || po.orderId === `ORD-${orderId}`
+          ? { ...po, status: 'Preparing', rawStatus: 'preparing' }
+          : po
       )
     );
   };
@@ -730,13 +908,21 @@ export default function App() {
     setCurrentUser(null);
     setAuthenticatedUser(null);
     setIsAdminUser(false);
-    setOrder((prev) => ({ ...prev, customerName: '' }));
+    setPurchaseHistory([]);
+    setOrder((prev) => ({ ...prev, customerName: '', items: [], total: 0 }));
+    setCartItems([]);
     setCurrentView('home');
   };
 
   const navigateTo = (view: ViewMode) => {
     setCurrentView(view);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handlePerformSearch = (query: string) => {
+    setSearchQuery(query);
+    setSearchModalOpen(false);
+    navigateTo('search');
   };
 
   if (!isAuthResolved) {
@@ -773,6 +959,7 @@ export default function App() {
         onCancelOrder={handleAdminCancelOrder}
         onUpdateOrderStatus={handleAdminUpdateOrderStatus}
         onVerifyPayment={handleAdminVerifyPayment}
+        onSaveShippingDetails={handleAdminSaveShipping}
       />
     );
   }
@@ -794,6 +981,7 @@ export default function App() {
         }}
         onLogout={handleLogout}
         onOpenSearch={() => setSearchModalOpen(true)}
+        onPerformSearch={handlePerformSearch}
       />
 
       {/* Main Content Router */}
@@ -813,6 +1001,16 @@ export default function App() {
           />
         )}
 
+        {currentView === 'search' && (
+          <SearchResultsView
+            initialQuery={searchQuery}
+            onSearch={(q) => setSearchQuery(q)}
+            onNavigate={navigateTo}
+            onSelectIngredientToScentify={handleAddIngredientToScentify}
+            scentFamilies={scentFamilies}
+          />
+        )}
+
         {currentView === 'scentify' && (
           <ScentifyView
             composition={composition}
@@ -822,6 +1020,8 @@ export default function App() {
             bottles={bottles}
             rules={rules}
             formulas={masterFormulas}
+            externalWarning={craftingWarning}
+            onClearExternalWarning={() => setCraftingWarning(null)}
           />
         )}
 
@@ -908,6 +1108,7 @@ export default function App() {
             onUpdateAddress={handleAddressUpdate}
             onLogout={handleLogout}
             onNavigate={navigateTo}
+            onMarkOrderReceived={handleCustomerReceiveOrder}
           />
         )}
 
@@ -952,6 +1153,7 @@ export default function App() {
         onClose={() => setSearchModalOpen(false)}
         onSelectIngredient={handleAddIngredientToScentify}
         onNavigate={navigateTo}
+        onSearchFullPage={handlePerformSearch}
         scentFamilies={scentFamilies}
       />
 

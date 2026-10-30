@@ -8,7 +8,7 @@ export const SCENT_FAMILIES: ScentFamily[] = [
     subtitle: 'Bright · sparkling',
     description: 'Bright, fresh notes that uplift and energize. A luminous beginning to your story.',
     notes: ['BERGAMOT', 'LEMON', 'GRAPEFRUIT', 'ORANGE'],
-    image: '/assets/aistudio/image_7e0296e0.png',
+    image: '/assets/botanicals/citrus.png',
     ingredients: [
       { id: 'bergamot', name: 'Bergamot', description: 'Elegant citrus with a soft floral edge', familyId: 'citrus', familyName: 'Citrus', isPopular: true },
       { id: 'lemon', name: 'Lemon', description: 'Crisp, clean and luminous', familyId: 'citrus', familyName: 'Citrus' },
@@ -83,7 +83,7 @@ export const SCENT_FAMILIES: ScentFamily[] = [
     subtitle: 'Clean · awakening',
     description: 'Crisp mountain air, dew drops on wild herbs, and crystalline ocean breezes.',
     notes: ['MINT', 'GREEN TEA', 'EUCALYPTUS', 'AQUATIC ACCORD'],
-    image: '/assets/aistudio/image_7e0296e0.png',
+    image: '/assets/botanicals/fresh.png',
     ingredients: [
       { id: 'mint', name: 'Mint', description: 'Crushed spearmint leaves with frosty cooling breeze', familyId: 'fresh', familyName: 'Fresh' },
       { id: 'green-tea', name: 'Green Tea', description: 'Steeped sencha leaves with zen botanical calm', familyId: 'fresh', familyName: 'Fresh' },
@@ -93,34 +93,7 @@ export const SCENT_FAMILIES: ScentFamily[] = [
   }
 ];
 
-export const INITIAL_CART_ITEMS: CartItem[] = [
-  {
-    id: 'item-custom-1',
-    title: 'Custom Blend',
-    subtitle: 'Bergamot · Jasmine · Oud · 50 ml',
-    description: 'Personal bespoke fragrance handcrafted in our Chiang Rai studio',
-    price: 1680,
-    quantity: 1,
-    image: '/assets/botanicals/woody.png',
-    details: {
-      notes: ['Bergamot', 'Jasmine', 'Oud'],
-      size: '50 ml'
-    }
-  },
-  {
-    id: 'item-sig-1',
-    title: 'Signature Bottle',
-    subtitle: 'Oud · 30 ml',
-    description: 'A warm finishing note for your personal collection',
-    price: 522,
-    quantity: 2,
-    image: '/assets/aistudio/image_7e0296e0.png',
-    details: {
-      notes: ['Oud'],
-      size: '30 ml'
-    }
-  }
-];
+export const INITIAL_CART_ITEMS: CartItem[] = [];
 
 export const INITIAL_ORDER: OrderDetails = {
   orderId: 'LM-2026-0042',
@@ -131,14 +104,14 @@ export const INITIAL_ORDER: OrderDetails = {
   postalCode: '57000',
   country: 'Thailand',
   phone: '+66 91 234 5678',
-  items: [...INITIAL_CART_ITEMS],
-  subtotal: 2202,
+  items: [],
+  subtotal: 0,
   shipping: 0,
   tax: 0,
   discount: 0,
-  total: 2202,
+  total: 0,
   status: 'awaiting_confirmation',
-  perfumerNote: '“The final blend has been balanced to keep the Bergamot bright, the Jasmine soft, and the Oud warm without overpowering the floral heart.”'
+  perfumerNote: '“Your bespoke blend will be carefully weighed and bottled by our Chiang Rai master perfumers upon confirmation.”'
 };
 
 export const INITIAL_CHAT_MESSAGES: ChatMessage[] = [

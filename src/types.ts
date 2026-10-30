@@ -63,8 +63,12 @@ export interface OrderDetails {
 
 export interface PurchaseHistoryOrder {
   orderId: string;
+  numericOrderId?: number;
   date: string;
   status: string;
+  rawStatus?: 'pending' | 'preparing' | 'processing' | 'delivering' | 'completed' | 'cancelled';
+  courierName?: string;
+  trackingNumber?: string;
   total: number;
   items: CartItem[];
 }
@@ -89,7 +93,8 @@ export type ViewMode =
   | 'about'
   | 'journal'
   | 'profile'
-  | 'admin';
+  | 'admin'
+  | 'search';
 
 // Relational Database Diagram Entities
 export interface DbUser {
@@ -106,10 +111,12 @@ export interface DbOrder {
   shipping_id: number;
   user_id: number;
   order_date: string;
-  status: 'pending' | 'processing' | 'completed' | 'cancelled';
+  status: 'pending' | 'preparing' | 'processing' | 'delivering' | 'completed' | 'cancelled';
   total_price: number;
   prep_photo_url?: string;
   items?: CartItem[];
+  courier_name?: string;
+  tracking_number?: string;
 }
 
 export interface DbShipping {

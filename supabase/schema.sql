@@ -16,11 +16,13 @@ create table if not exists public.orders (
   shipping_address text not null,
   total numeric(12, 2) not null check (total >= 0),
   status text not null default 'pending'
-    check (status in ('pending', 'processing', 'completed', 'cancelled')),
+    check (status in ('pending', 'preparing', 'processing', 'delivering', 'completed', 'cancelled')),
   payment_status text not null default 'pending'
     check (payment_status in ('pending', 'verified', 'failed')),
   payment_slip_url text,
   verified_at timestamptz,
+  courier_name text default 'DHL Express',
+  tracking_number text default 'PENDING-VERIFICATION',
   items jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now()
 );

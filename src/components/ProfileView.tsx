@@ -25,6 +25,7 @@ interface ProfileViewProps {
   onUpdateAddress: (addressData: Partial<OrderDetails>) => void;
   onLogout: () => void;
   onNavigate: (view: ViewMode) => void;
+  onMarkOrderReceived?: (orderId: string, numericOrderId?: number) => Promise<void> | void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({
@@ -36,11 +37,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onUpdateAddress,
   onLogout,
   onNavigate,
+  onMarkOrderReceived,
 }) => {
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [markingId, setMarkingId] = useState<string | null>(null);
+  const [receiveSuccessMsg, setReceiveSuccessMsg] = useState<string | null>(null);
 
   const [addressForm, setAddressForm] = useState({
     customerName: order.customerName || userName,
@@ -325,6 +329,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 </span>
               </div>
 
+              {receiveSuccessMsg && (
+                <div className="mb-4 p-3 bg-emerald-50 border border-emerald-300 text-xs text-emerald-900 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>{receiveSuccessMsg}</span>
+                </div>
+              )}
+
               {purchaseHistoryError ? (
                 <p className="py-8 text-center text-sm text-rose-800" role="alert">
                   {purchaseHistoryError}
@@ -339,54 +350,131 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {purchaseHistory.map((purchase) => (
-                    <div
-                      key={purchase.orderId}
-                      className="border border-[#DAD1C5]/70 bg-[#FBF7F0]/40 p-5 space-y-4"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#DAD1C5]/40">
-                        <div>
-                          <span className="text-[10px] tracking-widest uppercase text-[#6B6166]">
-                            ORDER REF
-                          </span>
-                          <h4 className="font-mono text-sm font-semibold text-[#28192A]">
-                            #{purchase.orderId}
-                          </h4>
-                          <span className="text-[11px] text-[#6B6166]">
-                            {new Date(purchase.date).toLocaleDateString('en-GB', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric',
-                            })}
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <span className="inline-block px-2.5 py-1 text-[11px] font-medium border border-amber-200 text-amber-800 bg-amber-50">
-                            {purchase.status}
-                          </span>
-                          <div className="font-serif text-base font-semibold text-[#28192A] mt-1">
-                            ฿ {purchase.total.toLocaleString()}
-                          </div>
-                        </div>
-                      </div>
+                  {purchaseHistory.map((purchase) => {
+                    const isDelivering =
+                      purchase.status === 'Delivering' ||
+                      purchase.rawStatus === 'delivering';
+                    const isCompleted =
+                      purchase.status === 'Completed' ||
+                      purchase.rawStatus === 'completed';
+                    const isPreparing =
+                      purchase.status === 'Preparing' ||
+                      purchase.rawStatus === 'preparing' ||
+                      purchase.rawStatus === 'processing';
 
-                      <div className="space-y-2 text-xs">
-                        {purchase.items.map((item) => (
-                          <div key={item.id} className="flex justify-between gap-4 text-[#6B6166]">
-                            <div>
-                              <span className="font-medium text-[#28192A]">{item.title}</span>
-                              <span className="text-[11px] block">
-                                {item.subtitle || item.details?.notes?.join(' · ')}
-                              </span>
-                            </div>
-                            <span className="shrink-0 font-medium text-[#28192A]">
-                              Qty {item.quantity} · ฿ {item.price.toLocaleString()}
+                    const statusBadgeClass = isCompleted
+                      ? 'border-emerald-300 text-emerald-800 bg-emerald-50'
+                      : isDelivering
+                      ? 'border-sky-300 text-sky-800 bg-sky-50'
+                      : isPreparing
+                      ? 'border-amber-300 text-amber-900 bg-amber-50'
+                      : 'border-zinc-300 text-zinc-800 bg-zinc-50';
+
+                    return (
+                      <div
+                        key={purchase.orderId}
+                        className="border border-[#DAD1C5]/70 bg-[#FBF7F0]/40 p-5 space-y-4 shadow-2xs"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#DAD1C5]/40">
+                          <div>
+                            <span className="text-[10px] tracking-widest uppercase text-[#6B6166]">
+                              ORDER REF
+                            </span>
+                            <h4 className="font-mono text-sm font-semibold text-[#28192A]">
+                              #{purchase.orderId}
+                            </h4>
+                            <span className="text-[11px] text-[#6B6166]">
+                              {new Date(purchase.date).toLocaleDateString('en-GB', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                              })}
                             </span>
                           </div>
-                        ))}
+                          <div className="text-right">
+                            <span
+                              className={`inline-block px-2.5 py-1 text-[11px] font-medium border font-mono ${statusBadgeClass}`}
+                            >
+                              {purchase.status}
+                            </span>
+                            <div className="font-serif text-base font-semibold text-[#28192A] mt-1">
+                              ฿ {purchase.total.toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Courier & Tracking Details */}
+                        {(purchase.trackingNumber || purchase.courierName || isDelivering || isCompleted) && (
+                          <div className="p-3 bg-white/70 border border-[#DAD1C5]/50 text-xs text-[#28192A] space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] uppercase font-mono tracking-wider text-[#6B6166]">
+                                Courier Delivery Details
+                              </span>
+                              <span className="text-[10px] font-mono text-[#C9A25C] font-semibold">
+                                {isCompleted ? '✓ DELIVERED' : isDelivering ? 'IN TRANSIT' : 'PREPARATION'}
+                              </span>
+                            </div>
+                            <div className="text-[11px]">
+                              Courier:{' '}
+                              <strong>{purchase.courierName || 'DHL Express'}</strong> · Tracking ID:{' '}
+                              <strong className="font-mono text-[#28192A]">
+                                {purchase.trackingNumber || 'Pending Courier Scan'}
+                              </strong>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="space-y-2 text-xs">
+                          {purchase.items.map((item) => (
+                            <div key={item.id} className="flex justify-between gap-4 text-[#6B6166]">
+                              <div>
+                                <span className="font-medium text-[#28192A]">{item.title}</span>
+                                <span className="text-[11px] block">
+                                  {item.subtitle || item.details?.notes?.join(' · ')}
+                                </span>
+                              </div>
+                              <span className="shrink-0 font-medium text-[#28192A]">
+                                Qty {item.quantity} · ฿ {item.price.toLocaleString()}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Customer Received Order Action Button */}
+                        {isDelivering && onMarkOrderReceived && (
+                          <div className="pt-3 border-t border-[#DAD1C5]/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white/50 p-3">
+                            <div>
+                              <p className="text-xs font-medium text-[#28192A]">
+                                Have you received your bespoke perfume?
+                              </p>
+                              <p className="text-[11px] text-[#6B6166]">
+                                Click below to complete your order and confirm delivery.
+                              </p>
+                            </div>
+                            <button
+                              onClick={async () => {
+                                setMarkingId(purchase.orderId);
+                                try {
+                                  await onMarkOrderReceived(purchase.orderId, purchase.numericOrderId);
+                                  setReceiveSuccessMsg(`Order #${purchase.orderId} marked as received! Thank you.`);
+                                  setTimeout(() => setReceiveSuccessMsg(null), 4500);
+                                } catch (err) {
+                                  console.error('Failed to mark order as received:', err);
+                                } finally {
+                                  setMarkingId(null);
+                                }
+                              }}
+                              disabled={markingId === purchase.orderId}
+                              className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-[#FFFDF8] text-xs font-medium uppercase tracking-wider flex items-center gap-2 transition-colors shadow-xs shrink-0 cursor-pointer"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-200" />
+                              <span>{markingId === purchase.orderId ? 'Updating...' : 'Received Order'}</span>
+                            </button>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
 

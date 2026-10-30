@@ -11,6 +11,7 @@ interface NavbarProps {
   onOpenAuth: (mode?: 'login' | 'signup') => void;
   onLogout?: () => void;
   onOpenSearch: () => void;
+  onPerformSearch?: (query: string) => void;
   onOpenAdmin?: () => void;
 }
 
@@ -23,6 +24,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAuth,
   onLogout,
   onOpenSearch,
+  onPerformSearch,
   onOpenAdmin,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -197,6 +199,32 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-[#FBF7F0] border-b border-[#DAD1C5] px-6 py-6 space-y-4 animate-in slide-in-from-top-2 duration-200">
+          
+          {/* Mobile Quick Search Form (Pressing Enter shows results in full page) */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const form = e.currentTarget;
+              const inputEl = form.elements.namedItem('mobileSearch') as HTMLInputElement;
+              const val = inputEl?.value.trim() || '';
+              if (onPerformSearch) {
+                onPerformSearch(val);
+              } else {
+                onNavigate('search');
+              }
+              setMobileMenuOpen(false);
+            }}
+            className="relative"
+          >
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#6B6166]" />
+            <input
+              name="mobileSearch"
+              type="text"
+              placeholder="Search available scents (Press Enter)..."
+              className="w-full bg-[#F3EDE2] border border-[#DAD1C5] pl-9 pr-3 py-2.5 text-xs text-[#28192A] placeholder-[#6B6166]/70 focus:outline-none focus:border-[#28192A]"
+            />
+          </form>
+
           <div className="flex flex-col space-y-3">
             
             {isAdminUser && onOpenAdmin && (

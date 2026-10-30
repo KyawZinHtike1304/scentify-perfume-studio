@@ -12,14 +12,17 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between pb-12 border-b border-[#FFFDF8]/10 gap-8">
           
           {/* Logo & Subtitle */}
-          <div className="flex flex-col">
-            <span className="font-serif text-2xl tracking-[0.3em] font-light text-[#FFFDF8]">
-              L O R E M
+          <button
+            onClick={() => onNavigate('home')}
+            className="flex flex-col items-start text-left group cursor-pointer focus:outline-none"
+          >
+            <span className="font-serif text-2xl sm:text-3xl font-medium tracking-[0.2em] text-[#FFFDF8] group-hover:text-[#C9A25C] transition-colors">
+              Scentify
             </span>
-            <span className="text-[9px] tracking-[0.4em] text-[#DAD1C5]/60 uppercase mt-1">
-              P E R F U M E &nbsp; S T U D I O
+            <span className="text-[9px] sm:text-[10px] tracking-[0.35em] text-[#DAD1C5]/70 uppercase -mt-0.5 font-light">
+              PERFUME STUDIO
             </span>
-          </div>
+          </button>
 
           {/* Navigation Links */}
           <div className="flex flex-wrap gap-x-8 gap-y-3 text-xs tracking-wider text-[#DAD1C5]/80">
