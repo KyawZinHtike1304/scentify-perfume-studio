@@ -6,11 +6,13 @@ import { SCENT_FAMILIES } from '../data/perfumeData';
 interface IngredientLibraryViewProps {
   onNavigate: (view: ViewMode) => void;
   onSelectIngredientToScentify: (ingredient: Ingredient) => void;
+  scentFamilies?: ScentFamily[];
 }
 
 export const IngredientLibraryView: React.FC<IngredientLibraryViewProps> = ({
   onNavigate,
   onSelectIngredientToScentify,
+  scentFamilies = SCENT_FAMILIES,
 }) => {
   const [selectedIngredient, setSelectedIngredient] = useState<Ingredient | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -23,7 +25,7 @@ export const IngredientLibraryView: React.FC<IngredientLibraryViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#FFFDF8] py-12 sm:py-16 px-4 sm:px-6 lg:px-8 relative">
+    <div className="min-h-screen bg-[#FBF7F0] py-12 sm:py-16 px-4 sm:px-6 lg:px-8 relative text-[#28192A]">
       
       {/* Toast feedback */}
       {toastMessage && (
@@ -54,12 +56,12 @@ export const IngredientLibraryView: React.FC<IngredientLibraryViewProps> = ({
           </p>
         </div>
 
-        {/* 6 Scent Family Cards Grid */}
+        {/* Scent Family Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {SCENT_FAMILIES.map((family) => (
+          {scentFamilies.map((family) => (
             <div
               key={family.id}
-              className="bg-[#FFFDF8] border border-[#DAD1C5] p-6 sm:p-8 flex flex-col justify-between hover:border-[#C9A25C] transition-all hover:shadow-sm"
+              className="bg-[#FBF7F0] border border-[#DAD1C5] p-6 sm:p-8 flex flex-col justify-between hover:border-[#C9A25C] transition-all hover:shadow-sm"
             >
               {/* Card Header & Artwork */}
               <div>
@@ -158,7 +160,7 @@ export const IngredientLibraryView: React.FC<IngredientLibraryViewProps> = ({
           onClick={() => setSelectedIngredient(null)}
         >
           <div
-            className="bg-[#FFFDF8] border border-[#DAD1C5] max-w-md w-full p-6 sm:p-8 relative shadow-2xl"
+            className="bg-[#FBF7F0] border border-[#DAD1C5] max-w-md w-full p-6 sm:p-8 relative shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <span className="text-[10px] tracking-[0.2em] uppercase text-[#C9A25C] font-medium">

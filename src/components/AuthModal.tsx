@@ -295,7 +295,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-[#28192A]/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
-      <div className="relative max-w-4xl w-full my-8 bg-[#FFFDF8] border border-[#DAD1C5] shadow-2xl overflow-hidden">
+      <div className="relative max-w-4xl w-full my-8 bg-[#FBF7F0] border border-[#DAD1C5] shadow-2xl overflow-hidden">
         
         {/* Close Button */}
         <button
@@ -373,7 +373,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     onChange={(e) => setAdminEmail(e.target.value)}
                     placeholder="Admin email"
                     required
-                    className="w-full bg-[#FFFDF8] border border-[#DAD1C5] px-3.5 py-3 text-xs text-[#28192A] placeholder-[#6B6166]/50 focus:outline-none focus:border-[#28192A] transition-colors"
+                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3.5 py-3 text-xs text-[#28192A] placeholder-[#6B6166]/50 focus:outline-none focus:border-[#28192A] transition-colors"
                   />
                 </div>
 
@@ -387,7 +387,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     onChange={(e) => setAdminPassword(e.target.value)}
                     placeholder="Enter admin password"
                     required
-                    className="w-full bg-[#FFFDF8] border border-[#DAD1C5] px-3.5 py-3 text-xs text-[#28192A] placeholder-[#6B6166]/50 focus:outline-none focus:border-[#28192A] transition-colors"
+                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3.5 py-3 text-xs text-[#28192A] placeholder-[#6B6166]/50 focus:outline-none focus:border-[#28192A] transition-colors"
                   />
                 </div>
 
@@ -474,7 +474,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email"
-                    className="w-full bg-[#FFFDF8] border border-[#DAD1C5] px-3.5 py-3 text-xs text-[#28192A] placeholder-[#6B6166]/60 focus:outline-none focus:border-[#28192A]"
+                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3.5 py-3 text-xs text-[#28192A] placeholder-[#6B6166]/60 focus:outline-none focus:border-[#28192A]"
                   />
                 </div>
 
@@ -495,7 +495,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
-                    className="w-full bg-[#FFFDF8] border border-[#DAD1C5] px-3.5 py-3 text-xs text-[#28192A] placeholder-[#6B6166]/60 focus:outline-none focus:border-[#28192A]"
+                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3.5 py-3 text-xs text-[#28192A] placeholder-[#6B6166]/60 focus:outline-none focus:border-[#28192A]"
                   />
                 </div>
 
@@ -537,7 +537,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   type="button"
                   onClick={handleGoogleAuth}
                   disabled={loading}
-                  className="w-full py-2.5 px-4 border border-[#DAD1C5] bg-[#FFFDF8] hover:bg-[#FBF7F0] text-xs text-[#28192A] font-medium flex items-center justify-center gap-2.5 transition-colors disabled:opacity-50 shadow-2xs"
+                  className="w-full py-2.5 px-4 border border-[#DAD1C5] bg-[#FBF7F0] hover:bg-[#FBF7F0] text-xs text-[#28192A] font-medium flex items-center justify-center gap-2.5 transition-colors disabled:opacity-50 shadow-2xs"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -602,7 +602,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Enter your full name"
-                    className="w-full bg-[#FFFDF8] border border-[#DAD1C5] px-3.5 py-3 text-xs text-[#28192A] placeholder-[#6B6166]/60 focus:outline-none focus:border-[#28192A]"
+                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3.5 py-3 text-xs text-[#28192A] placeholder-[#6B6166]/60 focus:outline-none focus:border-[#28192A]"
                   />
                 </div>
 
@@ -616,7 +616,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Enter your email address"
-                    className="w-full bg-[#FFFDF8] border border-[#DAD1C5] px-3.5 py-3 text-xs text-[#28192A] placeholder-[#6B6166]/60 focus:outline-none focus:border-[#28192A]"
+                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3.5 py-3 text-xs text-[#28192A] placeholder-[#6B6166]/60 focus:outline-none focus:border-[#28192A]"
                   />
                 </div>
 
@@ -630,7 +630,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Create a password (min. 6 characters)"
-                    className="w-full bg-[#FFFDF8] border border-[#DAD1C5] px-3.5 py-3 text-xs text-[#28192A] placeholder-[#6B6166]/60 focus:outline-none focus:border-[#28192A]"
+                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3.5 py-3 text-xs text-[#28192A] placeholder-[#6B6166]/60 focus:outline-none focus:border-[#28192A]"
                   />
                 </div>
 
@@ -667,7 +667,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   type="button"
                   onClick={handleGoogleAuth}
                   disabled={loading}
-                  className="w-full py-2.5 px-4 border border-[#DAD1C5] bg-[#FFFDF8] hover:bg-[#FBF7F0] text-xs text-[#28192A] font-medium flex items-center justify-center gap-2.5 transition-colors disabled:opacity-50 shadow-2xs"
+                  className="w-full py-2.5 px-4 border border-[#DAD1C5] bg-[#FBF7F0] hover:bg-[#FBF7F0] text-xs text-[#28192A] font-medium flex items-center justify-center gap-2.5 transition-colors disabled:opacity-50 shadow-2xs"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

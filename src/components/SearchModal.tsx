@@ -1,13 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { Search, X, Sparkles, ArrowRight } from 'lucide-react';
 import { SCENT_FAMILIES } from '../data/perfumeData';
-import { Ingredient, ViewMode } from '../types';
+import { Ingredient, ViewMode, ScentFamily } from '../types';
 
 interface SearchModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectIngredient?: (ingredient: Ingredient) => void;
   onNavigate: (view: ViewMode) => void;
+  scentFamilies?: ScentFamily[];
 }
 
 export const SearchModal: React.FC<SearchModalProps> = ({
@@ -15,13 +16,14 @@ export const SearchModal: React.FC<SearchModalProps> = ({
   onClose,
   onSelectIngredient,
   onNavigate,
+  scentFamilies = SCENT_FAMILIES,
 }) => {
   const [query, setQuery] = useState('');
   const [selectedFamily, setSelectedFamily] = useState<string>('all');
 
   const allIngredients: Ingredient[] = useMemo(() => {
-    return SCENT_FAMILIES.flatMap((f) => f.ingredients);
-  }, []);
+    return scentFamilies.flatMap((f) => f.ingredients);
+  }, [scentFamilies]);
 
   const filteredIngredients = useMemo(() => {
     return allIngredients.filter((item: Ingredient) => {
@@ -38,7 +40,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-[#28192A]/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-[#FFFDF8] border border-[#DAD1C5] max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[85vh] flex flex-col">
+      <div className="bg-[#FBF7F0] border border-[#DAD1C5] max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative max-h-[85vh] flex flex-col">
         {/* Close Button */}
         <button
           onClick={onClose}

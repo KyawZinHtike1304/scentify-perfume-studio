@@ -42,7 +42,7 @@ export const ReviewOrderView: React.FC<ReviewOrderViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#FFFDF8] py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#FBF7F0] py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         
         {/* Header */}
@@ -61,7 +61,7 @@ export const ReviewOrderView: React.FC<ReviewOrderViewProps> = ({
           <div className="lg:col-span-7 space-y-8">
             
             {/* Shipping Address Card */}
-            <div className="bg-[#FFFDF8] border border-[#DAD1C5] p-6 sm:p-8 relative">
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-6 sm:p-8 relative">
               <div className="flex items-center justify-between pb-4 border-b border-[#DAD1C5]/30 mb-4">
                 <h2 className="font-serif text-xl sm:text-2xl text-[#28192A]">Shipping Address</h2>
                 <button
@@ -109,7 +109,7 @@ export const ReviewOrderView: React.FC<ReviewOrderViewProps> = ({
             </div>
 
             {/* Order Items Card */}
-            <div className="bg-[#FFFDF8] border border-[#DAD1C5] p-6 sm:p-8">
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-6 sm:p-8">
               <h2 className="font-serif text-xl sm:text-2xl text-[#28192A] pb-4 border-b border-[#DAD1C5]/30 mb-5">
                 Order Items
               </h2>
@@ -226,7 +226,7 @@ export const ReviewOrderView: React.FC<ReviewOrderViewProps> = ({
       {/* Edit Address Modal */}
       {isEditingAddress && (
         <div className="fixed inset-0 z-50 bg-[#28192A]/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-[#FFFDF8] border border-[#DAD1C5] max-w-lg w-full p-6 sm:p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-[#FBF7F0] border border-[#DAD1C5] max-w-lg w-full p-6 sm:p-8 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
             <h3 className="font-serif text-2xl text-[#28192A] mb-4">
               Edit Shipping Address
             </h3>

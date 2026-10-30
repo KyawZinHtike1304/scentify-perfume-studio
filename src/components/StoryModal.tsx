@@ -16,7 +16,7 @@ export const StoryModal: React.FC<StoryModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-[#28192A]/75 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="relative max-w-2xl w-full bg-[#FFFDF8] border border-[#DAD1C5] shadow-2xl p-6 sm:p-8 overflow-hidden">
+      <div className="relative max-w-2xl w-full bg-[#FBF7F0] border border-[#DAD1C5] shadow-2xl p-6 sm:p-8 overflow-hidden">
         
         <button
           onClick={onClose}
@@ -42,7 +42,7 @@ export const StoryModal: React.FC<StoryModalProps> = ({
           />
 
           <div className="relative z-10 flex flex-col items-center">
-            <div className="w-16 h-16 rounded-full bg-[#FFFDF8]/90 border border-[#C9A25C] flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-transform">
+            <div className="w-16 h-16 rounded-full bg-[#FBF7F0]/90 border border-[#C9A25C] flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-transform">
               <Play className="w-6 h-6 text-[#28192A] fill-[#28192A] ml-1" />
             </div>
             <span className="text-xs uppercase tracking-widest text-[#FFFDF8] mt-4 font-medium">

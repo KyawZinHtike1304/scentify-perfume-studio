@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, ShoppingBag, Menu, X, Sparkles, User } from 'lucide-react';
+import { Search, ShoppingBag, Menu, X, Sparkles, User, ShieldCheck } from 'lucide-react';
 import { ViewMode } from '../types';
 
 interface NavbarProps {
@@ -7,9 +7,11 @@ interface NavbarProps {
   onNavigate: (view: ViewMode) => void;
   cartCount: number;
   userName?: string | null;
+  isAdminUser?: boolean;
   onOpenAuth: (mode?: 'login' | 'signup') => void;
   onLogout?: () => void;
   onOpenSearch: () => void;
+  onOpenAdmin?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -17,14 +19,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   onNavigate,
   cartCount,
   userName,
+  isAdminUser,
   onOpenAuth,
   onLogout,
   onOpenSearch,
+  onOpenAdmin,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 bg-[#FFFDF8]/90 backdrop-blur-md border-b border-[#DAD1C5]/40 transition-all">
+    <header className="sticky top-0 z-40 bg-[#FBF7F0]/90 backdrop-blur-md border-b border-[#DAD1C5]/40 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
@@ -100,7 +104,20 @@ export const Navbar: React.FC<NavbarProps> = ({
           </nav>
 
           {/* Actions: Search, Cart, Auth & Shop Now */}
-          <div className="flex items-center space-x-3 sm:space-x-5">
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            
+            {/* Admin Console Shortcut if Admin */}
+            {isAdminUser && onOpenAdmin && (
+              <button
+                onClick={onOpenAdmin}
+                className="px-3 py-1.5 bg-[#28192A] text-[#FBF7F0] border border-[#C9A25C] text-xs font-mono uppercase tracking-wider flex items-center gap-1.5 hover:bg-[#3D2540] transition-colors shadow-xs"
+                title="Open Scentify Studio Full Page Admin Portal"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-[#C9A25C]" />
+                <span className="hidden sm:inline">Admin Console</span>
+              </button>
+            )}
+
             {/* Search */}
             <button
               onClick={onOpenSearch}
@@ -117,7 +134,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               aria-label="View Shopping Cart"
             >
               <ShoppingBag className="w-5 h-5 stroke-[1.5]" />
-              {userName && cartCount > 0 && (
+              {cartCount > 0 && (
                 <span className="absolute top-1 right-1 bg-[#C9A25C] text-[#FFFDF8] text-[10px] font-semibold w-4 h-4 rounded-full flex items-center justify-center">
                   {cartCount}
                 </span>
@@ -150,23 +167,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </button>
                 )}
               </div>
-            ) : (
+            ) : !isAdminUser ? (
               <button
                 onClick={() => onOpenAuth('signup')}
                 className="hidden sm:inline-flex items-center text-xs tracking-[0.15em] uppercase font-medium text-[#28192A] hover:text-[#C9A25C] transition-colors py-1.5 px-3 border border-[#DAD1C5] hover:border-[#28192A]"
               >
                 Sign Up
               </button>
-            )}
+            ) : null}
 
-            {/* Primary Action Button */}
-            {/*<button
-              onClick={() => onNavigate('scentify')}
-              className="hidden lg:inline-flex items-center justify-center px-6 py-2.5 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-[0.2em] font-medium hover:bg-[#3D2540] transition-colors shadow-xs"
-            >
-              Shop Now
-            </button>
-            */}
             {/* Mobile menu button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -179,14 +188,30 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Menu className="w-6 h-6 stroke-[1.5]" />
               )}
             </button>
+
           </div>
+
         </div>
       </div>
 
-      {/* Mobile drawer */}
+      {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#FBF7F0] border-b border-[#DAD1C5] px-6 py-6 space-y-4 shadow-lg animate-in fade-in duration-150">
+        <div className="md:hidden bg-[#FBF7F0] border-b border-[#DAD1C5] px-6 py-6 space-y-4 animate-in slide-in-from-top-2 duration-200">
           <div className="flex flex-col space-y-3">
+            
+            {isAdminUser && onOpenAdmin && (
+              <button
+                onClick={() => {
+                  onOpenAdmin();
+                  setMobileMenuOpen(false);
+                }}
+                className="text-left py-2.5 px-3 bg-[#28192A] text-[#FBF7F0] font-mono text-xs uppercase flex items-center justify-between border border-[#C9A25C]"
+              >
+                <span>Full Page Admin Portal</span>
+                <ShieldCheck className="w-4 h-4 text-[#C9A25C]" />
+              </button>
+            )}
+
             <button
               onClick={() => {
                 onNavigate('home');
@@ -204,7 +229,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               }}
               className="text-left text-base font-serif text-[#28192A] py-1 border-b border-[#DAD1C5]/30 flex justify-between items-center"
             >
-              <span>Collection & Ingredients</span>
+              <span>Collection &amp; Ingredients</span>
               <span className="text-xs font-sans text-[#C9A25C]">02</span>
             </button>
             <button
@@ -234,7 +259,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               }}
               className="text-left text-base font-serif text-[#28192A] py-1 border-b border-[#DAD1C5]/30 flex justify-between items-center"
             >
-              <span>Shopping Bag {userName && cartCount > 0 ? `(${cartCount})` : ''}</span>
+              <span>Shopping Bag {cartCount > 0 ? `(${cartCount})` : ''}</span>
               <span className="text-xs font-sans text-[#C9A25C]">05</span>
             </button>
             <button
@@ -244,7 +269,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               }}
               className="text-left text-base font-serif text-[#28192A] py-1 border-b border-[#DAD1C5]/30 flex justify-between items-center"
             >
-              <span>Customer Care & Perfumer Chat</span>
+              <span>Customer Care &amp; Perfumer Chat</span>
               <span className="text-xs font-sans text-[#C9A25C]">06</span>
             </button>
             <button
@@ -273,12 +298,12 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onNavigate('scentify');
                 setMobileMenuOpen(false);
               }}
-              className="w-full py-3 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-[0.2em] font-medium text-center"
+              className="w-full py-3 bg-[#28192A] text-[#FBF7F0] text-xs uppercase tracking-[0.2em] font-medium text-center"
             >
               Compose Perfume
             </button>
             {userName ? (
-              <div className="flex items-center justify-between py-2.5 px-3 bg-[#FFFDF8] border border-[#DAD1C5] text-xs">
+              <div className="flex items-center justify-between py-2.5 px-3 bg-[#FBF7F0] border border-[#DAD1C5] text-xs">
                 <button
                   onClick={() => {
                     onNavigate('profile');
@@ -301,17 +326,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </button>
                 )}
               </div>
-            ) : (
+            ) : !isAdminUser ? (
               <button
                 onClick={() => {
                   onOpenAuth('signup');
                   setMobileMenuOpen(false);
                 }}
-                className="w-full py-2.5 border border-[#28192A] text-[#28192A] text-xs uppercase tracking-[0.2em] text-center hover:bg-[#28192A] hover:text-[#FFFDF8] transition-colors"
+                className="w-full py-2.5 border border-[#28192A] text-[#28192A] text-xs uppercase tracking-[0.2em] text-center hover:bg-[#28192A] hover:text-[#FBF7F0] transition-colors"
               >
                 Sign Up
               </button>
-            )}
+            ) : null}
           </div>
         </div>
       )}

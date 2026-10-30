@@ -108,7 +108,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#FFFDF8] py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#FBF7F0] py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         
         {/* Header */}
@@ -158,7 +158,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
                   </div>
                 </div>
 
-                <div className="text-right sm:text-right w-full sm:w-auto p-3 bg-[#FFFDF8] border border-[#DAD1C5]">
+                <div className="text-right sm:text-right w-full sm:w-auto p-3 bg-[#FBF7F0] border border-[#DAD1C5]">
                   <span className="text-[10px] uppercase font-mono text-[#6B6166] block">Total Amount</span>
                   <span className="font-serif text-2xl text-[#28192A] font-semibold">
                     ฿ {total.toLocaleString()}.00
@@ -174,7 +174,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
                 
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                   {/* Step 1 */}
-                  <div className="p-3 bg-[#FFFDF8] border border-emerald-300 relative">
+                  <div className="p-3 bg-[#FBF7F0] border border-emerald-300 relative">
                     <div className="flex items-center gap-2 text-emerald-700 text-xs font-medium mb-1">
                       <CheckCircle2 className="w-4 h-4" />
                       <span>1. Slip Uploaded</span>
@@ -188,7 +188,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
                   </div>
 
                   {/* Step 2 */}
-                  <div className="p-3 bg-[#FFFDF8] border border-amber-300 relative">
+                  <div className="p-3 bg-[#FBF7F0] border border-amber-300 relative">
                     <div className="flex items-center gap-2 text-amber-800 text-xs font-medium mb-1">
                       <Clock className="w-4 h-4 text-amber-600 animate-pulse" />
                       <span>2. Admin Verification</span>
@@ -202,7 +202,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
                   </div>
 
                   {/* Step 3 */}
-                  <div className="p-3 bg-[#FFFDF8]/60 border border-[#DAD1C5] opacity-75">
+                  <div className="p-3 bg-[#FBF7F0]/60 border border-[#DAD1C5] opacity-75">
                     <div className="flex items-center gap-2 text-[#6B6166] text-xs font-medium mb-1">
                       <Sparkles className="w-4 h-4 text-[#C9A25C]" />
                       <span>3. Formulation</span>
@@ -216,7 +216,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
                   </div>
 
                   {/* Step 4 */}
-                  <div className="p-3 bg-[#FFFDF8]/60 border border-[#DAD1C5] opacity-75">
+                  <div className="p-3 bg-[#FBF7F0]/60 border border-[#DAD1C5] opacity-75">
                     <div className="flex items-center gap-2 text-[#6B6166] text-xs font-medium mb-1">
                       <PackageCheck className="w-4 h-4 text-[#6B6166]" />
                       <span>4. Express Dispatch</span>
@@ -235,7 +235,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
               <div className="mt-8 pt-6 border-t border-[#DAD1C5]/50 grid grid-cols-1 md:grid-cols-2 gap-6">
                 
                 {/* Uploaded Slip Info */}
-                <div className="p-4 bg-[#FFFDF8] border border-[#DAD1C5] flex items-center justify-between gap-4">
+                <div className="p-4 bg-[#FBF7F0] border border-[#DAD1C5] flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     {uploadedSlip && (
                       <img
@@ -267,7 +267,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
                 </div>
 
                 {/* Delivery Address Details */}
-                <div className="p-4 bg-[#FFFDF8] border border-[#DAD1C5] text-xs space-y-1">
+                <div className="p-4 bg-[#FBF7F0] border border-[#DAD1C5] text-xs space-y-1">
                   <span className="text-[10px] uppercase font-mono text-[#C9A25C] font-bold block mb-1">
                     Shipping Destination
                   </span>
@@ -318,7 +318,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
             <div className="lg:col-span-7 space-y-8">
               
               {/* Pay with Thai QR Card */}
-              <div className="bg-[#FFFDF8] border border-[#DAD1C5] p-6 sm:p-8">
+              <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-6 sm:p-8">
                 <span className="text-[10px] tracking-[0.2em] uppercase text-[#6B6166] font-medium block">
                   PAYMENT METHOD
                 </span>
@@ -539,7 +539,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
                 </div>
 
                 {/* Admin Verification Notice */}
-                <div className="mt-6 p-4 bg-[#FFFDF8] border border-[#DAD1C5] text-xs">
+                <div className="mt-6 p-4 bg-[#FBF7F0] border border-[#DAD1C5] text-xs">
                   <div className="flex items-center gap-1.5 font-medium text-[#28192A] mb-1">
                     <ShieldCheck className="w-4 h-4 text-[#C9A25C]" />
                     <span>Admin Verification Protocol</span>
@@ -584,7 +584,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
           onClick={() => setPreviewSlipModal(null)}
         >
           <div
-            className="max-w-md w-full bg-[#FFFDF8] p-6 border border-[#DAD1C5] shadow-2xl relative"
+            className="max-w-md w-full bg-[#FBF7F0] p-6 border border-[#DAD1C5] shadow-2xl relative"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-3 border-b border-[#DAD1C5] mb-4">

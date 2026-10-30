@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { CheckCircle2, MessageSquare, ArrowRight, ShieldCheck, Sparkles, Edit3 } from 'lucide-react';
-import { Composition, ViewMode, CartItem } from '../types';
+import { Composition, ViewMode, CartItem, BottleOption } from '../types';
+import { INITIAL_BOTTLE_OPTIONS } from '../data/adminDatabaseData';
 
 interface ReviewFragranceViewProps {
   composition: Composition;
   onConfirmAndShip: (customItem: CartItem) => void;
   onRequestChange: () => void;
   onNavigate: (view: ViewMode) => void;
+  bottles?: BottleOption[];
 }
 
 export const ReviewFragranceView: React.FC<ReviewFragranceViewProps> = ({
@@ -14,9 +16,23 @@ export const ReviewFragranceView: React.FC<ReviewFragranceViewProps> = ({
   onConfirmAndShip,
   onRequestChange,
   onNavigate,
+  bottles = INITIAL_BOTTLE_OPTIONS,
 }) => {
-  const [selectedSize, setSelectedSize] = useState<'50ml' | '100ml'>('50ml');
-  const price = selectedSize === '50ml' ? 1680 : 2580;
+  const activeBottles = bottles.filter((b) => b.inStock);
+  const defaultSize =
+    activeBottles.find((b) => b.size === composition.bottleSize)?.size ||
+    activeBottles[0]?.size ||
+    '50 ml';
+
+  const [selectedSize, setSelectedSize] = useState<string>(defaultSize);
+
+  const matchedBottle = activeBottles.find((b) => b.size === selectedSize) || activeBottles[0] || {
+    size: '50 ml',
+    price: 1680,
+    bottleType: 'Classic Flacon',
+  };
+
+  const price = matchedBottle.price;
 
   const handleConfirm = () => {
     const customItem: CartItem = {
@@ -36,7 +52,7 @@ export const ReviewFragranceView: React.FC<ReviewFragranceViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#FFFDF8] py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#FBF7F0] py-12 sm:py-16 px-4 sm:px-6 lg:px-8 text-[#28192A]">
       <div className="max-w-7xl mx-auto">
         
         {/* Header */}
@@ -53,20 +69,20 @@ export const ReviewFragranceView: React.FC<ReviewFragranceViewProps> = ({
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-center px-3.5 py-1.5 bg-[#FBF7F0] border border-[#DAD1C5] text-xs text-[#28192A]">
+          <div className="flex items-center gap-2 self-start sm:self-center px-3.5 py-1.5 bg-white border border-[#DAD1C5] text-xs text-[#28192A] shadow-xs">
             <span className="w-2 h-2 rounded-full bg-[#C9A25C] animate-pulse"></span>
             <span className="font-medium tracking-wide">Awaiting your confirmation</span>
           </div>
         </div>
 
-        {/* 2-Column Desktop Grid matching Page 7 */}
+        {/* 2-Column Desktop Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* Left Column: Fragrance Blueprint & Bottle Card */}
-          <div className="lg:col-span-7 bg-[#FFFDF8] border border-[#DAD1C5] p-6 sm:p-10">
+          <div className="lg:col-span-7 bg-[#FBF7F0] border border-[#DAD1C5] p-6 sm:p-10 shadow-xs">
             <div className="flex items-center justify-between border-b border-[#DAD1C5]/30 pb-4 mb-6">
               <div>
-                <span className="text-[10px] tracking-widest text-[#6B6166] uppercase">ORDER #LUM-8941</span>
+                <span className="text-[10px] tracking-widest text-[#6B6166] uppercase">ORDER #BESPOKE-STUDIO</span>
                 <h2 className="font-serif text-2xl text-[#28192A] mt-0.5">Your Custom Fragrance</h2>
                 <span className="text-xs text-[#6B6166] font-light">Prepared by the Scentify Perfume Studio</span>
               </div>
@@ -85,7 +101,7 @@ export const ReviewFragranceView: React.FC<ReviewFragranceViewProps> = ({
               
               {/* Bottle graphic with 'L' Monogram */}
               <div className="sm:col-span-5 bg-[#FBF7F0] border border-[#DAD1C5]/60 p-6 flex flex-col items-center justify-center text-center">
-                <div className="w-24 h-36 border border-[#28192A]/30 relative flex items-center justify-center bg-[#FFFDF8] shadow-xs">
+                <div className="w-24 h-36 border border-[#28192A]/30 relative flex items-center justify-center bg-[#FBF7F0] shadow-xs">
                   <span className="font-serif text-5xl font-light text-[#C9A25C] select-none">
                     L
                   </span>
@@ -99,31 +115,15 @@ export const ReviewFragranceView: React.FC<ReviewFragranceViewProps> = ({
                 </span>
               </div>
 
-              {/* Notes Grid */}
+              {/* Formulation details & Dynamic Bottle Picker */}
               <div className="sm:col-span-7 space-y-4">
-                <div>
-                  <h3 className="font-serif text-xl text-[#28192A]">Custom Blend</h3>
-                  <p className="text-xs text-[#6B6166] font-light mt-1 leading-relaxed">
-                    A warm, luminous fragrance balanced between fresh citrus, soft florals, and deep woods.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 pt-3 border-t border-[#DAD1C5]/30">
+                <div className="space-y-3 pb-3 border-b border-[#DAD1C5]/30">
                   <div>
                     <span className="text-[9px] tracking-[0.2em] uppercase text-[#6B6166] font-medium block">
                       TOP NOTE
                     </span>
                     <span className="font-serif text-base text-[#28192A]">
                       {composition.topNote || 'Bergamot'}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="text-[9px] tracking-[0.2em] uppercase text-[#6B6166] font-medium block">
-                      BASE NOTE
-                    </span>
-                    <span className="font-serif text-base text-[#28192A]">
-                      {composition.baseNote || 'Oud'}
                     </span>
                   </div>
 
@@ -138,37 +138,43 @@ export const ReviewFragranceView: React.FC<ReviewFragranceViewProps> = ({
 
                   <div>
                     <span className="text-[9px] tracking-[0.2em] uppercase text-[#6B6166] font-medium block">
-                      BOTTLE
+                      BASE NOTE
                     </span>
                     <span className="font-serif text-base text-[#28192A]">
-                      Classic · {selectedSize}
+                      {composition.baseNote || 'Sandalwood'}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-[9px] tracking-[0.2em] uppercase text-[#6B6166] font-medium block">
+                      BOTTLE STYLE
+                    </span>
+                    <span className="font-serif text-base text-[#28192A]">
+                      {matchedBottle.bottleType || 'Classic Flacon'} · {selectedSize}
                     </span>
                   </div>
                 </div>
 
-                {/* Size toggle */}
-                <div className="flex items-center gap-3 pt-2">
-                  <span className="text-xs text-[#6B6166]">Size:</span>
-                  <button
-                    onClick={() => setSelectedSize('50ml')}
-                    className={`px-3 py-1 text-xs border ${
-                      selectedSize === '50ml'
-                        ? 'border-[#28192A] bg-[#28192A] text-[#FFFDF8]'
-                        : 'border-[#DAD1C5] text-[#28192A]'
-                    }`}
-                  >
-                    50 ml (฿1,680)
-                  </button>
-                  <button
-                    onClick={() => setSelectedSize('100ml')}
-                    className={`px-3 py-1 text-xs border ${
-                      selectedSize === '100ml'
-                        ? 'border-[#28192A] bg-[#28192A] text-[#FFFDF8]'
-                        : 'border-[#DAD1C5] text-[#28192A]'
-                    }`}
-                  >
-                    100 ml (฿2,580)
-                  </button>
+                {/* Dynamic Size toggle from Admin */}
+                <div className="pt-2">
+                  <span className="text-xs text-[#6B6166] block mb-2 font-medium">
+                    Select Bottle Capacity:
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {activeBottles.map((b) => (
+                      <button
+                        key={b.bottle_id}
+                        onClick={() => setSelectedSize(b.size)}
+                        className={`px-3 py-1.5 text-xs font-mono border transition-all ${
+                          selectedSize === b.size
+                            ? 'border-[#28192A] bg-[#28192A] text-[#FBF7F0] font-semibold'
+                            : 'border-[#DAD1C5] bg-[#FBF7F0] text-[#28192A] hover:border-[#28192A]'
+                        }`}
+                      >
+                        {b.size} (฿{b.price.toLocaleString()})
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -178,65 +184,71 @@ export const ReviewFragranceView: React.FC<ReviewFragranceViewProps> = ({
             <div className="mt-8 pt-5 border-t border-[#DAD1C5]/40 flex flex-col sm:flex-row justify-between text-xs text-[#6B6166] gap-2">
               <div>
                 <span className="text-[10px] tracking-widest uppercase text-[#C9A25C] font-semibold block">SHIPPING TO</span>
-                <span className="text-[#28192A] font-medium">Bangkok, Thailand</span>
+                <span>Bangkok &amp; Nationwide (Complimentary for orders above ฿1,500)</span>
               </div>
               <div>
-                <span>Estimated delivery: </span>
-                <strong className="text-[#28192A] font-medium">2–4 business days after confirmation</strong>
+                <span className="text-[10px] tracking-widest uppercase text-[#C9A25C] font-semibold block">DISPATCH TIMELINE</span>
+                <span>Prepared fresh &amp; dispatched within 24–48 hours</span>
               </div>
             </div>
 
           </div>
 
-          {/* Right Column: Perfumer Note & Actions */}
-          <div className="lg:col-span-5 space-y-6">
-            
-            {/* Perfumer's note */}
-            <div className="bg-[#FFFDF8] border border-[#DAD1C5] p-6 sm:p-8">
-              <span className="text-[10px] tracking-[0.2em] uppercase text-[#6B6166] font-medium block mb-3">
-                A Note from Your Perfumer
-              </span>
-              <blockquote className="font-serif text-base sm:text-lg text-[#28192A] italic leading-relaxed">
-                “The final blend has been balanced to keep the {composition.topNote} bright, the {composition.heartNote} soft, and the {composition.baseNote} warm without overpowering the floral heart.”
-              </blockquote>
-              <div className="mt-4 text-xs tracking-wider text-[#6B6166] flex items-center gap-2">
-                <span className="w-4 h-px bg-[#DAD1C5]"></span>
-                <span>Scentify Perfume Studio</span>
+          {/* Right Column: Order Confirmation Card */}
+          <div className="lg:col-span-5 bg-[#FBF7F0] border border-[#DAD1C5] p-6 sm:p-8 shadow-xs">
+            <h3 className="font-serif text-xl text-[#28192A] pb-4 mb-4 border-b border-[#DAD1C5]/40">
+              Formula Summary
+            </h3>
+
+            <div className="space-y-3 text-xs mb-6">
+              <div className="flex justify-between py-1 border-b border-[#DAD1C5]/20">
+                <span className="text-[#6B6166]">Bespoke Formulation</span>
+                <span className="font-mono font-medium text-[#28192A]">
+                  ฿{price.toLocaleString()}
+                </span>
+              </div>
+
+              <div className="flex justify-between py-1 border-b border-[#DAD1C5]/20">
+                <span className="text-[#6B6166]">Selected Flacon Capacity</span>
+                <span className="font-mono text-[#28192A]">{selectedSize}</span>
+              </div>
+
+              <div className="flex justify-between py-1 border-b border-[#DAD1C5]/20">
+                <span className="text-[#6B6166]">Shipping Fee</span>
+                <span className="font-mono text-emerald-700 font-medium">
+                  {price >= 1500 ? 'FREE (฿0)' : '฿50'}
+                </span>
+              </div>
+
+              <div className="flex justify-between pt-3 text-sm font-semibold text-[#28192A] border-t border-[#DAD1C5]">
+                <span>Total Amount</span>
+                <span className="font-serif text-xl text-[#28192A]">
+                  ฿{(price >= 1500 ? price : price + 50).toLocaleString()}
+                </span>
               </div>
             </div>
 
-            {/* Confirmation Box */}
-            <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-6 sm:p-8 space-y-5">
-              <div>
-                <h3 className="font-serif text-lg text-[#28192A]">
-                  Please check your fragrance details before confirming.
-                </h3>
-                <p className="text-xs text-[#6B6166] mt-2 font-light leading-relaxed">
-                  Need a change? You can request an adjustment before we begin final preparation.
-                </p>
+            <button
+              onClick={handleConfirm}
+              className="w-full py-4 bg-[#28192A] text-[#FBF7F0] text-xs uppercase tracking-[0.2em] font-medium hover:bg-[#3D2540] transition-colors flex items-center justify-center gap-2 shadow-sm"
+            >
+              <span>Add to shopping bag &amp; proceed</span>
+              <ArrowRight className="w-4 h-4 text-[#C9A25C]" />
+            </button>
+
+            <button
+              onClick={onRequestChange}
+              className="w-full mt-3 py-2.5 bg-transparent border border-[#DAD1C5] text-xs text-[#6B6166] hover:text-[#28192A] hover:bg-[#FBF7F0] transition-colors"
+            >
+              Request perfume adjustment with perfumer
+            </button>
+
+            <div className="mt-6 p-4 bg-[#FBF7F0] border border-[#DAD1C5]/50 flex items-start gap-3">
+              <ShieldCheck className="w-5 h-5 text-[#C9A25C] shrink-0 mt-0.5" />
+              <div className="text-[11px] text-[#6B6166] leading-relaxed">
+                <strong className="text-[#28192A] font-medium block">Studio Integrity Guarantee</strong>
+                Every bespoke bottle is individually poured, matured, and sealed in our Chiang Rai atelier with serial verification.
               </div>
-
-              <div className="space-y-3 pt-2">
-                <button
-                  onClick={handleConfirm}
-                  className="w-full py-4 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-[0.2em] font-medium hover:bg-[#3D2540] transition-colors flex items-center justify-center gap-2 shadow-sm"
-                >
-                  <ShieldCheck className="w-4 h-4 text-[#C9A25C]" />
-                  <span>Confirm & Prepare for Shipping</span>
-                </button>
-
-                <button
-                  onClick={onRequestChange}
-                  className="w-full py-3.5 bg-transparent border border-[#28192A] text-[#28192A] text-xs uppercase tracking-[0.2em] font-medium hover:bg-[#28192A]/5 transition-colors flex items-center justify-center gap-2"
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  <span>Request a Change</span>
-                </button>
-              </div>
-
-              <p className="text-[11px] text-[#6B6166]/80 text-center font-light pt-2">
-                After confirmation, your order will move to preparation and shipping.
-              </p>
             </div>
 
           </div>

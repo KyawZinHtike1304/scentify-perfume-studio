@@ -190,3 +190,51 @@ export type FormulaRecord = DbFormula;
 export type FormulaDetailRecord = DbFormulaDetail;
 export type IngredientRecord = DbIngredient;
 export type AdminOrderFull = EnrichedOrder;
+
+export interface BottleOption {
+  bottle_id: number;
+  size: string; // e.g. "50 ml", "100 ml", "30 ml"
+  volume: number; // numeric volume in ml
+  price: number; // in THB
+  bottleType: string; // e.g. "Classic Flacon", "Grand Flacon", "Travel Atomizer"
+  inStock: boolean;
+  description?: string;
+}
+
+export interface CustomizationRule {
+  id: string;
+  name: string;
+  description: string;
+  type: 'max_notes' | 'required_family' | 'forbidden_pairing' | 'recommended_pairing';
+  active: boolean;
+  params?: {
+    maxNotes?: number;
+    familyA?: string;
+    familyB?: string;
+    requiredFamily?: string;
+    reason?: string;
+  };
+}
+
+export interface MasterFormula {
+  id: number;
+  name: string;
+  topNote: string;
+  heartNote: string;
+  baseNote: string;
+  recommendedBottle?: string;
+  active: boolean;
+  description: string;
+  created_at?: string;
+}
+
+export interface AdminStaffUser {
+  id: number;
+  name: string;
+  email: string;
+  role: 'admin' | 'staff' | 'perfumer';
+  title: string;
+  phone?: string;
+  active: boolean;
+  createdAt: string;
+}

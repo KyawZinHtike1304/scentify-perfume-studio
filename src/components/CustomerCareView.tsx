@@ -50,7 +50,7 @@ export const CustomerCareView: React.FC<CustomerCareViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#FFFDF8] py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#FBF7F0] py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         
         {/* Header */}
@@ -70,12 +70,12 @@ export const CustomerCareView: React.FC<CustomerCareViewProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* Main Chat Interface */}
-          <div className="lg:col-span-8 bg-[#FFFDF8] border border-[#DAD1C5] flex flex-col h-[650px] shadow-xs">
+          <div className="lg:col-span-8 bg-[#FBF7F0] border border-[#DAD1C5] flex flex-col h-[650px] shadow-xs">
             
             {/* Chat Top Bar */}
             <div className="px-6 py-4 bg-[#FBF7F0] border-b border-[#DAD1C5]/60 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[#FFFDF8] border border-[#DAD1C5] flex items-center justify-center font-serif text-lg text-[#C9A25C] font-light shadow-2xs">
+                <div className="w-10 h-10 bg-[#FBF7F0] border border-[#DAD1C5] flex items-center justify-center font-serif text-lg text-[#C9A25C] font-light shadow-2xs">
                   L
                 </div>
                 <div>
@@ -98,7 +98,7 @@ export const CustomerCareView: React.FC<CustomerCareViewProps> = ({
             </div>
 
             {/* Chat Messages Stream */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-5 bg-[#FFFDF8]">
+            <div className="flex-1 overflow-y-auto p-6 space-y-5 bg-[#FBF7F0]">
               
               <div className="flex justify-center">
                 <span className="text-[9px] uppercase tracking-[0.25em] text-[#6B6166]/70 bg-[#FBF7F0] px-3 py-1 border border-[#DAD1C5]/40 font-mono">
@@ -117,7 +117,7 @@ export const CustomerCareView: React.FC<CustomerCareViewProps> = ({
                       className={`max-w-[85%] sm:max-w-md p-4 text-xs leading-relaxed ${
                         isStudio
                           ? 'bg-[#28192A] text-[#FFFDF8] rounded-none shadow-xs'
-                          : 'bg-[#FFFDF8] text-[#28192A] border border-[#DAD1C5] rounded-none shadow-2xs'
+                          : 'bg-[#FBF7F0] text-[#28192A] border border-[#DAD1C5] rounded-none shadow-2xs'
                       }`}
                     >
                       {msg.text}
@@ -135,7 +135,7 @@ export const CustomerCareView: React.FC<CustomerCareViewProps> = ({
             {/* Chat Input Bar */}
             <div className="p-4 bg-[#FBF7F0] border-t border-[#DAD1C5]/60 relative">
               {showEmojiPicker && (
-                <div className="absolute bottom-16 left-4 bg-[#FFFDF8] border border-[#DAD1C5] p-2 flex gap-2 shadow-lg z-20">
+                <div className="absolute bottom-16 left-4 bg-[#FBF7F0] border border-[#DAD1C5] p-2 flex gap-2 shadow-lg z-20">
                   {emojis.map((emoji) => (
                     <button
                       key={emoji}
@@ -149,7 +149,7 @@ export const CustomerCareView: React.FC<CustomerCareViewProps> = ({
               )}
 
               <form onSubmit={handleSend} className="flex items-center gap-2">
-                <div className="flex-1 flex items-center bg-[#FFFDF8] border border-[#DAD1C5] px-3 py-1.5">
+                <div className="flex-1 flex items-center bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-1.5">
                   <input
                     type="text"
                     value={inputText}
@@ -191,7 +191,7 @@ export const CustomerCareView: React.FC<CustomerCareViewProps> = ({
           <div className="lg:col-span-4 space-y-6">
             
             {/* Order Status Card */}
-            <div className="bg-[#FFFDF8] border border-[#DAD1C5] p-6">
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-6">
               <span className="text-[10px] tracking-[0.2em] uppercase text-[#6B6166] font-medium block">
                 YOUR ORDER
               </span>
@@ -219,7 +219,7 @@ export const CustomerCareView: React.FC<CustomerCareViewProps> = ({
             </div>
 
             {/* Quick Inquiry Topics matching Figma */}
-            <div className="bg-[#FFFDF8] border border-[#DAD1C5] p-6 space-y-3">
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-6 space-y-3">
               <span className="text-[10px] tracking-[0.2em] uppercase text-[#6B6166] font-medium block mb-2">
                 WHAT CAN WE HELP WITH?
               </span>
@@ -233,7 +233,7 @@ export const CustomerCareView: React.FC<CustomerCareViewProps> = ({
                 <button
                   key={topic}
                   onClick={() => handleTopicClick(topic)}
-                  className="w-full text-left px-4 py-2.5 border border-[#DAD1C5]/60 hover:border-[#28192A] bg-[#FFFDF8] hover:bg-[#FBF7F0] text-xs text-[#28192A] transition-all flex items-center justify-between group"
+                  className="w-full text-left px-4 py-2.5 border border-[#DAD1C5]/60 hover:border-[#28192A] bg-[#FBF7F0] hover:bg-[#FBF7F0] text-xs text-[#28192A] transition-all flex items-center justify-between group"
                 >
                   <span>{topic}</span>
                   <span className="text-[#6B6166] group-hover:translate-x-0.5 transition-transform">→</span>

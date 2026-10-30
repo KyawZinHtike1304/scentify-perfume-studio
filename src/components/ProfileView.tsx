@@ -71,7 +71,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#FFFDF8] py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#FBF7F0] py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         
         {/* Top Header Banner */}
@@ -161,7 +161,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
             </div>
 
             {/* Saved Shipping Address Card */}
-            <div className="bg-[#FFFDF8] border border-[#DAD1C5] p-6 sm:p-7 relative shadow-2xs">
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-6 sm:p-7 relative shadow-2xs">
               <div className="flex items-center justify-between pb-4 border-b border-[#DAD1C5]/40 mb-4">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-[#C9A25C]" />
@@ -314,7 +314,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           {/* Right Column: Purchase History */}
           <div className="lg:col-span-7 space-y-6">
             
-            <div className="bg-[#FFFDF8] border border-[#DAD1C5] p-6 sm:p-8 shadow-xs">
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-6 sm:p-8 shadow-xs">
               <div className="flex items-center justify-between pb-4 border-b border-[#DAD1C5]/40 mb-6">
                 <div className="flex items-center gap-2.5">
                   <Package className="w-5 h-5 text-[#C9A25C]" />

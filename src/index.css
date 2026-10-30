@@ -9,12 +9,13 @@
   --color-mauve: #6B6166;
   --color-sand: #DAD1C5;
   --color-cream: #FBF7F0;
-  --color-soft-ivory: #FFFDF8;
+  --color-soft-ivory: #FBF7F0;
+  --color-main-bg: #FBF7F0;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: #FFFDF8;
+  background-color: #FBF7F0;
   color: #28192A;
 }
 
