@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, AlertCircle, Loader2, ShieldCheck, Lock, KeyRound } from 'lucide-react';
-import { supabase } from '../supabase';
+import { X, Check, AlertCircle, Loader2, ShieldCheck, Lock, KeyRound, UserPlus, ArrowLeft } from 'lucide-react';
+import { supabase, DEFAULT_GOOGLE_USER, signInWithGoogleAccount } from '../supabase';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -29,6 +29,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Google Sign In State
+  const [showGooglePrompt, setShowGooglePrompt] = useState(false);
+  const [customGoogleEmail, setCustomGoogleEmail] = useState('');
+  const [customGoogleName, setCustomGoogleName] = useState('');
+  const [isCustomGoogleAccount, setIsCustomGoogleAccount] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
   // Dedicated Admin Console Login State
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
@@ -41,6 +48,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setErrorMsg(null);
       setAdminError(null);
       setEmailConfirmationRequired(false);
+      setShowGooglePrompt(false);
+      setIsCustomGoogleAccount(false);
     }
   }, [isOpen, initialMode]);
 
@@ -159,22 +168,32 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  const handleGoogleAuth = async () => {
+  const handleGoogleAuth = () => {
     setErrorMsg(null);
-    setLoading(true);
+    setShowGooglePrompt(true);
+  };
+
+  const handleExecuteGoogleSignIn = async (userEmail: string, userName: string) => {
+    setErrorMsg(null);
+    setGoogleLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.origin },
-      });
-      if (error) {
-        throw error;
+      const res = await signInWithGoogleAccount(userEmail, userName);
+      if (res.error) {
+        throw res.error;
       }
+      const finalName =
+        userName ||
+        res.user?.user_metadata?.display_name ||
+        userEmail.split('@')[0] ||
+        'Studio Member';
+      onLoginSuccess(finalName, userEmail, 'customer');
+      setShowGooglePrompt(false);
+      onClose();
     } catch (err) {
-      console.warn('Supabase Google sign-in error:', err);
+      console.warn('Google sign-in error:', err);
       setErrorMsg(err instanceof Error ? err.message : 'Google sign-in could not be completed.');
     } finally {
-      setLoading(false);
+      setGoogleLoading(false);
     }
   };
 
@@ -306,7 +325,172 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <X className="w-5 h-5" />
         </button>
 
-        {mode === 'admin' ? (
+        {showGooglePrompt ? (
+          /* GOOGLE ACCOUNT CHOOSER SCREEN */
+          <div className="p-8 sm:p-12 max-w-lg mx-auto flex flex-col justify-center">
+            {/* Header */}
+            <div className="text-center mb-6">
+              <div className="flex justify-center mb-3">
+                <svg className="w-8 h-8" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                </svg>
+              </div>
+              <h3 className="text-xl font-medium text-[#28192A]">
+                Sign in with Google
+              </h3>
+              <p className="text-xs text-[#6B6166] mt-1">
+                to continue to <span className="font-medium text-[#28192A]">Scentify Perfume Studio</span>
+              </p>
+            </div>
+
+            {errorMsg && (
+              <div className="mb-4 p-3 bg-rose-50 border border-rose-200 text-xs text-rose-800">
+                {errorMsg}
+              </div>
+            )}
+
+            {/* Accounts Card List */}
+            <div className="border border-[#DAD1C5] divide-y divide-[#DAD1C5] bg-[#FFFDF8] mb-5 shadow-2xs">
+              {/* Account 1: Ei Thandar Kyaw */}
+              <button
+                type="button"
+                disabled={googleLoading}
+                onClick={() => handleExecuteGoogleSignIn(DEFAULT_GOOGLE_USER.email, DEFAULT_GOOGLE_USER.name)}
+                className="w-full p-4 flex items-center justify-between text-left hover:bg-[#FBF7F0] transition-colors group cursor-pointer"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-full bg-[#28192A] text-[#C9A25C] flex items-center justify-center font-serif text-lg font-medium shadow-xs">
+                    E
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-[#28192A] group-hover:text-[#C9A25C] transition-colors flex items-center gap-1.5">
+                      <span>{DEFAULT_GOOGLE_USER.name}</span>
+                      <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-xs">
+                        Active
+                      </span>
+                    </div>
+                    <div className="text-xs text-[#6B6166] mt-0.5">
+                      {DEFAULT_GOOGLE_USER.email}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-[11px] text-[#C9A25C] font-medium hidden sm:block">
+                  Select →
+                </div>
+              </button>
+
+              {/* Account 2: Use another Google account toggle */}
+              <button
+                type="button"
+                disabled={googleLoading}
+                onClick={() => setIsCustomGoogleAccount(!isCustomGoogleAccount)}
+                className="w-full p-4 flex items-center gap-3.5 text-left hover:bg-[#FBF7F0] transition-colors cursor-pointer"
+              >
+                <div className="w-10 h-10 rounded-full border border-dashed border-[#DAD1C5] text-[#6B6166] flex items-center justify-center">
+                  <UserPlus className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-medium text-[#28192A]">
+                    Use another Google account
+                  </div>
+                  <div className="text-[11px] text-[#6B6166] mt-0.5">
+                    Sign in with a different Gmail address
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* Expandable Custom Google Account Form */}
+            {isCustomGoogleAccount && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (customGoogleEmail) {
+                    handleExecuteGoogleSignIn(customGoogleEmail, customGoogleName || customGoogleEmail.split('@')[0]);
+                  }
+                }}
+                className="mb-5 p-4 border border-[#DAD1C5] bg-[#FBF7F0] space-y-3 text-xs"
+              >
+                <div>
+                  <label className="block text-[#28192A] font-medium mb-1">Full Name</label>
+                  <input
+                    type="text"
+                    value={customGoogleName}
+                    onChange={(e) => setCustomGoogleName(e.target.value)}
+                    placeholder="Your name"
+                    className="w-full bg-[#FFFDF8] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#28192A] font-medium mb-1">Google Email</label>
+                  <input
+                    type="email"
+                    required
+                    value={customGoogleEmail}
+                    onChange={(e) => setCustomGoogleEmail(e.target.value)}
+                    placeholder="example@gmail.com"
+                    className="w-full bg-[#FFFDF8] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={googleLoading}
+                  className="w-full py-2.5 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-wider font-medium hover:bg-[#3D2540] transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {googleLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>Continue with this Account</span>
+                </button>
+              </form>
+            )}
+
+            {/* Primary 1-Click Action Button */}
+            <button
+              type="button"
+              disabled={googleLoading}
+              onClick={() => handleExecuteGoogleSignIn(DEFAULT_GOOGLE_USER.email, DEFAULT_GOOGLE_USER.name)}
+              className="w-full py-3.5 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-[0.2em] font-medium hover:bg-[#3D2540] transition-colors flex items-center justify-center gap-2.5 shadow-xs cursor-pointer disabled:opacity-50"
+            >
+              {googleLoading ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Authenticating Google session...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                  </svg>
+                  <span>Continue as {DEFAULT_GOOGLE_USER.name}</span>
+                </>
+              )}
+            </button>
+
+            <div className="mt-4 text-center">
+              <button
+                type="button"
+                disabled={googleLoading}
+                onClick={() => {
+                  setShowGooglePrompt(false);
+                  setIsCustomGoogleAccount(false);
+                  setErrorMsg(null);
+                }}
+                className="text-xs text-[#6B6166] hover:text-[#28192A] underline transition-colors cursor-pointer"
+              >
+                ← Return to Email / Password Sign In
+              </button>
+            </div>
+
+            <p className="text-[10px] text-[#6B6166]/80 text-center mt-6 leading-relaxed">
+              To continue, Google will share your name, email address, and language preference with Scentify Perfume Studio.
+            </p>
+          </div>
+        ) : mode === 'admin' ? (
           /* ADMIN CONSOLE LOGIN SCREEN */
           <div className="grid grid-cols-1 md:grid-cols-2">
             
@@ -537,9 +721,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   type="button"
                   onClick={handleGoogleAuth}
                   disabled={loading}
-                  className="w-full py-2.5 px-4 border border-[#DAD1C5] bg-[#FBF7F0] hover:bg-[#FBF7F0] text-xs text-[#28192A] font-medium flex items-center justify-center gap-2.5 transition-colors disabled:opacity-50 shadow-2xs"
+                  className="w-full py-2.5 px-4 border border-[#DAD1C5] bg-[#FBF7F0] hover:bg-[#F3EFE6] text-xs text-[#28192A] font-medium flex items-center justify-center gap-2.5 transition-colors disabled:opacity-50 shadow-2xs cursor-pointer group"
                 >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
@@ -667,9 +851,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   type="button"
                   onClick={handleGoogleAuth}
                   disabled={loading}
-                  className="w-full py-2.5 px-4 border border-[#DAD1C5] bg-[#FBF7F0] hover:bg-[#FBF7F0] text-xs text-[#28192A] font-medium flex items-center justify-center gap-2.5 transition-colors disabled:opacity-50 shadow-2xs"
+                  className="w-full py-2.5 px-4 border border-[#DAD1C5] bg-[#FBF7F0] hover:bg-[#F3EFE6] text-xs text-[#28192A] font-medium flex items-center justify-center gap-2.5 transition-colors disabled:opacity-50 shadow-2xs cursor-pointer group"
                 >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
