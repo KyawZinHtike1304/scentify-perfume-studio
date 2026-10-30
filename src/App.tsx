@@ -356,6 +356,28 @@ export default function App() {
         return;
       }
 
+      const userRole = user.app_metadata?.role;
+      const isAdmin =
+        userRole === 'admin' || userRole === 'staff' || userRole === 'perfumer';
+      const initialName =
+        user.user_metadata?.display_name ||
+        user.user_metadata?.full_name ||
+        user.email?.split('@')[0] ||
+        'Studio Member';
+
+      if (active) {
+        setAuthenticatedUser(user);
+        setIsAdminUser(isAdmin);
+        setAdminUser(initialName);
+        setCurrentUser(isAdmin ? null : initialName);
+        if (isAdmin) {
+          setCurrentView('admin');
+        }
+        // The signed-in role is already available from the auth token; don't
+        // make the console wait for profile and order queries to finish.
+        setIsAuthResolved(true);
+      }
+
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('display_name, shipping_address')
@@ -366,24 +388,10 @@ export default function App() {
         console.error('Failed to load the Supabase profile:', profileError);
       }
 
-      const name =
-        profile?.display_name ||
-        user.user_metadata?.display_name ||
-        user.user_metadata?.full_name ||
-        user.email?.split('@')[0] ||
-        'Studio Member';
-      const userRole = user.app_metadata?.role;
-      const isAdmin =
-        userRole === 'admin' || userRole === 'staff' || userRole === 'perfumer';
-
+      const name = profile?.display_name || initialName;
       if (active) {
-        setAuthenticatedUser(user);
-        setIsAdminUser(isAdmin);
         setAdminUser(name);
         setCurrentUser(isAdmin ? null : name);
-        if (isAdmin) {
-          setCurrentView('admin');
-        }
 
         if (!isAdmin) {
           const { data: customerOrders, error: customerOrdersError } = await supabase
@@ -840,7 +848,18 @@ export default function App() {
   };
 
   if (!isAuthResolved) {
-    return <div className="min-h-screen bg-[#FBF7F0]" aria-busy="true" />;
+    return (
+      <div
+        className="min-h-screen bg-[#FBF7F0] flex flex-col items-center justify-center gap-4 text-[#28192A]"
+        aria-busy="true"
+        role="status"
+      >
+        <div className="h-9 w-9 animate-spin rounded-full border-2 border-[#DAD1C5] border-t-[#C9A25C]" />
+        <p className="text-xs uppercase tracking-[0.2em] text-[#6B6166]">
+          Loading your studio…
+        </p>
+      </div>
+    );
   }
 
   // Admin full-page portal view
