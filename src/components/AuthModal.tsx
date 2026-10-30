@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Check, AlertCircle, Loader2, ShieldCheck, Lock, KeyRound, Eye, EyeOff } from 'lucide-react';
-import { supabase } from '../supabase';
+import { isSupabaseConfigured, supabase } from '../supabase';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -171,21 +171,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  const handleGoogleAuth = async (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
+  const handleGoogleAuth = async () => {
+    setErrorMsg(null);
+    if (!isSupabaseConfigured) {
+      setErrorMsg(
+        'Google sign-in is unavailable because Supabase is not configured for this deployment. Add VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY to Vercel, then redeploy.'
+      );
+      return;
     }
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin,
-      },
-    });
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
 
-    if (error) {
-      console.error('Error logging in with Google:', error.message);
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error logging in with Google:', error);
+      setErrorMsg(
+        error instanceof Error ? error.message : 'Google sign-in could not be completed.'
+      );
+      setLoading(false);
     }
   };
 

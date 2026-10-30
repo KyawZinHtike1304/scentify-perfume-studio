@@ -3,7 +3,7 @@ import { createClient, type SupabaseClient, type User, type Session, type AuthCh
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-const isConfigured = Boolean(
+export const isSupabaseConfigured = Boolean(
   supabaseUrl &&
   supabasePublishableKey &&
   supabaseUrl.trim() !== '' &&
@@ -335,19 +335,14 @@ function createMockSupabase(): SupabaseClient {
     },
 
     async signInWithOAuth({ provider }: { provider: string }) {
-      const displayName = 'Studio Member';
-      const userId = 'usr-oauth-01';
-      currentUser = {
-        id: userId,
-        email: 'member@scentify.com',
-        aud: 'authenticated',
-        app_metadata: { provider, role: 'customer' },
-        user_metadata: { display_name: displayName, full_name: displayName },
-        created_at: new Date().toISOString(),
-      } as unknown as User;
-
-      notifyAuth('SIGNED_IN');
-      return { data: { provider, url: null }, error: null };
+      return {
+        data: { provider, url: null },
+        error: {
+          name: 'AuthConfigurationError',
+          message: 'Supabase is not configured. Set the Supabase environment variables to use Google sign-in.',
+          status: 500,
+        },
+      };
     },
 
     async resetPasswordForEmail(_email: string) {
@@ -522,7 +517,7 @@ function createMockSupabase(): SupabaseClient {
   } as unknown as SupabaseClient;
 }
 
-export const supabase: SupabaseClient = isConfigured
+export const supabase: SupabaseClient = isSupabaseConfigured
   ? createClient(supabaseUrl!, supabasePublishableKey!)
   : createMockSupabase();
 
