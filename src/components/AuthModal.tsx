@@ -172,23 +172,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   const handleGoogleAuth = async () => {
-    setErrorMsg(null);
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.origin },
-      });
-      if (error) {
-        throw error;
-      }
-    } catch (err) {
-      console.warn('Supabase Google sign-in error:', err);
-      setErrorMsg(err instanceof Error ? err.message : 'Google sign-in could not be completed.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  setErrorMsg(null);
+  setLoading(true);
+  try {
+    console.log("Initiating Google Auth with redirect:", window.location.origin);
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}`,
+      },
+    });
+
+    console.log("Supabase response:", { data, error });
+
+    if (error) throw error;
+  } catch (err: any) {
+    console.error("Full Supabase Google Sign-In error:", err);
+    setErrorMsg(err?.message || 'Google sign-in could not be completed.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleForgotPassword = async () => {
     if (!email.trim()) {
