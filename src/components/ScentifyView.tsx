@@ -1,18 +1,27 @@
 import React, { useState } from 'react';
-import { Check, Plus, ArrowRight, Sparkles, RefreshCw, AlertCircle, Info } from 'lucide-react';
-import { Composition, ViewMode, Ingredient } from '../types';
+import { Check, Plus, ArrowRight, Sparkles, RefreshCw, AlertCircle, Info, Sliders, FlaskConical } from 'lucide-react';
+import { Composition, ViewMode, Ingredient, ScentFamily, BottleOption, CustomizationRule, MasterFormula } from '../types';
 import { SCENT_FAMILIES } from '../data/perfumeData';
+import { INITIAL_BOTTLE_OPTIONS, INITIAL_CUSTOMIZATION_RULES, INITIAL_MASTER_FORMULAS } from '../data/adminDatabaseData';
 
 interface ScentifyViewProps {
   composition: Composition;
   onUpdateComposition: (comp: Composition) => void;
   onNavigate: (view: ViewMode) => void;
+  scentFamilies?: ScentFamily[];
+  bottles?: BottleOption[];
+  rules?: CustomizationRule[];
+  formulas?: MasterFormula[];
 }
 
 export const ScentifyView: React.FC<ScentifyViewProps> = ({
   composition,
   onUpdateComposition,
   onNavigate,
+  scentFamilies = SCENT_FAMILIES,
+  bottles = INITIAL_BOTTLE_OPTIONS,
+  rules = INITIAL_CUSTOMIZATION_RULES,
+  formulas = INITIAL_MASTER_FORMULAS,
 }) => {
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -22,6 +31,21 @@ export const ScentifyView: React.FC<ScentifyViewProps> = ({
     composition.heartNote,
     composition.baseNote,
   ].filter(Boolean);
+
+  // Active rules evaluation
+  const maxNotesRule = rules.find((r) => r.active && r.type === 'max_notes');
+  const maxNotesAllowed = maxNotesRule?.params?.maxNotes || 3;
+
+  const forbiddenRules = rules.filter((r) => r.active && r.type === 'forbidden_pairing');
+  const recommendedPairingRules = rules.filter((r) => r.active && r.type === 'recommended_pairing');
+
+  // Check forbidden pairings in current notes
+  const activeViolation = forbiddenRules.find((r) => {
+    if (!r.params?.familyA || !r.params?.familyB) return false;
+    const hasA = selectedNotes.some((n) => n.toLowerCase().includes(r.params!.familyA!.toLowerCase()));
+    const hasB = selectedNotes.some((n) => n.toLowerCase().includes(r.params!.familyB!.toLowerCase()));
+    return hasA && hasB;
+  });
 
   const isSelected = (noteName: string) => selectedNotes.includes(noteName);
 
@@ -37,8 +61,8 @@ export const ScentifyView: React.FC<ScentifyViewProps> = ({
       });
       setNotice(null);
     } else {
-      // Trying to select: enforce maximum 3
-      if (selectedNotes.length < 3) {
+      // Trying to select: enforce active max notes rule
+      if (selectedNotes.length < maxNotesAllowed) {
         const next = [...selectedNotes, ingName];
         onUpdateComposition({
           ...composition,
@@ -48,18 +72,32 @@ export const ScentifyView: React.FC<ScentifyViewProps> = ({
         });
         setNotice(null);
       } else {
-        // Already 3 chosen: swap the 3rd note
-        const replaced = [selectedNotes[0], selectedNotes[1], ingName];
+        // Already at max allowed notes: swap the last note
+        const replaced = [...selectedNotes.slice(0, maxNotesAllowed - 1), ingName];
         onUpdateComposition({
           ...composition,
           topNote: replaced[0] || '',
           heartNote: replaced[1] || '',
           baseNote: replaced[2] || '',
         });
-        setNotice(`Maximum 3 notes: replaced "${selectedNotes[2]}" with "${ingName}".`);
-        setTimeout(() => setNotice(null), 3500);
+        setNotice(
+          `Maximum ${maxNotesAllowed} harmonic notes: replaced "${selectedNotes[selectedNotes.length - 1]}" with "${ingName}".`
+        );
+        setTimeout(() => setNotice(null), 4000);
       }
     }
+  };
+
+  const handleApplyFormula = (formula: MasterFormula) => {
+    onUpdateComposition({
+      ...composition,
+      topNote: formula.topNote,
+      heartNote: formula.heartNote,
+      baseNote: formula.baseNote,
+      bottleSize: formula.recommendedBottle || composition.bottleSize,
+    });
+    setNotice(`Loaded Master Formula: "${formula.name}"`);
+    setTimeout(() => setNotice(null), 3500);
   };
 
   const handleResetToDefault = () => {
@@ -74,7 +112,7 @@ export const ScentifyView: React.FC<ScentifyViewProps> = ({
 
   const getHarmonicDescription = () => {
     if (selectedNotes.length === 0) {
-      return 'Select any 3 botanical notes to formulate your bespoke personal fragrance.';
+      return 'Select your botanical notes to formulate your bespoke personal fragrance.';
     }
     const top = selectedNotes[0] ? `A luminous ${selectedNotes[0].toLowerCase()} opening` : 'A crisp opening';
     const heart = selectedNotes[1] ? `a rich ${selectedNotes[1].toLowerCase()} heart` : 'a delicate heart';
@@ -82,8 +120,10 @@ export const ScentifyView: React.FC<ScentifyViewProps> = ({
     return `${top}, ${heart}, ${base}`;
   };
 
+  const activeBottles = bottles.filter((b) => b.inStock);
+
   return (
-    <div className="min-h-screen bg-[#FFFDF8] pb-36">
+    <div className="min-h-screen bg-[#FBF7F0] pb-36 text-[#28192A]">
       
       {/* Top Header Section */}
       <section className="pt-12 sm:pt-16 pb-10 border-b border-[#DAD1C5]/30">
@@ -98,13 +138,13 @@ export const ScentifyView: React.FC<ScentifyViewProps> = ({
                 Create your own <br />perfume.
               </h1>
               <p className="text-sm sm:text-base text-[#6B6166] font-light mt-4 max-w-md">
-                A fragrance with your own signature, composed one ingredient at a time.
+                A fragrance with your own signature, composed one ingredient at a time using natural botanical distillations.
               </p>
             </div>
 
             {/* Right Bottle Artwork */}
             <div className="lg:col-span-5 flex justify-center lg:justify-end">
-              <div className="p-3 bg-[#FBF7F0]/60 rounded-xl border border-[#DAD1C5]/30">
+              <div className="p-3 bg-white/40 rounded-xl border border-[#DAD1C5]/40 shadow-xs">
                 <img
                   src="/assets/botanicals/hero_bottles.png"
                   alt="Scentify formulation bottles"
@@ -117,26 +157,102 @@ export const ScentifyView: React.FC<ScentifyViewProps> = ({
         </div>
       </section>
 
-      {/* Subhead: Find your perfect notes matching Figma */}
-      <section className="py-8 border-b border-[#DAD1C5]/30 bg-[#FBF7F0]/40">
+      {/* Master Formulas Preset Carousel (from Admin) */}
+      {formulas.filter((f) => f.active).length > 0 && (
+        <section className="py-5 bg-[#FBF7F0] border-b border-[#DAD1C5]/40">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+              <span className="text-[10px] uppercase tracking-[0.25em] text-[#C9A25C] font-semibold flex items-center gap-1.5">
+                <FlaskConical className="w-3.5 h-3.5" />
+                <span>Studio Master Blends (Select as Starting Formula)</span>
+              </span>
+              <span className="text-[11px] text-[#6B6166]">
+                Curated by our Studio Perfumers
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
+              {formulas
+                .filter((f) => f.active)
+                .map((formula) => {
+                  const isMatching =
+                    composition.topNote === formula.topNote &&
+                    composition.heartNote === formula.heartNote &&
+                    composition.baseNote === formula.baseNote;
+
+                  return (
+                    <button
+                      key={formula.id}
+                      onClick={() => handleApplyFormula(formula)}
+                      className={`px-3.5 py-2 border text-left shrink-0 transition-all ${
+                        isMatching
+                          ? 'border-[#C9A25C] bg-[#28192A] text-[#FBF7F0] shadow-sm'
+                          : 'border-[#DAD1C5] bg-[#FBF7F0] hover:border-[#28192A] text-[#28192A]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="font-serif text-sm font-medium">{formula.name}</span>
+                        {isMatching && (
+                          <span className="text-[9px] bg-[#C9A25C] text-[#28192A] font-bold px-1.5 py-0.2">
+                            ACTIVE
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[10px] opacity-75 mt-0.5 font-light">
+                        {formula.topNote} · {formula.heartNote} · {formula.baseNote}
+                      </div>
+                    </button>
+                  );
+                })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Subhead & Olfactory Rules Guidance */}
+      <section className="py-6 border-b border-[#DAD1C5]/30 bg-white/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <span className="text-[10px] uppercase tracking-[0.25em] text-[#C9A25C] font-semibold block mb-1">
-                The Ingredient Library
+                The Botanical Library
               </span>
               <h2 className="font-serif text-2xl sm:text-3xl text-[#28192A]">
                 Find your perfect notes.
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-[#6B6166] max-w-md font-light leading-relaxed">
-              Select any ingredients you love within each scent family. Your choices form a fragrance that is entirely yours.
+              Select your botanical extracts across each scent family. (Maximum {maxNotesAllowed} harmonic notes active).
             </p>
           </div>
 
-          {/* Replacement Notice Alert */}
+          {/* Active Olfactory Pairing Recommendation */}
+          {recommendedPairingRules.length > 0 && (
+            <div className="mt-3.5 p-3 bg-[#FBF7F0] border border-[#C9A25C]/40 text-xs text-[#28192A] flex items-start gap-2.5">
+              <Sparkles className="w-4 h-4 text-[#C9A25C] shrink-0 mt-0.5" />
+              <div>
+                <span className="font-semibold text-[#28192A]">Perfumer's Pairing Rule: </span>
+                <span className="text-[#6B6166]">
+                  {recommendedPairingRules[0]?.description ||
+                    'Select a woody base to anchor delicate citrus and floral top notes.'}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Rule Violation Notice */}
+          {activeViolation && (
+            <div className="mt-3 p-3 bg-red-50 border border-red-200 text-xs text-red-900 flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+              <span>
+                <strong>Olfactory Caution:</strong> {activeViolation.params?.reason || activeViolation.description}
+              </span>
+            </div>
+          )}
+
+          {/* General Replacement Notice Alert */}
           {notice && (
-            <div className="mt-4 p-2.5 bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-center gap-2 animate-in fade-in duration-150">
+            <div className="mt-3 p-2.5 bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-center gap-2 animate-in fade-in duration-150">
               <Info className="w-4 h-4 text-amber-700 shrink-0" />
               <span>{notice}</span>
             </div>
@@ -144,9 +260,9 @@ export const ScentifyView: React.FC<ScentifyViewProps> = ({
         </div>
       </section>
 
-      {/* Scent Families Formulation Section — All 6 Families Displayed in Sequence */}
+      {/* Scent Families Formulation Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
-        {SCENT_FAMILIES.map((family) => (
+        {scentFamilies.map((family) => (
           <div
             key={family.id}
             className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start border-b border-[#DAD1C5]/40 pb-16"
@@ -177,15 +293,22 @@ export const ScentifyView: React.FC<ScentifyViewProps> = ({
               </div>
             </div>
 
-            {/* Complete Ingredients List for this family */}
+            {/* Ingredients List for this family */}
             <div className="lg:col-span-8 space-y-3">
               {family.ingredients.map((item, idx) => {
                 const selected = isSelected(item.name);
                 const itemNum = String(idx + 1).padStart(2, '0');
                 
-                // Which slot in the 3 notes is this?
+                // Which slot in the notes is this?
                 const noteIndex = selectedNotes.indexOf(item.name);
-                const roleLabel = noteIndex === 0 ? 'Top Note' : noteIndex === 1 ? 'Heart Note' : noteIndex === 2 ? 'Base Note' : null;
+                const roleLabel =
+                  noteIndex === 0
+                    ? 'Top Note'
+                    : noteIndex === 1
+                    ? 'Heart Note'
+                    : noteIndex === 2
+                    ? 'Base Note'
+                    : null;
 
                 return (
                   <div
@@ -193,8 +316,8 @@ export const ScentifyView: React.FC<ScentifyViewProps> = ({
                     onClick={() => handleToggleIngredient(item.name)}
                     className={`p-5 rounded-none border transition-all cursor-pointer flex items-center justify-between group ${
                       selected
-                        ? 'border-[#C9A25C] bg-[#FFFDF8] shadow-xs ring-1 ring-[#C9A25C]/40'
-                        : 'border-[#DAD1C5]/60 bg-[#FFFDF8] hover:border-[#DAD1C5]'
+                        ? 'border-[#C9A25C] bg-[#FBF7F0] shadow-xs ring-1 ring-[#C9A25C]/40'
+                        : 'border-[#DAD1C5]/60 bg-[#FBF7F0] hover:border-[#DAD1C5]'
                     }`}
                   >
                     <div className="flex items-baseline gap-5">
@@ -204,6 +327,11 @@ export const ScentifyView: React.FC<ScentifyViewProps> = ({
                           <h4 className="font-serif text-lg text-[#28192A] group-hover:text-[#C9A25C] transition-colors">
                             {item.name}
                           </h4>
+                          {item.isPopular && (
+                            <span className="text-[9px] font-mono tracking-wider uppercase bg-[#C9A25C]/20 text-[#28192A] px-1.5 py-0.5">
+                              Popular
+                            </span>
+                          )}
                           {roleLabel && (
                             <span className="text-[10px] font-mono tracking-wider uppercase bg-[#28192A] text-[#FFFDF8] px-2 py-0.5">
                               {roleLabel}
@@ -239,7 +367,7 @@ export const ScentifyView: React.FC<ScentifyViewProps> = ({
         ))}
       </div>
 
-      {/* Sticky Bottom Composition Bar matching Figma */}
+      {/* Sticky Bottom Composition & Bottle Bar */}
       <aside
         aria-label="Selected custom perfume composition bar"
         className="fixed bottom-0 inset-x-0 z-30 bg-[#FBF7F0]/95 backdrop-blur-md border-t border-[#DAD1C5] py-4 px-4 sm:px-6 lg:px-8 shadow-2xl"
@@ -249,10 +377,12 @@ export const ScentifyView: React.FC<ScentifyViewProps> = ({
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <span className="text-[10px] tracking-[0.25em] uppercase text-[#6B6166] font-medium">
-                Your Composition / 0{selectedNotes.length} of 03 Ingredients
+                Your Composition / 0{selectedNotes.length} of 0{maxNotesAllowed} Ingredients
               </span>
               <span className="text-[10px] font-mono text-[#C9A25C] uppercase">
-                {selectedNotes.length === 3 ? '✓ Complete' : `(Select ${3 - selectedNotes.length} more)`}
+                {selectedNotes.length === maxNotesAllowed
+                  ? '✓ Complete'
+                  : `(Select ${maxNotesAllowed - selectedNotes.length} more)`}
               </span>
             </div>
 
@@ -266,7 +396,32 @@ export const ScentifyView: React.FC<ScentifyViewProps> = ({
             </p>
           </div>
 
-          <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-3 w-full md:w-auto flex-wrap sm:flex-nowrap">
+            
+            {/* Bottle size quick selector */}
+            {activeBottles.length > 0 && (
+              <div className="flex items-center gap-1.5 bg-[#FBF7F0] border border-[#DAD1C5] p-1">
+                {activeBottles.map((b) => (
+                  <button
+                    key={b.bottle_id}
+                    onClick={() =>
+                      onUpdateComposition({
+                        ...composition,
+                        bottleSize: b.size,
+                      })
+                    }
+                    className={`px-2.5 py-1 text-[11px] font-mono transition-colors ${
+                      composition.bottleSize === b.size
+                        ? 'bg-[#28192A] text-[#FBF7F0] font-semibold'
+                        : 'text-[#6B6166] hover:text-[#28192A]'
+                    }`}
+                  >
+                    {b.size} (฿{b.price.toLocaleString()})
+                  </button>
+                ))}
+              </div>
+            )}
+
             <button
               onClick={handleResetToDefault}
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 text-xs text-[#6B6166] hover:text-[#28192A]"
@@ -281,7 +436,7 @@ export const ScentifyView: React.FC<ScentifyViewProps> = ({
               disabled={selectedNotes.length === 0}
               className="w-full md:w-auto inline-flex items-center justify-center gap-3 px-8 py-3.5 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-[0.2em] font-medium hover:bg-[#3D2540] transition-colors shadow-sm disabled:opacity-50"
             >
-              <span>Continue to bottle</span>
+              <span>Review fragrance</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

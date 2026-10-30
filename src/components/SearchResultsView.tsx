@@ -135,7 +135,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
   ];
 
   return (
-    <div className="min-h-screen bg-[#FFFDF8] text-[#28192A] pb-24">
+    <div className="min-h-screen bg-[#FBF7F0] text-[#28192A] pb-24">
       {/* Top Breadcrumb & Title Bar */}
       <div className="border-b border-[#DAD1C5]/40 bg-[#FBF7F0]/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
@@ -186,7 +186,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
           onSubmit={handleSearchSubmit}
           className="max-w-2xl mx-auto mb-6 relative"
         >
-          <div className="relative flex items-center bg-[#FFFDF8] border-2 border-[#28192A] shadow-md focus-within:ring-2 focus-within:ring-[#C9A25C]/50 transition-all">
+          <div className="relative flex items-center bg-[#FBF7F0] border-2 border-[#28192A] shadow-md focus-within:ring-2 focus-within:ring-[#C9A25C]/50 transition-all">
             <div className="pl-4 sm:pl-5 text-[#6B6166]">
               <Search className="w-5 h-5 stroke-[1.8]" />
             </div>
@@ -227,7 +227,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
               className={`px-3 py-1 rounded-full border transition-colors ${
                 initialQuery.toLowerCase() === term.toLowerCase()
                   ? 'bg-[#28192A] text-[#FFFDF8] border-[#28192A]'
-                  : 'bg-[#FFFDF8] text-[#28192A] border-[#DAD1C5] hover:border-[#28192A] hover:bg-[#FBF7F0]'
+                  : 'bg-[#FBF7F0] text-[#28192A] border-[#DAD1C5] hover:border-[#28192A] hover:bg-[#FBF7F0]'
               }`}
             >
               {term}
@@ -288,7 +288,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
         {/* No Results Fallback */}
         {totalResults === 0 && (
           <div className="text-center py-16 px-4 bg-[#FBF7F0]/60 border border-[#DAD1C5]/50 max-w-2xl mx-auto">
-            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-[#FFFDF8] border border-[#DAD1C5] flex items-center justify-center text-[#6B6166]">
+            <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-[#FBF7F0] border border-[#DAD1C5] flex items-center justify-center text-[#6B6166]">
               <Search className="w-6 h-6 stroke-[1.5]" />
             </div>
             <h3 className="font-serif text-2xl text-[#28192A] font-medium mb-2">
@@ -333,7 +333,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
               {matchedPerfumes.map((perfume) => (
                 <div
                   key={perfume.id}
-                  className="bg-[#FFFDF8] border border-[#DAD1C5]/60 hover:border-[#28192A] transition-all duration-300 flex flex-col justify-between group shadow-xs hover:shadow-md"
+                  className="bg-[#FBF7F0] border border-[#DAD1C5]/60 hover:border-[#28192A] transition-all duration-300 flex flex-col justify-between group shadow-xs hover:shadow-md"
                 >
                   <div className="p-6">
                     <div className="relative mb-6 overflow-hidden bg-[#FBF7F0] p-6 flex items-center justify-center rounded-sm">
@@ -342,7 +342,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
                         alt={perfume.name}
                         className="w-full h-48 object-contain group-hover:scale-105 transition-transform duration-500"
                       />
-                      <span className="absolute top-3 right-3 text-[10px] uppercase font-mono tracking-wider text-[#28192A] bg-[#FFFDF8] border border-[#DAD1C5]/80 px-2 py-0.5">
+                      <span className="absolute top-3 right-3 text-[10px] uppercase font-mono tracking-wider text-[#28192A] bg-[#FBF7F0] border border-[#DAD1C5]/80 px-2 py-0.5">
                         {perfume.family}
                       </span>
                     </div>
@@ -368,7 +368,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
                         {perfume.topNotes.concat(perfume.heartNotes, perfume.baseNotes).slice(0, 4).map((n) => (
                           <span
                             key={n}
-                            className="bg-[#FFFDF8] px-2 py-0.5 border border-[#DAD1C5]/50 rounded-xs"
+                            className="bg-[#FBF7F0] px-2 py-0.5 border border-[#DAD1C5]/50 rounded-xs"
                           >
                             {n}
                           </span>
@@ -436,7 +436,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
               {matchedIngredients.map((ing) => (
                 <div
                   key={ing.id}
-                  className="bg-[#FFFDF8] border border-[#DAD1C5]/60 p-5 hover:border-[#28192A] transition-all flex flex-col justify-between group"
+                  className="bg-[#FBF7F0] border border-[#DAD1C5]/60 p-5 hover:border-[#28192A] transition-all flex flex-col justify-between group"
                 >
                   <div>
                     <div className="flex items-center justify-between mb-2">
@@ -519,7 +519,7 @@ export const SearchResultsView: React.FC<SearchResultsViewProps> = ({
                     {fam.notes.map((n) => (
                       <span
                         key={n}
-                        className="text-[10px] uppercase font-mono tracking-wider text-[#28192A] bg-[#FFFDF8] px-2 py-0.5 border border-[#DAD1C5]/40"
+                        className="text-[10px] uppercase font-mono tracking-wider text-[#28192A] bg-[#FBF7F0] px-2 py-0.5 border border-[#DAD1C5]/40"
                       >
                         {n}
                       </span>

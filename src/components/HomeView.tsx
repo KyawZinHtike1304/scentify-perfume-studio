@@ -9,7 +9,7 @@ interface HomeViewProps {
 
 export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, onOpenStoryModal }) => {
   return (
-    <div className="min-h-screen bg-[#FFFDF8] text-[#28192A]">
+    <div className="min-h-screen bg-[#FBF7F0] text-[#28192A]">
       
       {/* Hero Section */}
       <section className="relative overflow-hidden border-b border-[#DAD1C5]/30">
@@ -127,7 +127,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, onOpenStoryModal
             {/* 01 Citrus */}
             <div
               onClick={() => onNavigate('scentify')}
-              className="group cursor-pointer bg-[#FFFDF8] p-8 border border-[#DAD1C5]/50 hover:border-[#C9A25C] transition-all flex flex-col justify-between hover:shadow-md"
+              className="group cursor-pointer bg-[#FBF7F0] p-8 border border-[#DAD1C5]/50 hover:border-[#C9A25C] transition-all flex flex-col justify-between hover:shadow-md"
             >
               <div>
                 <span className="text-xs font-mono text-[#C9A25C] tracking-widest">01</span>
@@ -157,7 +157,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, onOpenStoryModal
             {/* 02 Floral */}
             <div
               onClick={() => onNavigate('scentify')}
-              className="group cursor-pointer bg-[#FFFDF8] p-8 border border-[#DAD1C5]/50 hover:border-[#C9A25C] transition-all flex flex-col justify-between hover:shadow-md"
+              className="group cursor-pointer bg-[#FBF7F0] p-8 border border-[#DAD1C5]/50 hover:border-[#C9A25C] transition-all flex flex-col justify-between hover:shadow-md"
             >
               <div>
                 <span className="text-xs font-mono text-[#C9A25C] tracking-widest">02</span>
@@ -187,7 +187,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, onOpenStoryModal
             {/* 03 Woody */}
             <div
               onClick={() => onNavigate('scentify')}
-              className="group cursor-pointer bg-[#FFFDF8] p-8 border border-[#DAD1C5]/50 hover:border-[#C9A25C] transition-all flex flex-col justify-between hover:shadow-md"
+              className="group cursor-pointer bg-[#FBF7F0] p-8 border border-[#DAD1C5]/50 hover:border-[#C9A25C] transition-all flex flex-col justify-between hover:shadow-md"
             >
               <div>
                 <span className="text-xs font-mono text-[#C9A25C] tracking-widest">03</span>
@@ -219,7 +219,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, onOpenStoryModal
       </section>
 
       {/* Composition Callout Banner */}
-      <section className="py-20 bg-[#FFFDF8]">
+      <section className="py-20 bg-[#FBF7F0]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-8 sm:p-12 lg:p-16 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 relative overflow-hidden">
             

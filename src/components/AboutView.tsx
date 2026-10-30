@@ -8,7 +8,7 @@ interface AboutViewProps {
 
 export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
   return (
-    <div className="min-h-screen bg-[#FFFDF8] text-[#28192A]">
+    <div className="min-h-screen bg-[#FBF7F0] text-[#28192A]">
       
       {/* Editorial Hero Banner */}
       <section className="relative overflow-hidden border-b border-[#DAD1C5]/30 pt-16 pb-20 sm:pt-24 sm:pb-28">
@@ -96,7 +96,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             
             {/* Pillar 1 */}
-            <div className="bg-[#FFFDF8] border border-[#DAD1C5] p-8 flex flex-col justify-between">
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-8 flex flex-col justify-between">
               <div>
                 <div className="w-12 h-12 bg-[#FBF7F0] border border-[#DAD1C5]/60 flex items-center justify-center text-[#C9A25C] mb-6">
                   <Leaf className="w-6 h-6 stroke-[1.5]" />
@@ -114,7 +114,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
             </div>
 
             {/* Pillar 2 */}
-            <div className="bg-[#FFFDF8] border border-[#DAD1C5] p-8 flex flex-col justify-between">
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-8 flex flex-col justify-between">
               <div>
                 <div className="w-12 h-12 bg-[#FBF7F0] border border-[#DAD1C5]/60 flex items-center justify-center text-[#C9A25C] mb-6">
                   <Droplets className="w-6 h-6 stroke-[1.5]" />
@@ -132,7 +132,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
             </div>
 
             {/* Pillar 3 */}
-            <div className="bg-[#FFFDF8] border border-[#DAD1C5] p-8 flex flex-col justify-between">
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-8 flex flex-col justify-between">
               <div>
                 <div className="w-12 h-12 bg-[#FBF7F0] border border-[#DAD1C5]/60 flex items-center justify-center text-[#C9A25C] mb-6">
                   <Compass className="w-6 h-6 stroke-[1.5]" />
@@ -155,7 +155,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
       </section>
 
       {/* Scent Scentify Invitation Banner */}
-      <section className="py-20 bg-[#FFFDF8]">
+      <section className="py-20 bg-[#FBF7F0]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-[#28192A] text-[#FFFDF8] p-10 sm:p-16 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
             <div className="max-w-xl">
@@ -173,7 +173,7 @@ export const AboutView: React.FC<AboutViewProps> = ({ onNavigate }) => {
             <div className="flex flex-wrap items-center gap-4">
               <button
                 onClick={() => onNavigate('scentify')}
-                className="px-7 py-3.5 bg-[#FFFDF8] text-[#28192A] text-xs uppercase tracking-[0.2em] font-medium hover:bg-[#FBF7F0] transition-colors shadow-xs"
+                className="px-7 py-3.5 bg-[#FBF7F0] text-[#28192A] text-xs uppercase tracking-[0.2em] font-medium hover:bg-[#FBF7F0] transition-colors shadow-xs"
               >
                 Create Scent →
               </button>

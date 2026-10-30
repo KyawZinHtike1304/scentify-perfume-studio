@@ -53,7 +53,7 @@ export const CartView: React.FC<CartViewProps> = ({
   // If user is not logged in: cart data must only be shown after log in
   if (!currentUser) {
     return (
-      <div className="min-h-screen bg-[#FFFDF8] py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-[#FBF7F0] py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           
           {/* Header */}
@@ -71,7 +71,7 @@ export const CartView: React.FC<CartViewProps> = ({
 
           {/* Gated Access Card */}
           <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-8 sm:p-14 text-center max-w-2xl mx-auto shadow-xs">
-            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[#FFFDF8] border border-[#DAD1C5] flex items-center justify-center text-[#C9A25C]">
+            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[#FBF7F0] border border-[#DAD1C5] flex items-center justify-center text-[#C9A25C]">
               <Lock className="w-7 h-7 stroke-[1.5]" />
             </div>
 
@@ -98,7 +98,7 @@ export const CartView: React.FC<CartViewProps> = ({
               <button
                 type="button"
                 onClick={() => onOpenAuth?.('login')}
-                className="w-full sm:w-auto flex-1 py-3.5 px-6 bg-[#FFFDF8] border border-[#28192A] text-[#28192A] text-xs uppercase tracking-[0.2em] font-medium hover:bg-[#28192A] hover:text-[#FFFDF8] transition-colors"
+                className="w-full sm:w-auto flex-1 py-3.5 px-6 bg-[#FBF7F0] border border-[#28192A] text-[#28192A] text-xs uppercase tracking-[0.2em] font-medium hover:bg-[#28192A] hover:text-[#FFFDF8] transition-colors"
               >
                 Log In
               </button>
@@ -106,7 +106,7 @@ export const CartView: React.FC<CartViewProps> = ({
 
             {/* Studio Privileges */}
             <div className="mt-10 pt-8 border-t border-[#DAD1C5]/50 grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
-              <div className="p-4 bg-[#FFFDF8] border border-[#DAD1C5]/40">
+              <div className="p-4 bg-[#FBF7F0] border border-[#DAD1C5]/40">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-[#C9A25C] block mb-1">
                   01 / Formulations
                 </span>
@@ -114,7 +114,7 @@ export const CartView: React.FC<CartViewProps> = ({
                   Preserve your custom 3-note perfume blends and flacon specifications.
                 </p>
               </div>
-              <div className="p-4 bg-[#FFFDF8] border border-[#DAD1C5]/40">
+              <div className="p-4 bg-[#FBF7F0] border border-[#DAD1C5]/40">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-[#C9A25C] block mb-1">
                   02 / Secure Checkout
                 </span>
@@ -122,7 +122,7 @@ export const CartView: React.FC<CartViewProps> = ({
                   Fast address auto-fill and direct PromptPay verification with courier dispatch.
                 </p>
               </div>
-              <div className="p-4 bg-[#FFFDF8] border border-[#DAD1C5]/40">
+              <div className="p-4 bg-[#FBF7F0] border border-[#DAD1C5]/40">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-[#C9A25C] block mb-1">
                   03 / Perfumer Care
                 </span>
@@ -148,7 +148,7 @@ export const CartView: React.FC<CartViewProps> = ({
   }
 
   return (
-    <div className="min-h-screen bg-[#FFFDF8] py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#FBF7F0] py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         
         {/* Header */}
@@ -195,7 +195,7 @@ export const CartView: React.FC<CartViewProps> = ({
               {items.map((item) => (
                 <div
                   key={item.id}
-                  className="bg-[#FFFDF8] border border-[#DAD1C5] p-5 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 hover:border-[#DAD1C5] transition-colors"
+                  className="bg-[#FBF7F0] border border-[#DAD1C5] p-5 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 hover:border-[#DAD1C5] transition-colors"
                 >
                   <div className="flex items-center gap-5">
                     <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#FBF7F0] border border-[#DAD1C5]/40 p-2 shrink-0 flex items-center justify-center">
@@ -219,7 +219,7 @@ export const CartView: React.FC<CartViewProps> = ({
 
                   {/* Quantity and Line Price */}
                   <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-0 border-[#DAD1C5]/30">
-                    <div className="flex items-center border border-[#DAD1C5] bg-[#FFFDF8]">
+                    <div className="flex items-center border border-[#DAD1C5] bg-[#FBF7F0]">
                       <button
                         onClick={() => onUpdateQuantity(item.id, Math.max(1, item.quantity - 1))}
                         className="px-2.5 py-1 text-[#6B6166] hover:text-[#28192A] transition-colors"
@@ -296,12 +296,12 @@ export const CartView: React.FC<CartViewProps> = ({
                     onChange={(e) => setPromoCode(e.target.value)}
                     placeholder="Promo code (e.g. SCENTIFY10)"
                     disabled={promoApplied}
-                    className="flex-1 bg-[#FFFDF8] border border-[#DAD1C5] px-3.5 py-2.5 text-xs text-[#28192A] placeholder-[#6B6166]/60 focus:outline-none focus:border-[#28192A]"
+                    className="flex-1 bg-[#FBF7F0] border border-[#DAD1C5] px-3.5 py-2.5 text-xs text-[#28192A] placeholder-[#6B6166]/60 focus:outline-none focus:border-[#28192A]"
                   />
                   <button
                     onClick={handleApplyPromo}
                     disabled={promoApplied}
-                    className="px-4 py-2.5 bg-[#FFFDF8] border border-[#DAD1C5] text-xs font-medium text-[#28192A] hover:bg-[#28192A] hover:text-[#FFFDF8] transition-colors disabled:opacity-50"
+                    className="px-4 py-2.5 bg-[#FBF7F0] border border-[#DAD1C5] text-xs font-medium text-[#28192A] hover:bg-[#28192A] hover:text-[#FFFDF8] transition-colors disabled:opacity-50"
                   >
                     {promoApplied ? 'Applied' : 'Apply'}
                   </button>

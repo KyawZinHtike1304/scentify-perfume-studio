@@ -9,6 +9,10 @@ import {
   DbBottle,
   DbOrderItem,
   EnrichedOrder,
+  BottleOption,
+  CustomizationRule,
+  MasterFormula,
+  AdminStaffUser,
 } from '../types';
 
 export const INITIAL_DB_USERS: DbUser[] = [
@@ -344,3 +348,171 @@ export function buildEnrichedOrders(
     };
   });
 }
+
+export const INITIAL_BOTTLE_OPTIONS: BottleOption[] = [
+  {
+    bottle_id: 1,
+    size: '50 ml',
+    volume: 50,
+    price: 1680,
+    bottleType: 'Classic Flacon',
+    inStock: true,
+    description: 'Signature cylindrical flacon with brushed gold collar and natural atomiser pump.',
+  },
+  {
+    bottle_id: 2,
+    size: '100 ml',
+    volume: 100,
+    price: 2580,
+    bottleType: 'Grand Flacon',
+    inStock: true,
+    description: 'Generous heavy-base crystal glass flacon for the dedicated signature scent collector.',
+  },
+  {
+    bottle_id: 3,
+    size: '30 ml',
+    volume: 30,
+    price: 522,
+    bottleType: 'Travel Atomizer',
+    inStock: true,
+    description: 'Compact hand-finished pocket vial for journeys and bespoke layering.',
+  },
+];
+
+export const INITIAL_CUSTOMIZATION_RULES: CustomizationRule[] = [
+  {
+    id: 'rule-max-notes',
+    name: 'Maximum 3 Harmonic Notes',
+    description: 'Restricts the perfume blend to a maximum of 3 harmonic notes for optimal olfactory balance (Top, Heart, Base).',
+    type: 'max_notes',
+    active: true,
+    params: { maxNotes: 3 },
+  },
+  {
+    id: 'rule-pairing-woody-citrus',
+    name: 'Citrus & Woody Harmonious Bridge',
+    description: 'Recommends bridging Citrus and Woody families with a Floral or Fresh heart note to prevent olfactory clash.',
+    type: 'recommended_pairing',
+    active: true,
+    params: {
+      familyA: 'Citrus',
+      familyB: 'Woody',
+      requiredFamily: 'Floral',
+      reason: 'Bridging with a Floral or Fresh note creates a seamless, luminous progression.',
+    },
+  },
+  {
+    id: 'rule-base-depth',
+    name: 'Artisanal Base Longevity Anchor',
+    description: 'Encourages selecting at least one Woody or Sweet note to ensure 8+ hours of fragrance sillage.',
+    type: 'required_family',
+    active: true,
+    params: {
+      requiredFamily: 'Woody',
+      reason: 'Anchors the delicate top citrus notes with deep natural resins.',
+    },
+  },
+  {
+    id: 'rule-single-heavy-oud',
+    name: 'Oud Concentration Guard',
+    description: 'Restricts pairing heavy Oud with dark Amber to prevent overpowering delicate botanical top notes.',
+    type: 'forbidden_pairing',
+    active: false,
+    params: {
+      familyA: 'Oud',
+      familyB: 'Amber',
+      reason: 'Dual resin density may overpower top notes.',
+    },
+  },
+];
+
+export const INITIAL_MASTER_FORMULAS: MasterFormula[] = [
+  {
+    id: 101,
+    name: 'Golden Dawn',
+    topNote: 'Bergamot',
+    heartNote: 'Jasmine',
+    baseNote: 'Sandalwood',
+    recommendedBottle: '50 ml',
+    active: true,
+    description: 'Luminous Italian bergamot meeting twilight-harvested Thai Sambac jasmine and smooth Mysore sandalwood.',
+    created_at: '2026-10-24T09:15:00Z',
+  },
+  {
+    id: 102,
+    name: 'Imperial Oud',
+    topNote: 'Lemon',
+    heartNote: 'Rose',
+    baseNote: 'Oud',
+    recommendedBottle: '100 ml',
+    active: true,
+    description: 'Regal Damascena rose enveloped in rare smoky Trat agarwood with a sparkling Amalfi lemon facet.',
+    created_at: '2026-10-25T11:30:00Z',
+  },
+  {
+    id: 103,
+    name: 'Botanical Solitude',
+    topNote: 'Grapefruit',
+    heartNote: 'Lavender',
+    baseNote: 'Cedarwood',
+    recommendedBottle: '50 ml',
+    active: true,
+    description: 'High-altitude French lavender with crisp ruby grapefruit over grounding Himalayan cedar.',
+    created_at: '2026-10-26T14:20:00Z',
+  },
+  {
+    id: 104,
+    name: 'Siam Bloom',
+    topNote: 'Orange',
+    heartNote: 'Ylang Ylang',
+    baseNote: 'Amber',
+    recommendedBottle: '50 ml',
+    active: true,
+    description: 'Sun-drenched tropical ylang-ylang warmed with honeyed amber and sweet Mediterranean orange.',
+    created_at: '2026-10-27T10:05:00Z',
+  },
+  {
+    id: 105,
+    name: 'Highland Serenity',
+    topNote: 'Mint',
+    heartNote: 'Green Tea',
+    baseNote: 'Vetiver',
+    recommendedBottle: '50 ml',
+    active: true,
+    description: 'Crisp spearmint and steeped sencha green tea anchored in earthy Javanese vetiver root.',
+    created_at: '2026-10-28T08:40:00Z',
+  },
+];
+
+export const INITIAL_ADMIN_USERS: AdminStaffUser[] = [
+  {
+    id: 99,
+    name: 'Scentify Studio Master Perfumer',
+    email: 'admin@scentify.com',
+    role: 'admin',
+    title: 'Master Perfumer & Studio Director',
+    phone: '+66 2 123 4567',
+    active: true,
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 98,
+    name: 'Ariya Vong',
+    email: 'ariya.v@scentify.com',
+    role: 'perfumer',
+    title: 'Senior Botanical Formulation Specialist',
+    phone: '+66 2 123 4568',
+    active: true,
+    createdAt: '2026-02-15T00:00:00Z',
+  },
+  {
+    id: 97,
+    name: 'Chaiwat Na Chiangmai',
+    email: 'chaiwat.c@scentify.com',
+    role: 'staff',
+    title: 'Studio Inventory & Fulfilment Lead',
+    phone: '+66 2 123 4569',
+    active: true,
+    createdAt: '2026-03-01T00:00:00Z',
+  },
+];

@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import {
-  X,
   TrendingUp,
   Package,
   ShoppingBag,
@@ -26,7 +25,20 @@ import {
   Download,
   Check,
   Plus,
-  LogOut
+  LogOut,
+  Trash2,
+  Sliders,
+  FlaskConical,
+  Sparkles,
+  ToggleLeft,
+  ToggleRight,
+  X,
+  UserPlus,
+  ArrowRight,
+  Calendar,
+  BarChart3,
+  Tag,
+  ShieldAlert,
 } from 'lucide-react';
 import {
   DbOrder,
@@ -38,6 +50,12 @@ import {
   DbFormulaDetail,
   DbOrderItem,
   EnrichedOrder,
+  BottleOption,
+  CustomizationRule,
+  MasterFormula,
+  AdminStaffUser,
+  ScentFamily,
+  Ingredient,
 } from '../types';
 import {
   INITIAL_DB_ORDERS,
@@ -49,6 +67,10 @@ import {
   INITIAL_DB_FORMULA_DETAILS,
   INITIAL_DB_BOTTLES,
   INITIAL_DB_ORDER_ITEMS,
+  INITIAL_BOTTLE_OPTIONS,
+  INITIAL_CUSTOMIZATION_RULES,
+  INITIAL_MASTER_FORMULAS,
+  INITIAL_ADMIN_USERS,
   buildEnrichedOrders,
 } from '../data/adminDatabaseData';
 
@@ -64,10 +86,24 @@ interface AdminSidePanelProps {
   formulas?: DbFormula[];
   formulaDetails?: DbFormulaDetail[];
   orderItems?: DbOrderItem[];
+
+  // Dynamic Management props
+  bottles?: BottleOption[];
+  onUpdateBottles?: (bottles: BottleOption[]) => void;
+  scentFamilies?: ScentFamily[];
+  onUpdateScentFamilies?: (families: ScentFamily[]) => void;
+  rules?: CustomizationRule[];
+  onUpdateRules?: (rules: CustomizationRule[]) => void;
+  masterFormulas?: MasterFormula[];
+  onUpdateMasterFormulas?: (formulas: MasterFormula[]) => void;
+  adminStaffUsers?: AdminStaffUser[];
+  onUpdateAdminStaffUsers?: (admins: AdminStaffUser[]) => void;
+
   onConfirmOrder?: (orderId: number) => void | Promise<void>;
   onCancelOrder?: (orderId: number) => void | Promise<void>;
   onUpdateOrderStatus?: (orderId: number, status: DbOrder['status']) => void | Promise<void>;
   onVerifyPayment?: (paymentId: number, orderId: number) => void | Promise<void>;
+  onSwitchToStorefront?: () => void;
 }
 
 export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
@@ -82,25 +118,56 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
   formulas: propFormulas,
   formulaDetails: propFormulaDetails,
   orderItems: propOrderItems,
+
+  bottles: propBottles,
+  onUpdateBottles,
+  scentFamilies: propScentFamilies,
+  onUpdateScentFamilies,
+  rules: propRules,
+  onUpdateRules,
+  masterFormulas: propMasterFormulas,
+  onUpdateMasterFormulas,
+  adminStaffUsers: propAdminStaffUsers,
+  onUpdateAdminStaffUsers,
+
   onConfirmOrder,
   onCancelOrder,
   onUpdateOrderStatus,
   onVerifyPayment,
+  onSwitchToStorefront,
 }) => {
   // Navigation Tabs
-  const [activeTab, setActiveTab] = useState<'sales' | 'orders' | 'inventory' | 'users'>('sales');
+  const [activeTab, setActiveTab] = useState<
+    'sales' | 'orders' | 'bottles' | 'rules' | 'inventory' | 'admins' | 'users'
+  >('sales');
 
   // Relational Database State
   const [orders, setOrders] = useState<DbOrder[]>(propOrders || INITIAL_DB_ORDERS);
   const [users, setUsers] = useState<DbUser[]>(propUsers || INITIAL_DB_USERS);
   const [shippings, setShippings] = useState<DbShipping[]>(propShippings || INITIAL_DB_SHIPPINGS);
   const [payments, setPayments] = useState<DbPayment[]>(propPayments || INITIAL_DB_PAYMENTS);
-  const [ingredients, setIngredients] = useState<DbIngredient[]>(propIngredients || INITIAL_DB_INGREDIENTS);
+  const [ingredients, setIngredients] = useState<DbIngredient[]>(
+    propIngredients || INITIAL_DB_INGREDIENTS
+  );
   const [formulas, setFormulas] = useState<DbFormula[]>(propFormulas || INITIAL_DB_FORMULAS);
-  const [formulaDetails, setFormulaDetails] = useState<DbFormulaDetail[]>(propFormulaDetails || INITIAL_DB_FORMULA_DETAILS);
-  const [orderItems, setOrderItems] = useState<DbOrderItem[]>(propOrderItems || INITIAL_DB_ORDER_ITEMS);
+  const [formulaDetails, setFormulaDetails] = useState<DbFormulaDetail[]>(
+    propFormulaDetails || INITIAL_DB_FORMULA_DETAILS
+  );
+  const [orderItems, setOrderItems] = useState<DbOrderItem[]>(
+    propOrderItems || INITIAL_DB_ORDER_ITEMS
+  );
 
-  // Sync state whenever props update (e.g. customer places a new order)
+  // Dynamic modules state
+  const [bottles, setBottles] = useState<BottleOption[]>(propBottles || INITIAL_BOTTLE_OPTIONS);
+  const [rules, setRules] = useState<CustomizationRule[]>(propRules || INITIAL_CUSTOMIZATION_RULES);
+  const [masterFormulas, setMasterFormulas] = useState<MasterFormula[]>(
+    propMasterFormulas || INITIAL_MASTER_FORMULAS
+  );
+  const [adminStaffUsers, setAdminStaffUsers] = useState<AdminStaffUser[]>(
+    propAdminStaffUsers || INITIAL_ADMIN_USERS
+  );
+
+  // Sync state whenever props update
   React.useEffect(() => {
     if (propOrders) setOrders(propOrders);
   }, [propOrders]);
@@ -122,38 +189,153 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
   }, [propIngredients]);
 
   React.useEffect(() => {
-    if (propFormulas) setFormulas(propFormulas);
-  }, [propFormulas]);
+    if (propBottles) setBottles(propBottles);
+  }, [propBottles]);
 
   React.useEffect(() => {
-    if (propFormulaDetails) setFormulaDetails(propFormulaDetails);
-  }, [propFormulaDetails]);
+    if (propRules) setRules(propRules);
+  }, [propRules]);
 
   React.useEffect(() => {
-    if (propOrderItems) setOrderItems(propOrderItems);
-  }, [propOrderItems]);
+    if (propMasterFormulas) setMasterFormulas(propMasterFormulas);
+  }, [propMasterFormulas]);
 
-  // Search & Filter
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'processing' | 'completed' | 'cancelled'>('all');
-  const [paymentFilter, setPaymentFilter] = useState<'all' | 'verified' | 'pending' | 'failed'>('all');
+  React.useEffect(() => {
+    if (propAdminStaffUsers) setAdminStaffUsers(propAdminStaffUsers);
+  }, [propAdminStaffUsers]);
 
-  // Detail Modal
-  const [selectedOrder, setSelectedOrder] = useState<EnrichedOrder | null>(null);
-  const [isEditingShipping, setIsEditingShipping] = useState(false);
-  const [shippingForm, setShippingForm] = useState<{ courier: string; tracking: string }>({ courier: '', tracking: '' });
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
-
-  // Success Notification
+  // Toast Notification
   const [notification, setNotification] = useState<string | null>(null);
-
   const showToast = (msg: string) => {
     setNotification(msg);
     setTimeout(() => setNotification(null), 3500);
   };
 
-  // Build joined orders
+  // Orders Filter & Modal State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<
+    'all' | 'pending' | 'processing' | 'completed' | 'cancelled'
+  >('all');
+  const [paymentFilter, setPaymentFilter] = useState<'all' | 'verified' | 'pending' | 'failed'>(
+    'all'
+  );
+  const [selectedOrder, setSelectedOrder] = useState<EnrichedOrder | null>(null);
+  const [isEditingShipping, setIsEditingShipping] = useState(false);
+  const [shippingForm, setShippingForm] = useState<{ courier: string; tracking: string }>({
+    courier: '',
+    tracking: '',
+  });
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+  // -------------------------------------------------------------
+  // REPORTS DASHBOARD STATE
+  // -------------------------------------------------------------
+  const [reportPeriod, setReportPeriod] = useState<
+    'all' | 'today' | '7days' | '30days' | 'month' | 'custom'
+  >('all');
+  const [reportType, setReportType] = useState<
+    'orders' | 'scents' | 'ingredients' | 'bottles'
+  >('orders');
+  const [reportStatusFilter, setReportStatusFilter] = useState<string>('all');
+  const [customStartDate, setCustomStartDate] = useState<string>('2026-10-01');
+  const [customEndDate, setCustomEndDate] = useState<string>('2026-10-31');
+
+  // -------------------------------------------------------------
+  // BOTTLE & PRICING MODAL STATE
+  // -------------------------------------------------------------
+  const [isBottleModalOpen, setIsBottleModalOpen] = useState(false);
+  const [editingBottle, setEditingBottle] = useState<BottleOption | null>(null);
+  const [bottleForm, setBottleForm] = useState({
+    size: '',
+    volume: 50,
+    price: 1680,
+    bottleType: 'Classic Flacon',
+    description: '',
+    inStock: true,
+  });
+
+  // -------------------------------------------------------------
+  // RULES & FORMULAS MODAL STATE
+  // -------------------------------------------------------------
+  const [isRuleModalOpen, setIsRuleModalOpen] = useState(false);
+  const [editingRule, setEditingRule] = useState<CustomizationRule | null>(null);
+  const [ruleForm, setRuleForm] = useState<{
+    name: string;
+    description: string;
+    type: CustomizationRule['type'];
+    active: boolean;
+    familyA: string;
+    familyB: string;
+    requiredFamily: string;
+    maxNotes: number;
+    reason: string;
+  }>({
+    name: '',
+    description: '',
+    type: 'recommended_pairing',
+    active: true,
+    familyA: 'Citrus',
+    familyB: 'Woody',
+    requiredFamily: 'Floral',
+    maxNotes: 3,
+    reason: '',
+  });
+
+  const [isFormulaModalOpen, setIsFormulaModalOpen] = useState(false);
+  const [editingFormula, setEditingFormula] = useState<MasterFormula | null>(null);
+  const [formulaForm, setFormulaForm] = useState({
+    name: '',
+    topNote: 'Bergamot',
+    heartNote: 'Jasmine',
+    baseNote: 'Sandalwood',
+    recommendedBottle: '50 ml',
+    description: '',
+    active: true,
+  });
+
+  // -------------------------------------------------------------
+  // INGREDIENT & SCENT CATEGORY MODAL STATE
+  // -------------------------------------------------------------
+  const [isIngredientModalOpen, setIsIngredientModalOpen] = useState(false);
+  const [editingIngredient, setEditingIngredient] = useState<DbIngredient | null>(null);
+  const [ingredientForm, setIngredientForm] = useState({
+    name: '',
+    category: 'Floral',
+    stock_qty: 100,
+    description: '',
+    isPopular: false,
+  });
+
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [categoryForm, setCategoryForm] = useState({
+    name: '',
+    subtitle: '',
+    description: '',
+  });
+
+  // -------------------------------------------------------------
+  // ADMIN & STAFF MANAGEMENT MODAL STATE
+  // -------------------------------------------------------------
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
+  const [editingAdmin, setEditingAdmin] = useState<AdminStaffUser | null>(null);
+  const [adminForm, setAdminForm] = useState({
+    name: '',
+    email: '',
+    role: 'admin' as AdminStaffUser['role'],
+    title: 'Studio Co-Administrator',
+    phone: '',
+    password: '',
+  });
+
+  // -------------------------------------------------------------
+  // ENRICHED ORDERS BUILDER
+  // -------------------------------------------------------------
   const enrichedOrders = useMemo(() => {
+    const rawBottles = bottles.map((b) => ({
+      bottle_id: b.bottle_id,
+      size: b.volume,
+      price: b.price,
+    }));
     return buildEnrichedOrders(
       orders,
       users,
@@ -163,27 +345,87 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
       formulas,
       formulaDetails,
       ingredients,
-      INITIAL_DB_BOTTLES
+      rawBottles
     );
-  }, [orders, users, shippings, payments, orderItems, formulas, formulaDetails, ingredients]);
+  }, [orders, users, shippings, payments, orderItems, formulas, formulaDetails, ingredients, bottles]);
 
-  // Filtered orders
+  // -------------------------------------------------------------
+  // FILTERED ORDERS FOR ORDERS TAB
+  // -------------------------------------------------------------
   const filteredOrders = useMemo(() => {
-    return enrichedOrders.filter((item) => {
+    return enrichedOrders.filter((eo) => {
+      const q = searchQuery.toLowerCase().trim();
       const matchSearch =
-        item.order.order_id.toString().includes(searchQuery) ||
-        item.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.shipping.tracking_number.toLowerCase().includes(searchQuery.toLowerCase());
+        !q ||
+        eo.order.order_id.toString().includes(q) ||
+        eo.user.name.toLowerCase().includes(q) ||
+        eo.user.email.toLowerCase().includes(q) ||
+        eo.shipping.tracking_number.toLowerCase().includes(q) ||
+        eo.shipping.courier_name.toLowerCase().includes(q);
 
-      const matchStatus = statusFilter === 'all' || item.order.status === statusFilter;
-      const matchPayment = paymentFilter === 'all' || item.payment.status === paymentFilter;
+      const matchStatus = statusFilter === 'all' || eo.order.status === statusFilter;
+      const matchPayment = paymentFilter === 'all' || eo.payment.status === paymentFilter;
 
       return matchSearch && matchStatus && matchPayment;
     });
   }, [enrichedOrders, searchQuery, statusFilter, paymentFilter]);
 
-  // Sales Metrics
+  // -------------------------------------------------------------
+  // REPORT FILTERED ORDERS FOR SALES TAB
+  // -------------------------------------------------------------
+  const reportFilteredOrders = useMemo(() => {
+    const now = new Date('2026-10-30T00:00:00Z');
+
+    return enrichedOrders.filter((eo) => {
+      const orderDate = new Date(eo.order.order_date);
+
+      // Period filter
+      if (reportPeriod === 'today') {
+        if (orderDate.toDateString() !== now.toDateString()) return false;
+      } else if (reportPeriod === '7days') {
+        const diffDays = (now.getTime() - orderDate.getTime()) / (1000 * 3600 * 24);
+        if (diffDays > 7 || diffDays < 0) return false;
+      } else if (reportPeriod === '30days') {
+        const diffDays = (now.getTime() - orderDate.getTime()) / (1000 * 3600 * 24);
+        if (diffDays > 30 || diffDays < 0) return false;
+      } else if (reportPeriod === 'month') {
+        if (
+          orderDate.getUTCMonth() !== now.getUTCMonth() ||
+          orderDate.getUTCFullYear() !== now.getUTCFullYear()
+        )
+          return false;
+      } else if (reportPeriod === 'custom') {
+        const start = new Date(customStartDate);
+        const end = new Date(customEndDate);
+        end.setHours(23, 59, 59, 999);
+        if (orderDate < start || orderDate > end) return false;
+      }
+
+      // Status filter
+      if (reportStatusFilter !== 'all') {
+        if (reportStatusFilter === 'verified' && eo.payment.status !== 'verified') return false;
+        if (reportStatusFilter === 'pending' && eo.payment.status !== 'pending') return false;
+        if (reportStatusFilter === 'completed' && eo.order.status !== 'completed') return false;
+        if (reportStatusFilter === 'processing' && eo.order.status !== 'processing') return false;
+        if (reportStatusFilter === 'cancelled' && eo.order.status !== 'cancelled') return false;
+      }
+
+      return true;
+    });
+  }, [enrichedOrders, reportPeriod, reportStatusFilter, customStartDate, customEndDate]);
+
+  const reportTotalRevenue = useMemo(() => {
+    return reportFilteredOrders
+      .filter((o) => o.order.status !== 'cancelled')
+      .reduce((sum, o) => sum + o.order.total_price, 0);
+  }, [reportFilteredOrders]);
+
+  const reportAverageOrderValue = useMemo(() => {
+    const valid = reportFilteredOrders.filter((o) => o.order.status !== 'cancelled');
+    return valid.length > 0 ? Math.round(reportTotalRevenue / valid.length) : 0;
+  }, [reportFilteredOrders, reportTotalRevenue]);
+
+  // Overall KPIs
   const totalRevenue = useMemo(() => {
     return orders
       .filter((o) => o.status !== 'cancelled')
@@ -198,12 +440,563 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
     return payments.filter((p) => p.status === 'pending').length;
   }, [payments]);
 
-  const averageOrderValue = useMemo(() => {
-    const valid = orders.filter((o) => o.status !== 'cancelled');
-    return valid.length > 0 ? Math.round(totalRevenue / valid.length) : 0;
-  }, [orders, totalRevenue]);
+  // -------------------------------------------------------------
+  // DYNAMIC SALES REPORT FILE GENERATOR & DOWNLOADER
+  // -------------------------------------------------------------
+  const handleDownloadCustomReport = () => {
+    let headers: string[] = [];
+    let rows: (string | number)[][] = [];
+    const timestamp = new Date().toISOString().slice(0, 10);
 
-  // Handle Order Status Update
+    if (reportType === 'orders') {
+      headers = [
+        'Order ID',
+        'Date & Time',
+        'Customer Name',
+        'Customer Email',
+        'Phone',
+        'Shipping Address',
+        'Courier',
+        'Tracking No',
+        'Fulfillment Status',
+        'Payment Status',
+        'Verified Date',
+        'Order Total (THB)',
+      ];
+      rows = reportFilteredOrders.map((eo) => [
+        eo.order.order_id,
+        eo.order.order_date,
+        `"${eo.user.name}"`,
+        eo.user.email,
+        `"${eo.user.phone}"`,
+        `"${eo.shipping.shipping_address}"`,
+        eo.shipping.courier_name,
+        eo.shipping.tracking_number,
+        eo.order.status,
+        eo.payment.status,
+        eo.payment.verified_at || 'N/A',
+        eo.order.total_price,
+      ]);
+    } else if (reportType === 'scents') {
+      headers = ['Scent Category / Family', 'Associated Ingredients Count', 'Formulation Frequency', 'Status'];
+      const categories = ['Citrus', 'Floral', 'Woody', 'Fruity', 'Sweet', 'Fresh'];
+      rows = categories.map((cat) => {
+        const count = ingredients.filter((i) => i.category.toLowerCase() === cat.toLowerCase()).length;
+        const matchingOrdersCount = reportFilteredOrders.filter((eo) =>
+          eo.items.some((item) =>
+            item.formula_name.toLowerCase().includes(cat.toLowerCase())
+          )
+        ).length;
+        return [cat, count, matchingOrdersCount, 'Active Catalog'];
+      });
+    } else if (reportType === 'ingredients') {
+      headers = ['Ingredient ID', 'Botanical Name', 'Category', 'Current Stock Qty', 'Depletion Level'];
+      rows = ingredients.map((ing) => {
+        const level =
+          ing.stock_qty <= 20
+            ? 'CRITICAL LOW'
+            : ing.stock_qty <= 50
+            ? 'LOW REORDER'
+            : 'OPTIMAL';
+        return [ing.ingredient_id, `"${ing.name}"`, ing.category, ing.stock_qty, level];
+      });
+    } else {
+      // Bottles report
+      headers = ['Bottle ID', 'Size (ml)', 'Type / Flacon Style', 'Unit Price (THB)', 'Stock Status'];
+      rows = bottles.map((b) => [
+        b.bottle_id,
+        b.size,
+        `"${b.bottleType}"`,
+        b.price,
+        b.inStock ? 'In Stock' : 'Out of Stock',
+      ]);
+    }
+
+    const csvContent =
+      'data:text/csv;charset=utf-8,\uFEFF' +
+      [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute(
+      'download',
+      `Scentify_Report_${reportType}_${reportPeriod}_${timestamp}.csv`
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    showToast(`Sales Report exported successfully: ${rows.length} rows.`);
+  };
+
+  // -------------------------------------------------------------
+  // BOTTLE & PRICING ACTIONS
+  // -------------------------------------------------------------
+  const handleOpenAddBottle = () => {
+    setEditingBottle(null);
+    setBottleForm({
+      size: '75 ml',
+      volume: 75,
+      price: 2190,
+      bottleType: 'Maison Flacon',
+      description: 'Handcrafted mid-size flacon with artisanal seal and fine mist sprayer.',
+      inStock: true,
+    });
+    setIsBottleModalOpen(true);
+  };
+
+  const handleOpenEditBottle = (bottle: BottleOption) => {
+    setEditingBottle(bottle);
+    setBottleForm({
+      size: bottle.size,
+      volume: bottle.volume,
+      price: bottle.price,
+      bottleType: bottle.bottleType,
+      description: bottle.description || '',
+      inStock: bottle.inStock,
+    });
+    setIsBottleModalOpen(true);
+  };
+
+  const handleSaveBottle = (e: React.FormEvent) => {
+    e.preventDefault();
+    let updated: BottleOption[];
+    if (editingBottle) {
+      updated = bottles.map((b) =>
+        b.bottle_id === editingBottle.bottle_id
+          ? {
+              ...b,
+              size: bottleForm.size,
+              volume: Number(bottleForm.volume),
+              price: Number(bottleForm.price),
+              bottleType: bottleForm.bottleType,
+              description: bottleForm.description,
+              inStock: bottleForm.inStock,
+            }
+          : b
+      );
+      showToast(`Bottle "${bottleForm.size}" updated to ฿${Number(bottleForm.price).toLocaleString()}.`);
+    } else {
+      const nextId =
+        bottles.length > 0 ? Math.max(...bottles.map((b) => b.bottle_id)) + 1 : 1;
+      const newBottle: BottleOption = {
+        bottle_id: nextId,
+        size: bottleForm.size,
+        volume: Number(bottleForm.volume),
+        price: Number(bottleForm.price),
+        bottleType: bottleForm.bottleType,
+        description: bottleForm.description,
+        inStock: bottleForm.inStock,
+      };
+      updated = [...bottles, newBottle];
+      showToast(`New bottle "${bottleForm.size}" added to store catalog.`);
+    }
+
+    setBottles(updated);
+    onUpdateBottles?.(updated);
+    setIsBottleModalOpen(false);
+  };
+
+  const handleDeleteBottle = (bottleId: number) => {
+    const target = bottles.find((b) => b.bottle_id === bottleId);
+    if (!target) return;
+    const updated = bottles.filter((b) => b.bottle_id !== bottleId);
+    setBottles(updated);
+    onUpdateBottles?.(updated);
+    showToast(`Bottle size "${target.size}" removed.`);
+  };
+
+  const handleToggleBottleStock = (bottleId: number) => {
+    const updated = bottles.map((b) =>
+      b.bottle_id === bottleId ? { ...b, inStock: !b.inStock } : b
+    );
+    setBottles(updated);
+    onUpdateBottles?.(updated);
+    const target = updated.find((b) => b.bottle_id === bottleId);
+    showToast(`Bottle "${target?.size}" is now ${target?.inStock ? 'IN STOCK' : 'OUT OF STOCK'}.`);
+  };
+
+  // -------------------------------------------------------------
+  // CUSTOMIZATION RULES & FORMULAS ACTIONS
+  // -------------------------------------------------------------
+  const handleToggleRule = (ruleId: string) => {
+    const updated = rules.map((r) => (r.id === ruleId ? { ...r, active: !r.active } : r));
+    setRules(updated);
+    onUpdateRules?.(updated);
+    const r = updated.find((x) => x.id === ruleId);
+    showToast(`Rule "${r?.name}" is now ${r?.active ? 'ACTIVE' : 'DEACTIVATED'}.`);
+  };
+
+  const handleSaveRule = (e: React.FormEvent) => {
+    e.preventDefault();
+    let updated: CustomizationRule[];
+    if (editingRule) {
+      updated = rules.map((r) =>
+        r.id === editingRule.id
+          ? {
+              ...r,
+              name: ruleForm.name,
+              description: ruleForm.description,
+              type: ruleForm.type,
+              active: ruleForm.active,
+              params: {
+                familyA: ruleForm.familyA,
+                familyB: ruleForm.familyB,
+                requiredFamily: ruleForm.requiredFamily,
+                maxNotes: Number(ruleForm.maxNotes),
+                reason: ruleForm.reason,
+              },
+            }
+          : r
+      );
+      showToast(`Rule "${ruleForm.name}" updated.`);
+    } else {
+      const newRule: CustomizationRule = {
+        id: `rule-${Date.now().toString(36)}`,
+        name: ruleForm.name,
+        description: ruleForm.description,
+        type: ruleForm.type,
+        active: ruleForm.active,
+        params: {
+          familyA: ruleForm.familyA,
+          familyB: ruleForm.familyB,
+          requiredFamily: ruleForm.requiredFamily,
+          maxNotes: Number(ruleForm.maxNotes),
+          reason: ruleForm.reason,
+        },
+      };
+      updated = [...rules, newRule];
+      showToast(`New customization rule "${ruleForm.name}" registered.`);
+    }
+    setRules(updated);
+    onUpdateRules?.(updated);
+    setIsRuleModalOpen(false);
+  };
+
+  const handleDeleteRule = (ruleId: string) => {
+    const updated = rules.filter((r) => r.id !== ruleId);
+    setRules(updated);
+    onUpdateRules?.(updated);
+    showToast('Customization rule deleted.');
+  };
+
+  const handleToggleFormula = (formulaId: number) => {
+    const updated = masterFormulas.map((f) =>
+      f.id === formulaId ? { ...f, active: !f.active } : f
+    );
+    setMasterFormulas(updated);
+    onUpdateMasterFormulas?.(updated);
+    const target = updated.find((f) => f.id === formulaId);
+    showToast(`Formula "${target?.name}" is now ${target?.active ? 'AVAILABLE' : 'DEACTIVATED'}.`);
+  };
+
+  const handleSaveFormula = (e: React.FormEvent) => {
+    e.preventDefault();
+    let updated: MasterFormula[];
+    if (editingFormula) {
+      updated = masterFormulas.map((f) =>
+        f.id === editingFormula.id
+          ? {
+              ...f,
+              name: formulaForm.name,
+              topNote: formulaForm.topNote,
+              heartNote: formulaForm.heartNote,
+              baseNote: formulaForm.baseNote,
+              recommendedBottle: formulaForm.recommendedBottle,
+              description: formulaForm.description,
+              active: formulaForm.active,
+            }
+          : f
+      );
+      showToast(`Formula "${formulaForm.name}" updated.`);
+    } else {
+      const nextId =
+        masterFormulas.length > 0
+          ? Math.max(...masterFormulas.map((f) => f.id)) + 1
+          : 101;
+      const newF: MasterFormula = {
+        id: nextId,
+        name: formulaForm.name,
+        topNote: formulaForm.topNote,
+        heartNote: formulaForm.heartNote,
+        baseNote: formulaForm.baseNote,
+        recommendedBottle: formulaForm.recommendedBottle,
+        description: formulaForm.description,
+        active: formulaForm.active,
+        created_at: new Date().toISOString(),
+      };
+      updated = [...masterFormulas, newF];
+      showToast(`Master Formula "${formulaForm.name}" created.`);
+    }
+    setMasterFormulas(updated);
+    onUpdateMasterFormulas?.(updated);
+    setIsFormulaModalOpen(false);
+  };
+
+  const handleDeleteFormula = (formulaId: number) => {
+    const updated = masterFormulas.filter((f) => f.id !== formulaId);
+    setMasterFormulas(updated);
+    onUpdateMasterFormulas?.(updated);
+    showToast('Master Formula removed.');
+  };
+
+  // -------------------------------------------------------------
+  // SCENT & INGREDIENT ACTIONS
+  // -------------------------------------------------------------
+  const handleOpenAddIngredient = () => {
+    setEditingIngredient(null);
+    setIngredientForm({
+      name: '',
+      category: 'Floral',
+      stock_qty: 80,
+      description: 'Luminous natural botanical essential extract.',
+      isPopular: false,
+    });
+    setIsIngredientModalOpen(true);
+  };
+
+  const handleOpenEditIngredient = (ing: DbIngredient) => {
+    setEditingIngredient(ing);
+    setIngredientForm({
+      name: ing.name,
+      category: ing.category,
+      stock_qty: ing.stock_qty,
+      description: 'Hand-selected artisanal distillation harvested at peak bloom.',
+      isPopular: false,
+    });
+    setIsIngredientModalOpen(true);
+  };
+
+  const handleSaveIngredient = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ingredientForm.name.trim()) return;
+
+    let updated: DbIngredient[];
+    if (editingIngredient) {
+      updated = ingredients.map((i) =>
+        i.ingredient_id === editingIngredient.ingredient_id
+          ? {
+              ...i,
+              name: ingredientForm.name.trim(),
+              category: ingredientForm.category,
+              stock_qty: Number(ingredientForm.stock_qty),
+            }
+          : i
+      );
+      showToast(`Ingredient "${ingredientForm.name}" updated.`);
+    } else {
+      const nextId =
+        ingredients.length > 0 ? Math.max(...ingredients.map((i) => i.ingredient_id)) + 1 : 1;
+      const newIng: DbIngredient = {
+        ingredient_id: nextId,
+        name: ingredientForm.name.trim(),
+        category: ingredientForm.category,
+        stock_qty: Number(ingredientForm.stock_qty),
+      };
+      updated = [...ingredients, newIng];
+      showToast(`New ingredient "${ingredientForm.name}" added to catalog.`);
+    }
+
+    setIngredients(updated);
+
+    // Also sync with propScentFamilies if provided
+    if (propScentFamilies && onUpdateScentFamilies) {
+      const catKey = ingredientForm.category.toLowerCase();
+      const updatedFamilies = propScentFamilies.map((fam) => {
+        if (fam.id === catKey || fam.name.toLowerCase() === catKey) {
+          const ingId = ingredientForm.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+          const existing = fam.ingredients.find(
+            (i) => i.name.toLowerCase() === ingredientForm.name.toLowerCase()
+          );
+          if (existing) {
+            return {
+              ...fam,
+              ingredients: fam.ingredients.map((i) =>
+                i.id === existing.id
+                  ? {
+                      ...i,
+                      name: ingredientForm.name,
+                      description: ingredientForm.description,
+                      isPopular: ingredientForm.isPopular,
+                    }
+                  : i
+              ),
+            };
+          } else {
+            const newIngredientObj: Ingredient = {
+              id: ingId,
+              name: ingredientForm.name,
+              description: ingredientForm.description,
+              familyId: fam.id,
+              familyName: fam.name,
+              isPopular: ingredientForm.isPopular,
+            };
+            return {
+              ...fam,
+              notes: [...fam.notes, ingredientForm.name.toUpperCase()],
+              ingredients: [...fam.ingredients, newIngredientObj],
+            };
+          }
+        }
+        return fam;
+      });
+      onUpdateScentFamilies(updatedFamilies);
+    }
+
+    setIsIngredientModalOpen(false);
+  };
+
+  const handleDeleteIngredient = (ingredientId: number) => {
+    const target = ingredients.find((i) => i.ingredient_id === ingredientId);
+    if (!target) return;
+    const updated = ingredients.filter((i) => i.ingredient_id !== ingredientId);
+    setIngredients(updated);
+
+    // Sync removal from propScentFamilies
+    if (propScentFamilies && onUpdateScentFamilies) {
+      const updatedFamilies = propScentFamilies.map((fam) => ({
+        ...fam,
+        notes: fam.notes.filter((n) => n.toUpperCase() !== target.name.toUpperCase()),
+        ingredients: fam.ingredients.filter(
+          (i) => i.name.toLowerCase() !== target.name.toLowerCase()
+        ),
+      }));
+      onUpdateScentFamilies(updatedFamilies);
+    }
+
+    showToast(`Ingredient "${target.name}" removed from library.`);
+  };
+
+  const handleSaveCategory = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!categoryForm.name.trim()) return;
+
+    if (propScentFamilies && onUpdateScentFamilies) {
+      const catId = categoryForm.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+      const num = String(propScentFamilies.length + 1).padStart(2, '0');
+      const newFamily: ScentFamily = {
+        id: catId,
+        number: num,
+        name: categoryForm.name.trim(),
+        subtitle: categoryForm.subtitle.trim() || 'Artisanal Botanical Harmony',
+        description:
+          categoryForm.description.trim() ||
+          'Rich handcrafted olfactory expressions distilled from organic mountain harvests.',
+        notes: [],
+        image: '/assets/botanicals/citrus.png',
+        ingredients: [],
+      };
+      onUpdateScentFamilies([...propScentFamilies, newFamily]);
+      showToast(`New Scent Category "${categoryForm.name}" created!`);
+    } else {
+      showToast(`Category "${categoryForm.name}" registered.`);
+    }
+
+    setIsCategoryModalOpen(false);
+    setCategoryForm({ name: '', subtitle: '', description: '' });
+  };
+
+  // -------------------------------------------------------------
+  // ADMIN & STAFF MANAGEMENT ACTIONS
+  // -------------------------------------------------------------
+  const handleOpenAddAdmin = () => {
+    setEditingAdmin(null);
+    setAdminForm({
+      name: '',
+      email: '',
+      role: 'admin',
+      title: 'Studio Co-Administrator',
+      phone: '+66 2 ',
+      password: '',
+    });
+    setIsAdminModalOpen(true);
+  };
+
+  const handleOpenEditAdmin = (staff: AdminStaffUser) => {
+    setEditingAdmin(staff);
+    setAdminForm({
+      name: staff.name,
+      email: staff.email,
+      role: staff.role,
+      title: staff.title,
+      phone: staff.phone || '',
+      password: '',
+    });
+    setIsAdminModalOpen(true);
+  };
+
+  const handleSaveAdmin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminForm.email.trim() || !adminForm.name.trim()) {
+      showToast('Please provide both name and email.');
+      return;
+    }
+
+    let updated: AdminStaffUser[];
+    if (editingAdmin) {
+      updated = adminStaffUsers.map((a) =>
+        a.id === editingAdmin.id
+          ? {
+              ...a,
+              name: adminForm.name.trim(),
+              email: adminForm.email.trim().toLowerCase(),
+              role: adminForm.role,
+              title: adminForm.title.trim(),
+              phone: adminForm.phone.trim(),
+            }
+          : a
+      );
+      showToast(`Staff member "${adminForm.name}" updated.`);
+    } else {
+      const nextId =
+        adminStaffUsers.length > 0 ? Math.max(...adminStaffUsers.map((a) => a.id)) + 1 : 100;
+      const newAdmin: AdminStaffUser = {
+        id: nextId,
+        name: adminForm.name.trim(),
+        email: adminForm.email.trim().toLowerCase(),
+        role: adminForm.role,
+        title: adminForm.title.trim() || 'Studio Staff',
+        phone: adminForm.phone.trim(),
+        active: true,
+        createdAt: new Date().toISOString(),
+      };
+      updated = [...adminStaffUsers, newAdmin];
+
+      // Add to dbUsers
+      setUsers((prev) => [
+        ...prev,
+        {
+          id: nextId,
+          name: newAdmin.name,
+          email: newAdmin.email,
+          phone: newAdmin.phone || '+66 2 000 0000',
+          address: '123 Riverside Botanical Studio, Chiang Rai',
+          role: 'admin',
+        },
+      ]);
+
+      showToast(`New admin "${newAdmin.name}" added to Scentify Studio.`);
+    }
+
+    setAdminStaffUsers(updated);
+    onUpdateAdminStaffUsers?.(updated);
+    setIsAdminModalOpen(false);
+  };
+
+  const handleDeleteAdmin = (adminId: number) => {
+    if (adminId === 99) {
+      showToast('Master Perfumer super-admin cannot be deleted.');
+      return;
+    }
+    const updated = adminStaffUsers.filter((a) => a.id !== adminId);
+    setAdminStaffUsers(updated);
+    onUpdateAdminStaffUsers?.(updated);
+    showToast('Admin account removed.');
+  };
+
+  // -------------------------------------------------------------
+  // ORDER STATUS / PAYMENT / SHIPPING / PREP PHOTO
+  // -------------------------------------------------------------
   const handleUpdateOrderStatus = async (orderId: number, newStatus: DbOrder['status']) => {
     try {
       await onUpdateOrderStatus?.(orderId, newStatus);
@@ -216,14 +1009,15 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
     setOrders((prev) =>
       prev.map((ord) => (ord.order_id === orderId ? { ...ord, status: newStatus } : ord))
     );
-    showToast(`Order #${orderId} status updated to "${newStatus.toUpperCase()}"`);
+    showToast(`Order #${orderId} status set to "${newStatus.toUpperCase()}"`);
 
     if (selectedOrder && selectedOrder.order.order_id === orderId) {
-      setSelectedOrder((prev) => (prev ? { ...prev, order: { ...prev.order, status: newStatus } } : null));
+      setSelectedOrder((prev) =>
+        prev ? { ...prev, order: { ...prev.order, status: newStatus } } : null
+      );
     }
   };
 
-  // Handle Payment Status Update
   const handleVerifyPayment = async (paymentId: number, orderId: number) => {
     const now = new Date().toISOString();
     try {
@@ -235,7 +1029,9 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
     }
 
     setPayments((prev) =>
-      prev.map((p) => (p.payment_id === paymentId ? { ...p, status: 'verified', verified_at: now } : p))
+      prev.map((p) =>
+        p.payment_id === paymentId ? { ...p, status: 'verified', verified_at: now } : p
+      )
     );
     showToast(`PromptPay payment verified for Order #${orderId}`);
 
@@ -251,14 +1047,14 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
     }
   };
 
-  // Handle Admin Confirm Order (verifies slip & advances status to processing)
   const handleConfirmOrder = async (orderId: number) => {
     const now = new Date().toISOString();
     try {
       if (onConfirmOrder) {
         await onConfirmOrder(orderId);
       } else {
-        await onUpdateOrderStatus?.(orderId, 'processing');
+        await handleVerifyPayment(1_000_000 + orderId, orderId);
+        await handleUpdateOrderStatus(orderId, 'processing');
       }
     } catch (error) {
       console.error('Failed to confirm order:', error);
@@ -270,7 +1066,9 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
       prev.map((ord) => (ord.order_id === orderId ? { ...ord, status: 'processing' } : ord))
     );
     setPayments((prev) =>
-      prev.map((p) => (p.order_id === orderId ? { ...p, status: 'verified', verified_at: now } : p))
+      prev.map((p) =>
+        p.order_id === orderId ? { ...p, status: 'verified', verified_at: now } : p
+      )
     );
 
     if (selectedOrder && selectedOrder.order.order_id === orderId) {
@@ -285,17 +1083,12 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
       );
     }
 
-    showToast(`Order #${orderId} CONFIRMED! Payment slip approved.`);
+    showToast(`Order #${orderId} verified and advanced to PREPARATION!`);
   };
 
-  // Handle Admin Cancel Order
   const handleCancelOrder = async (orderId: number) => {
     try {
-      if (onCancelOrder) {
-        await onCancelOrder(orderId);
-      } else {
-        await onUpdateOrderStatus?.(orderId, 'cancelled');
-      }
+      await onCancelOrder?.(orderId);
     } catch (error) {
       console.error('Failed to cancel order:', error);
       showToast(error instanceof Error ? error.message : 'Order cancellation could not be saved.');
@@ -321,10 +1114,9 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
       );
     }
 
-    showToast(`Order #${orderId} CANCELLED by Admin.`);
+    showToast(`Order #${orderId} cancelled by Admin.`);
   };
 
-  // Handle Shipping Tracking Update
   const handleSaveShipping = (shippingId: number) => {
     setShippings((prev) =>
       prev.map((s) =>
@@ -356,7 +1148,6 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
     }
   };
 
-  // Handle Prep Photo Update
   const handleSetPrepPhoto = (orderId: number, photoUrl: string) => {
     setOrders((prev) =>
       prev.map((ord) => (ord.order_id === orderId ? { ...ord, prep_photo_url: photoUrl } : ord))
@@ -369,7 +1160,6 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
     }
   };
 
-  // Handle Ingredient Stock Adjustment
   const handleAdjustStock = (ingredientId: number, delta: number) => {
     setIngredients((prev) =>
       prev.map((ing) =>
@@ -378,545 +1168,584 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
           : ing
       )
     );
-    showToast(`Ingredient stock adjusted.`);
-  };
-
-  // Export Sales Report CSV
-  const handleExportCSV = () => {
-    const headers = ['Order ID', 'Order Date', 'Customer Name', 'Customer Email', 'Status', 'Payment Status', 'Courier', 'Tracking', 'Total (THB)'];
-    const rows = enrichedOrders.map((eo) => [
-      eo.order.order_id,
-      eo.order.order_date,
-      `"${eo.user.name}"`,
-      eo.user.email,
-      eo.order.status,
-      eo.payment.status,
-      eo.shipping.courier_name,
-      eo.shipping.tracking_number,
-      eo.order.total_price,
-    ]);
-
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Scentify_Sales_Report_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showToast('Sales report CSV successfully exported.');
+    showToast('Ingredient stock adjusted.');
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="h-dvh min-h-screen w-full overflow-hidden overscroll-none bg-[#FFFDF8] flex">
+    <div className="min-h-screen w-full bg-[#FBF7F0] text-[#28192A] flex flex-col font-sans selection:bg-[#C9A25C]/20">
       
       {/* Toast notification */}
       {notification && (
-        <div className="fixed top-3 left-3 right-3 sm:top-6 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-60 bg-[#28192A] text-[#FFFDF8] border border-[#C9A25C] px-4 sm:px-5 py-3 rounded-none shadow-2xl text-xs flex items-center gap-2 animate-in slide-in-from-top-4">
-          <CheckCircle2 className="w-4 h-4 text-[#C9A25C]" />
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-70 bg-[#28192A] text-[#FBF7F0] border border-[#C9A25C] px-5 py-3 rounded-none shadow-2xl text-xs flex items-center gap-2.5 animate-in slide-in-from-top-4">
+          <CheckCircle2 className="w-4 h-4 text-[#C9A25C] shrink-0" />
           <span>{notification}</span>
         </div>
       )}
 
-      {/* Main Admin Panel Container */}
-      <div className="w-full min-w-0 h-full min-h-0 bg-[#FFFDF8] flex flex-col">
-        
-        {/* Top Header Bar */}
-        <div className="bg-[#28192A] text-[#FFFDF8] px-3 py-3 sm:px-6 sm:py-4 flex items-center justify-between gap-2 sm:gap-4 border-b border-[#C9A25C]/30 shrink-0">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-none border border-[#C9A25C] bg-[#3D2540] flex items-center justify-center text-[#C9A25C]">
+      {/* Top Header Bar - Full Page Enterprise Header */}
+      <header className="bg-[#28192A] text-[#FBF7F0] border-b border-[#C9A25C]/30 sticky top-0 z-40 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4">
+          
+          {/* Logo & Portal Identity */}
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-none border border-[#C9A25C] bg-[#3D2540] flex items-center justify-center text-[#C9A25C] shrink-0">
               <Database className="w-5 h-5 stroke-[1.5]" />
             </div>
-            <div>
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="font-serif text-sm sm:text-lg tracking-wider text-[#FFFDF8] truncate">
-                  SCENTIFY STUDIO ADMIN PANEL
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-serif text-lg tracking-wider text-[#FBF7F0] font-medium truncate">
+                  SCENTIFY STUDIO
+                </span>
+                <span className="text-[10px] tracking-widest uppercase bg-[#C9A25C] text-[#28192A] font-bold px-2 py-0.5">
+                  ADMIN PORTAL
                 </span>
               </div>
-              <p className="hidden sm:block text-[11px] text-[#DAD1C5]/70 font-light">
-                Reporting Orders, Sales Analytics &amp; Inventory Management
+              <p className="text-[11px] text-[#DAD1C5]/70 font-light truncate">
+                {adminUser} · Full Page Management &amp; Controls
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-            <button
-              onClick={handleExportCSV}
-              className="px-2.5 sm:px-3.5 py-2 sm:py-1.5 bg-[#FFFDF8]/10 hover:bg-[#FFFDF8]/20 border border-[#DAD1C5]/30 text-xs text-[#FFFDF8] flex items-center gap-1.5 transition-colors"
-              title="Export complete orders and revenue table to CSV"
-            >
-              <Download className="w-3.5 h-3.5 text-[#C9A25C]" />
-              <span className="hidden sm:inline">Export Sales CSV</span>
-            </button>
+          {/* Quick Actions & Switch Storefront */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {onSwitchToStorefront && (
+              <button
+                onClick={onSwitchToStorefront}
+                className="px-3 py-1.5 bg-[#FBF7F0]/10 hover:bg-[#FBF7F0]/20 border border-[#DAD1C5]/30 text-xs text-[#FBF7F0] flex items-center gap-1.5 transition-colors"
+                title="Preview Customer Storefront"
+              >
+                <ExternalLink className="w-3.5 h-3.5 text-[#C9A25C]" />
+                <span className="hidden sm:inline">View Storefront</span>
+              </button>
+            )}
 
             <button
               onClick={onClose}
-              className="px-2 sm:px-3 py-2 text-[#DAD1C5] hover:text-[#FFFDF8] hover:bg-[#FFFDF8]/10 transition-colors flex items-center gap-2"
-              aria-label="Log out of admin panel"
+              className="px-3 py-1.5 bg-red-950/40 hover:bg-red-900/60 border border-red-500/30 text-xs text-red-200 flex items-center gap-1.5 transition-colors"
+              title="Log out of Admin Session"
             >
-              <LogOut className="w-5 h-5" />
-              <span className="hidden sm:inline text-xs">Log out</span>
+              <LogOut className="w-3.5 h-3.5 text-red-400" />
+              <span className="hidden sm:inline">Log out</span>
             </button>
           </div>
         </div>
 
-        {/* Database Diagram Entity Badges */}
-        <div className="hidden sm:flex bg-[#FBF7F0] border-b border-[#DAD1C5] px-4 sm:px-6 py-2 items-center gap-2 overflow-x-auto text-[10px] font-mono text-[#6B6166] shrink-0">
-          <span className="font-bold text-[#28192A] uppercase flex items-center gap-1">
-            <Layers className="w-3.5 h-3.5 text-[#C9A25C]" />
-            Schema Tables:
-          </span>
-          <span className="px-2 py-0.5 bg-[#FFFDF8] border border-[#DAD1C5]">user</span>
-          <span className="text-[#DAD1C5]">→</span>
-          <span className="px-2 py-0.5 bg-[#FFFDF8] border border-[#DAD1C5]">order</span>
-          <span className="text-[#DAD1C5]">→</span>
-          <span className="px-2 py-0.5 bg-[#FFFDF8] border border-[#DAD1C5]">shipping</span>
-          <span className="text-[#DAD1C5]">|</span>
-          <span className="px-2 py-0.5 bg-[#FFFDF8] border border-[#DAD1C5]">payment</span>
-          <span className="text-[#DAD1C5]">|</span>
-          <span className="px-2 py-0.5 bg-[#FFFDF8] border border-[#DAD1C5]">order_item</span>
-          <span className="text-[#DAD1C5]">→</span>
-          <span className="px-2 py-0.5 bg-[#FFFDF8] border border-[#DAD1C5]">formula_detail</span>
-          <span className="text-[#DAD1C5]">→</span>
-          <span className="px-2 py-0.5 bg-[#FFFDF8] border border-[#DAD1C5]">formula / ingredient / bottle</span>
+        {/* Global Tab Navigation */}
+        <div className="bg-[#331C36] border-t border-[#C9A25C]/20 overflow-x-auto scrollbar-none">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 sm:space-x-3 text-xs">
+            
+            <button
+              onClick={() => setActiveTab('sales')}
+              className={`py-3 px-3 sm:px-4 font-medium tracking-wider uppercase border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
+                activeTab === 'sales'
+                  ? 'border-[#C9A25C] text-[#FBF7F0] bg-white/5 font-semibold'
+                  : 'border-transparent text-[#DAD1C5]/70 hover:text-[#FBF7F0]'
+              }`}
+            >
+              <TrendingUp className="w-4 h-4 text-[#C9A25C]" />
+              <span>Reports &amp; Sales</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('orders')}
+              className={`py-3 px-3 sm:px-4 font-medium tracking-wider uppercase border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
+                activeTab === 'orders'
+                  ? 'border-[#C9A25C] text-[#FBF7F0] bg-white/5 font-semibold'
+                  : 'border-transparent text-[#DAD1C5]/70 hover:text-[#FBF7F0]'
+              }`}
+            >
+              <Package className="w-4 h-4 text-[#C9A25C]" />
+              <span>Orders ({orders.length})</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('bottles')}
+              className={`py-3 px-3 sm:px-4 font-medium tracking-wider uppercase border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
+                activeTab === 'bottles'
+                  ? 'border-[#C9A25C] text-[#FBF7F0] bg-white/5 font-semibold'
+                  : 'border-transparent text-[#DAD1C5]/70 hover:text-[#FBF7F0]'
+              }`}
+            >
+              <Tag className="w-4 h-4 text-[#C9A25C]" />
+              <span>Bottle &amp; Pricing</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('rules')}
+              className={`py-3 px-3 sm:px-4 font-medium tracking-wider uppercase border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
+                activeTab === 'rules'
+                  ? 'border-[#C9A25C] text-[#FBF7F0] bg-white/5 font-semibold'
+                  : 'border-transparent text-[#DAD1C5]/70 hover:text-[#FBF7F0]'
+              }`}
+            >
+              <Sliders className="w-4 h-4 text-[#C9A25C]" />
+              <span>Rules &amp; Formulas</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('inventory')}
+              className={`py-3 px-3 sm:px-4 font-medium tracking-wider uppercase border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
+                activeTab === 'inventory'
+                  ? 'border-[#C9A25C] text-[#FBF7F0] bg-white/5 font-semibold'
+                  : 'border-transparent text-[#DAD1C5]/70 hover:text-[#FBF7F0]'
+              }`}
+            >
+              <FlaskConical className="w-4 h-4 text-[#C9A25C]" />
+              <span>Scent &amp; Ingredients</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('admins')}
+              className={`py-3 px-3 sm:px-4 font-medium tracking-wider uppercase border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
+                activeTab === 'admins'
+                  ? 'border-[#C9A25C] text-[#FBF7F0] bg-white/5 font-semibold'
+                  : 'border-transparent text-[#DAD1C5]/70 hover:text-[#FBF7F0]'
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4 text-[#C9A25C]" />
+              <span>Admin &amp; Staff</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`py-3 px-3 sm:px-4 font-medium tracking-wider uppercase border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
+                activeTab === 'users'
+                  ? 'border-[#C9A25C] text-[#FBF7F0] bg-white/5 font-semibold'
+                  : 'border-transparent text-[#DAD1C5]/70 hover:text-[#FBF7F0]'
+              }`}
+            >
+              <Users className="w-4 h-4 text-[#C9A25C]" />
+              <span>Members ({users.length})</span>
+            </button>
+
+          </div>
         </div>
+      </header>
 
-        {/* Navigation Tabs */}
-        <div className="border-b border-[#DAD1C5] px-2 sm:px-6 grid grid-cols-4 sm:flex sm:space-x-8 bg-[#FFFDF8] shrink-0">
-          <button
-            onClick={() => setActiveTab('sales')}
-            className={`min-w-0 justify-center px-1 sm:px-0 py-2.5 sm:py-3.5 text-[9px] sm:text-xs uppercase tracking-wider font-medium border-b-2 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 transition-colors whitespace-nowrap ${
-              activeTab === 'sales'
-                ? 'border-[#28192A] text-[#28192A] font-semibold'
-                : 'border-transparent text-[#6B6166] hover:text-[#28192A]'
-            }`}
-          >
-            <TrendingUp className="w-4 h-4 text-[#C9A25C]" />
-            <span className="sm:hidden">Sales</span>
-            <span className="hidden sm:inline">Sales Reports &amp; Analytics</span>
-          </button>
+      {/* Main Full-Page Workspace Body */}
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+        
+        {/* ========================================================================= */}
+        {/* TAB 1: SALES & REPORTS STUDIO WITH DYNAMIC RANGE SELECTION & DOWNLOAD */}
+        {/* ========================================================================= */}
+        {activeTab === 'sales' && (
+          <div className="space-y-8 animate-in fade-in duration-200">
+            
+            {/* Header & Controls Card */}
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-5 sm:p-6 shadow-xs">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-[#DAD1C5]/40">
+                <div>
+                  <span className="text-[10px] tracking-[0.25em] uppercase text-[#C9A25C] font-semibold block mb-1">
+                    Financial Reporting &amp; Diagnostics
+                  </span>
+                  <h2 className="font-serif text-2xl sm:text-3xl text-[#28192A]">
+                    Sales Reports &amp; Analytics Dashboard
+                  </h2>
+                  <p className="text-xs text-[#6B6166] mt-1">
+                    Select your reporting period and report focus to preview metrics and export a data file.
+                  </p>
+                </div>
 
-          <button
-            onClick={() => setActiveTab('orders')}
-            className={`min-w-0 justify-center px-1 sm:px-0 py-2.5 sm:py-3.5 text-[9px] sm:text-xs uppercase tracking-wider font-medium border-b-2 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 transition-colors whitespace-nowrap ${
-              activeTab === 'orders'
-                ? 'border-[#28192A] text-[#28192A] font-semibold'
-                : 'border-transparent text-[#6B6166] hover:text-[#28192A]'
-            }`}
-          >
-            <Package className="w-4 h-4 text-[#C9A25C]" />
-            <span className="sm:hidden">Orders</span>
-            <span className="hidden sm:inline">Order Management ({orders.length})</span>
-          </button>
+                <button
+                  onClick={handleDownloadCustomReport}
+                  className="px-4 py-2.5 bg-[#28192A] hover:bg-[#3D2540] text-[#FBF7F0] text-xs uppercase tracking-wider font-medium flex items-center justify-center gap-2 transition-all shadow-sm shrink-0"
+                >
+                  <Download className="w-4 h-4 text-[#C9A25C]" />
+                  <span>Download Sales Report (.CSV)</span>
+                </button>
+              </div>
 
-          <button
-            onClick={() => setActiveTab('inventory')}
-            className={`min-w-0 justify-center px-1 sm:px-0 py-2.5 sm:py-3.5 text-[9px] sm:text-xs uppercase tracking-wider font-medium border-b-2 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 transition-colors whitespace-nowrap ${
-              activeTab === 'inventory'
-                ? 'border-[#28192A] text-[#28192A] font-semibold'
-                : 'border-transparent text-[#6B6166] hover:text-[#28192A]'
-            }`}
-          >
-            <Layers className="w-4 h-4 text-[#C9A25C]" />
-            <span className="sm:hidden">Stock</span>
-            <span className="hidden sm:inline">Formulas &amp; Ingredients ({ingredients.length})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('users')}
-            className={`min-w-0 justify-center px-1 sm:px-0 py-2.5 sm:py-3.5 text-[9px] sm:text-xs uppercase tracking-wider font-medium border-b-2 flex flex-col sm:flex-row items-center gap-1 sm:gap-2 transition-colors whitespace-nowrap ${
-              activeTab === 'users'
-                ? 'border-[#28192A] text-[#28192A] font-semibold'
-                : 'border-transparent text-[#6B6166] hover:text-[#28192A]'
-            }`}
-          >
-            <Users className="w-4 h-4 text-[#C9A25C]" />
-            <span className="sm:hidden">Users</span>
-            <span className="hidden sm:inline">Customer Directory ({users.length})</span>
-          </button>
-        </div>
-
-        {/* Tab Content Body */}
-        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-3 sm:p-6 bg-[#FFFDF8]">
-          
-          {/* TAB 1: SALES REPORTS & ANALYTICS */}
-          {activeTab === 'sales' && (
-            <div className="space-y-8 animate-in fade-in duration-200">
-              
-              {/* Metric Cards Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Range & Filter Selectors */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-5">
                 
-                <div className="p-5 bg-[#FBF7F0] border border-[#DAD1C5] relative overflow-hidden">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase tracking-widest text-[#6B6166] font-mono">
-                      TOTAL REVENUE
-                    </span>
-                    <DollarSign className="w-4 h-4 text-[#C9A25C]" />
-                  </div>
-                  <div className="mt-3 font-serif text-2xl sm:text-3xl font-medium text-[#28192A]">
-                    ฿ {totalRevenue.toLocaleString()}
-                  </div>
-                  <div className="mt-2 text-[11px] text-emerald-800 flex items-center gap-1 font-medium">
-                    <ArrowUpRight className="w-3.5 h-3.5" />
-                    <span>+24.6% vs last week</span>
-                  </div>
+                {/* 1. Reporting Period */}
+                <div>
+                  <label className="block text-[11px] uppercase tracking-wider font-semibold text-[#28192A] mb-1.5">
+                    1. Reporting Period
+                  </label>
+                  <select
+                    value={reportPeriod}
+                    onChange={(e) => setReportPeriod(e.target.value as any)}
+                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A] focus:outline-none focus:border-[#C9A25C]"
+                  >
+                    <option value="all">All Time (Lifetime)</option>
+                    <option value="today">Today Only</option>
+                    <option value="7days">Last 7 Days</option>
+                    <option value="30days">Last 30 Days</option>
+                    <option value="month">Current Month (October 2026)</option>
+                    <option value="custom">Custom Date Range...</option>
+                  </select>
                 </div>
 
-                <div className="p-5 bg-[#FBF7F0] border border-[#DAD1C5]">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase tracking-widest text-[#6B6166] font-mono">
-                      ACTIVE ORDERS
-                    </span>
-                    <Package className="w-4 h-4 text-[#C9A25C]" />
-                  </div>
-                  <div className="mt-3 font-serif text-2xl sm:text-3xl font-medium text-[#28192A]">
-                    {orders.length} <span className="text-sm font-sans text-[#6B6166]">orders</span>
-                  </div>
-                  <div className="mt-2 text-[11px] text-[#6B6166]">
-                    {orders.filter((o) => o.status === 'completed').length} completed · {orders.filter((o) => o.status === 'processing').length} in lab
-                  </div>
+                {/* 2. Report Type / Focus */}
+                <div>
+                  <label className="block text-[11px] uppercase tracking-wider font-semibold text-[#28192A] mb-1.5">
+                    2. Report Focus
+                  </label>
+                  <select
+                    value={reportType}
+                    onChange={(e) => setReportType(e.target.value as any)}
+                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A] focus:outline-none focus:border-[#C9A25C]"
+                  >
+                    <option value="orders">Complete Sales &amp; Order Transactions</option>
+                    <option value="scents">Revenue by Scent Family &amp; Notes</option>
+                    <option value="ingredients">Ingredient Stock &amp; Depletion Demand</option>
+                    <option value="bottles">Bottle Sizes &amp; Packaging Breakdown</option>
+                  </select>
                 </div>
 
-                <div className="p-5 bg-[#FBF7F0] border border-[#DAD1C5]">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase tracking-widest text-[#6B6166] font-mono">
-                      AVG ORDER VALUE
-                    </span>
-                    <TrendingUp className="w-4 h-4 text-[#C9A25C]" />
-                  </div>
-                  <div className="mt-3 font-serif text-2xl sm:text-3xl font-medium text-[#28192A]">
-                    ฿ {averageOrderValue.toLocaleString()}
-                  </div>
-                  <div className="mt-2 text-[11px] text-[#6B6166]">
-                    Popular bottle: 50 ml Eau de Parfum
-                  </div>
+                {/* 3. Status Filter */}
+                <div>
+                  <label className="block text-[11px] uppercase tracking-wider font-semibold text-[#28192A] mb-1.5">
+                    3. Payment / Order Status
+                  </label>
+                  <select
+                    value={reportStatusFilter}
+                    onChange={(e) => setReportStatusFilter(e.target.value)}
+                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A] focus:outline-none focus:border-[#C9A25C]"
+                  >
+                    <option value="all">All Orders (Inclusive)</option>
+                    <option value="verified">Verified &amp; Paid Only</option>
+                    <option value="pending">Pending Payment Verification</option>
+                    <option value="processing">In Preparation</option>
+                    <option value="completed">Completed &amp; Dispatched</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
                 </div>
 
-                <div className="p-5 bg-[#FBF7F0] border border-[#DAD1C5]">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase tracking-widest text-[#6B6166] font-mono">
-                      PAYMENT SETTLEMENTS
-                    </span>
-                    <ShieldCheck className="w-4 h-4 text-[#C9A25C]" />
-                  </div>
-                  <div className="mt-3 font-serif text-2xl sm:text-3xl font-medium text-[#28192A]">
-                    {verifiedPaymentsCount} / {payments.length}
-                  </div>
-                  <div className="mt-2 text-[11px] text-amber-800 font-medium">
-                    {pendingPaymentsCount > 0 ? `${pendingPaymentsCount} PromptPay slips need review` : 'All slips verified'}
+                {/* 4. Active Scope Badge */}
+                <div className="flex flex-col justify-end">
+                  <span className="text-[10px] uppercase tracking-wider text-[#6B6166] mb-1">
+                    Matching Orders in Scope:
+                  </span>
+                  <div className="bg-[#FBF7F0] border border-[#C9A25C]/40 px-3 py-2 text-xs font-mono font-medium text-[#28192A] flex items-center justify-between">
+                    <span>{reportFilteredOrders.length} Transactions</span>
+                    <span className="text-[#C9A25C] font-bold">฿{reportTotalRevenue.toLocaleString()}</span>
                   </div>
                 </div>
 
               </div>
 
-              {/* Reports Visual Breakdown */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                
-                {/* Revenue by Formula & Bottle Size */}
-                <div className="lg:col-span-7 bg-[#FFFDF8] border border-[#DAD1C5] p-6">
-                  <div className="flex items-center justify-between pb-4 border-b border-[#DAD1C5]/50 mb-5">
-                    <div>
-                      <h3 className="font-serif text-xl text-[#28192A]">Sales by Bespoke Formulation</h3>
-                      <p className="text-xs text-[#6B6166]">Performance across top scent formulas (`formula` table)</p>
-                    </div>
-                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 bg-[#FBF7F0] border border-[#DAD1C5]">
-                      LIVE
-                    </span>
-                  </div>
-
-                  <div className="space-y-4">
-                    {INITIAL_DB_FORMULAS.map((formula, idx) => {
-                      const share = [40, 25, 18, 12, 5][idx] || 10;
-                      return (
-                        <div key={formula.formula_id} className="space-y-1.5">
-                          <div className="flex justify-between text-xs">
-                            <span className="font-medium text-[#28192A]">{formula.formula_name}</span>
-                            <span className="font-mono text-[#6B6166]">{share}% share</span>
-                          </div>
-                          <div className="w-full h-2 bg-[#FBF7F0] border border-[#DAD1C5]/40 overflow-hidden">
-                            <div
-                              className="h-full bg-[#28192A]"
-                              style={{ width: `${share}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="mt-6 pt-5 border-t border-[#DAD1C5]/40 grid grid-cols-2 gap-4">
-                    <div className="p-3 bg-[#FBF7F0] border border-[#DAD1C5]/60">
-                      <span className="text-[10px] uppercase font-mono text-[#6B6166] block">50 ml Standard Bottle</span>
-                      <span className="font-serif text-lg text-[#28192A]">฿ 1,680 / unit</span>
-                      <span className="text-[11px] text-[#C9A25C] block mt-0.5">64% volume preference</span>
-                    </div>
-                    <div className="p-3 bg-[#FBF7F0] border border-[#DAD1C5]/60">
-                      <span className="text-[10px] uppercase font-mono text-[#6B6166] block">100 ml Luxury Flacon</span>
-                      <span className="font-serif text-lg text-[#28192A]">฿ 2,580 / unit</span>
-                      <span className="text-[11px] text-[#C9A25C] block mt-0.5">36% volume preference</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Order Status Distribution */}
-                <div className="lg:col-span-5 bg-[#FFFDF8] border border-[#DAD1C5] p-6 flex flex-col justify-between">
+              {/* Custom Date Range Picker when selected */}
+              {reportPeriod === 'custom' && (
+                <div className="mt-4 pt-4 border-t border-[#DAD1C5]/40 grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#FBF7F0] p-3">
                   <div>
-                    <div className="flex items-center justify-between pb-4 border-b border-[#DAD1C5]/50 mb-5">
-                      <div>
-                        <h3 className="font-serif text-xl text-[#28192A]">Fulfillment Pipeline</h3>
-                        <p className="text-xs text-[#6B6166]">Status counts from `order` table</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3.5">
-                      <div className="flex items-center justify-between p-3 bg-emerald-50/60 border border-emerald-200 text-xs">
-                        <div className="flex items-center gap-2.5">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-700" />
-                          <span className="font-medium text-emerald-950">Completed &amp; Delivered</span>
-                        </div>
-                        <span className="font-mono font-bold text-emerald-900">
-                          {orders.filter((o) => o.status === 'completed').length}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between p-3 bg-blue-50/60 border border-blue-200 text-xs">
-                        <div className="flex items-center gap-2.5">
-                          <Clock className="w-4 h-4 text-blue-700" />
-                          <span className="font-medium text-blue-950">Processing in Lab</span>
-                        </div>
-                        <span className="font-mono font-bold text-blue-900">
-                          {orders.filter((o) => o.status === 'processing').length}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between p-3 bg-amber-50/60 border border-amber-200 text-xs">
-                        <div className="flex items-center gap-2.5">
-                          <AlertTriangle className="w-4 h-4 text-amber-700" />
-                          <span className="font-medium text-amber-950">Pending Verification</span>
-                        </div>
-                        <span className="font-mono font-bold text-amber-900">
-                          {orders.filter((o) => o.status === 'pending').length}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between p-3 bg-stone-100 border border-stone-200 text-xs">
-                        <div className="flex items-center gap-2.5">
-                          <X className="w-4 h-4 text-stone-500" />
-                          <span className="font-medium text-stone-700">Cancelled</span>
-                        </div>
-                        <span className="font-mono font-bold text-stone-700">
-                          {orders.filter((o) => o.status === 'cancelled').length}
-                        </span>
-                      </div>
-                    </div>
+                    <label className="block text-[10px] uppercase font-semibold text-[#6B6166] mb-1">
+                      Start Date
+                    </label>
+                    <input
+                      type="date"
+                      value={customStartDate}
+                      onChange={(e) => setCustomStartDate(e.target.value)}
+                      className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-2 py-1.5 text-xs text-[#28192A]"
+                    />
                   </div>
-
-                  <div className="mt-6 pt-4 border-t border-[#DAD1C5]/40 text-center">
-                    <button
-                      onClick={() => setActiveTab('orders')}
-                      className="text-xs text-[#28192A] hover:text-[#C9A25C] underline font-medium flex items-center justify-center gap-1 mx-auto"
-                    >
-                      <span>Manage All Orders</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
+                  <div>
+                    <label className="block text-[10px] uppercase font-semibold text-[#6B6166] mb-1">
+                      End Date
+                    </label>
+                    <input
+                      type="date"
+                      value={customEndDate}
+                      onChange={(e) => setCustomEndDate(e.target.value)}
+                      className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-2 py-1.5 text-xs text-[#28192A]"
+                    />
                   </div>
                 </div>
+              )}
+            </div>
 
+            {/* KPI Cards for the selected period */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+              
+              <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-5 shadow-xs">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-[#6B6166] block">
+                  Period Revenue
+                </span>
+                <div className="font-serif text-2xl sm:text-3xl text-[#28192A] mt-1 font-medium">
+                  ฿{reportTotalRevenue.toLocaleString()}
+                </div>
+                <span className="text-[10px] text-[#C9A25C] font-medium mt-1 block">
+                  {reportFilteredOrders.filter((o) => o.order.status !== 'cancelled').length} qualifying orders
+                </span>
+              </div>
+
+              <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-5 shadow-xs">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-[#6B6166] block">
+                  Average Ticket Size
+                </span>
+                <div className="font-serif text-2xl sm:text-3xl text-[#28192A] mt-1 font-medium">
+                  ฿{reportAverageOrderValue.toLocaleString()}
+                </div>
+                <span className="text-[10px] text-[#6B6166] mt-1 block">
+                  Per confirmed customer order
+                </span>
+              </div>
+
+              <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-5 shadow-xs">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-[#6B6166] block">
+                  Verified Payment Rate
+                </span>
+                <div className="font-serif text-2xl sm:text-3xl text-[#28192A] mt-1 font-medium">
+                  {reportFilteredOrders.length > 0
+                    ? Math.round(
+                        (reportFilteredOrders.filter((o) => o.payment.status === 'verified').length /
+                          reportFilteredOrders.length) *
+                          100
+                      )
+                    : 100}
+                  %
+                </div>
+                <span className="text-[10px] text-emerald-700 font-medium mt-1 block">
+                  PromptPay Slip confirmation
+                </span>
+              </div>
+
+              <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-5 shadow-xs">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-[#6B6166] block">
+                  Active Formula Library
+                </span>
+                <div className="font-serif text-2xl sm:text-3xl text-[#28192A] mt-1 font-medium">
+                  {masterFormulas.filter((f) => f.active).length}
+                </div>
+                <span className="text-[10px] text-[#C9A25C] mt-1 block">
+                  Master blends ready for customers
+                </span>
               </div>
 
             </div>
-          )}
 
-          {/* TAB 2: ORDER MANAGEMENT */}
-          {activeTab === 'orders' && (
-            <div className="space-y-6 animate-in fade-in duration-200">
-              
-              {/* Filter and Search Bar */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-4 bg-[#FBF7F0] border border-[#DAD1C5]">
-                <div className="relative flex-1">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#6B6166]" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search by Order ID, customer name, email, or tracking..."
-                    className="w-full bg-[#FFFDF8] border border-[#DAD1C5] pl-9 pr-3.5 py-2 text-xs text-[#28192A] focus:outline-none focus:border-[#28192A]"
-                  />
+            {/* Generated Report Table Preview */}
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] overflow-hidden shadow-xs">
+              <div className="px-5 py-4 border-b border-[#DAD1C5] bg-[#FBF7F0] flex items-center justify-between">
+                <div>
+                  <h3 className="font-serif text-base text-[#28192A] font-medium">
+                    Live Report Preview: {reportType.toUpperCase()} ({reportFilteredOrders.length} records)
+                  </h3>
+                  <p className="text-[11px] text-[#6B6166]">
+                    Filtered by: {reportPeriod.toUpperCase()} · Status: {reportStatusFilter.toUpperCase()}
+                  </p>
                 </div>
 
-                  <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 text-xs min-w-0">
-                    <span className="text-[#6B6166] text-[11px] uppercase">Status:</span>
-                    <select
-                      value={statusFilter}
-                      onChange={(e) => setStatusFilter(e.target.value as any)}
-                        className="w-full sm:w-auto min-w-0 bg-[#FFFDF8] border border-[#DAD1C5] px-2.5 py-2 text-xs text-[#28192A] focus:outline-none"
-                    >
-                      <option value="all">All Statuses</option>
-                      <option value="pending">Pending</option>
-                      <option value="processing">Processing</option>
-                      <option value="completed">Completed</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 text-xs min-w-0">
-                    <span className="text-[#6B6166] text-[11px] uppercase">Payment:</span>
-                    <select
-                      value={paymentFilter}
-                      onChange={(e) => setPaymentFilter(e.target.value as any)}
-                      className="w-full sm:w-auto min-w-0 bg-[#FFFDF8] border border-[#DAD1C5] px-2.5 py-2 text-xs text-[#28192A] focus:outline-none"
-                    >
-                      <option value="all">All Payments</option>
-                      <option value="verified">Verified</option>
-                      <option value="pending">Pending</option>
-                      <option value="failed">Failed</option>
-                    </select>
-                  </div>
-                </div>
+                <button
+                  onClick={handleDownloadCustomReport}
+                  className="px-3 py-1.5 bg-[#28192A] text-[#FBF7F0] text-xs flex items-center gap-1.5 hover:bg-[#3D2540] transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5 text-[#C9A25C]" />
+                  <span>Download File</span>
+                </button>
               </div>
 
-              {/* Orders Table */}
-              <div className="max-w-full bg-[#FFFDF8] border border-[#DAD1C5] overflow-x-auto">
-              <table className="w-full min-w-[900px] text-left border-collapse text-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
                   <thead>
-                    <tr className="bg-[#FBF7F0] border-b border-[#DAD1C5] text-[10px] uppercase font-mono tracking-wider text-[#6B6166]">
-                      <th className="py-3 px-4">Order ID</th>
+                    <tr className="bg-[#FBF7F0]/60 border-b border-[#DAD1C5] text-[10px] font-mono uppercase tracking-wider text-[#6B6166]">
+                      <th className="py-3 px-4">Order #</th>
                       <th className="py-3 px-4">Date</th>
-                      <th className="py-3 px-4">Customer (`user`)</th>
-                      <th className="py-3 px-4">Bespoke Items</th>
-                      <th className="py-3 px-4">Total</th>
-                      <th className="py-3 px-4">Payment (`payment`)</th>
-                      <th className="py-3 px-4">Order Status (`order`)</th>
-                      <th className="py-3 px-4">Tracking (`shipping`)</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
+                      <th className="py-3 px-4">Customer</th>
+                      <th className="py-3 px-4">Formula &amp; Notes</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4">Payment</th>
+                      <th className="py-3 px-4 text-right">Total</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#DAD1C5]/40">
+                  <tbody className="divide-y divide-[#DAD1C5]/40 font-light">
+                    {reportFilteredOrders.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="py-8 text-center text-[#6B6166]">
+                          No records match the selected reporting period and filters.
+                        </td>
+                      </tr>
+                    ) : (
+                      reportFilteredOrders.map((eo) => (
+                        <tr key={eo.order.order_id} className="hover:bg-[#FBF7F0]/50 transition-colors">
+                          <td className="py-3 px-4 font-mono font-medium text-[#28192A]">
+                            #{eo.order.order_id}
+                          </td>
+                          <td className="py-3 px-4 text-[#6B6166]">
+                            {new Date(eo.order.order_date).toLocaleDateString()}
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="font-medium text-[#28192A] block">{eo.user.name}</span>
+                            <span className="text-[10px] text-[#6B6166]">{eo.user.email}</span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="text-[#28192A] block font-serif">
+                              {eo.items[0]?.formula_name || 'Bespoke Blend'}
+                            </span>
+                            <span className="text-[10px] text-[#6B6166]">
+                              {eo.items[0]?.bottle?.size || 50} ml · {eo.items[0]?.qty || 1} unit(s)
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span
+                              className={`inline-block px-2 py-0.5 text-[9px] uppercase font-mono tracking-wider ${
+                                eo.order.status === 'completed'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : eo.order.status === 'processing'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : eo.order.status === 'cancelled'
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-zinc-100 text-zinc-800'
+                              }`}
+                            >
+                              {eo.order.status}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span
+                              className={`inline-block px-2 py-0.5 text-[9px] uppercase font-mono tracking-wider ${
+                                eo.payment.status === 'verified'
+                                  ? 'bg-emerald-100 text-emerald-800 font-medium'
+                                  : eo.payment.status === 'failed'
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-amber-100 text-amber-800'
+                              }`}
+                            >
+                              {eo.payment.status}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right font-mono font-medium text-[#28192A]">
+                            ฿{eo.order.total_price.toLocaleString()}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 2: ORDER MANAGEMENT & VERIFICATION */}
+        {/* ========================================================================= */}
+        {activeTab === 'orders' && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            
+            {/* Filter toolbar */}
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-xs">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-[#6B6166] absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search orders by ID, customer name, email, courier tracking..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] pl-9 pr-4 py-2 text-xs text-[#28192A] focus:outline-none focus:border-[#C9A25C]"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as any)}
+                  className="bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                >
+                  <option value="all">All Order Statuses</option>
+                  <option value="pending">Pending</option>
+                  <option value="processing">Processing</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+
+                <select
+                  value={paymentFilter}
+                  onChange={(e) => setPaymentFilter(e.target.value as any)}
+                  className="bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                >
+                  <option value="all">All Payments</option>
+                  <option value="verified">Verified</option>
+                  <option value="pending">Pending Slip</option>
+                  <option value="failed">Failed</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Orders list */}
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] overflow-hidden shadow-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-[#FBF7F0] border-b border-[#DAD1C5] text-[10px] font-mono uppercase tracking-wider text-[#6B6166]">
+                      <th className="py-3.5 px-4">Order ID</th>
+                      <th className="py-3.5 px-4">Date</th>
+                      <th className="py-3.5 px-4">Customer</th>
+                      <th className="py-3.5 px-4">Formula</th>
+                      <th className="py-3.5 px-4">Status</th>
+                      <th className="py-3.5 px-4">PromptPay</th>
+                      <th className="py-3.5 px-4">Total</th>
+                      <th className="py-3.5 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#DAD1C5]/40 font-light">
                     {filteredOrders.length === 0 ? (
                       <tr>
-                        <td colSpan={9} className="py-12 text-center text-[#6B6166]">
-                          No orders matched your search criteria.
+                        <td colSpan={8} className="py-12 text-center text-[#6B6166]">
+                          No orders found matching the filter criteria.
                         </td>
                       </tr>
                     ) : (
                       filteredOrders.map((eo) => (
-                        <tr key={eo.order.order_id} className="hover:bg-[#FBF7F0]/50 transition-colors">
+                        <tr key={eo.order.order_id} className="hover:bg-[#FBF7F0]/60 transition-colors">
                           <td className="py-3.5 px-4 font-mono font-medium text-[#28192A]">
                             #{eo.order.order_id}
                           </td>
                           <td className="py-3.5 px-4 text-[#6B6166]">
-                            {new Date(eo.order.order_date).toLocaleDateString('en-GB', {
-                              day: '2-digit',
-                              month: 'short',
-                            })}
+                            {new Date(eo.order.order_date).toLocaleDateString()}
                           </td>
                           <td className="py-3.5 px-4">
-                            <div className="font-medium text-[#28192A]">{eo.user.name}</div>
-                            <div className="text-[11px] text-[#6B6166]">{eo.user.phone}</div>
+                            <span className="font-medium text-[#28192A] block">{eo.user.name}</span>
+                            <span className="text-[10px] text-[#6B6166]">{eo.user.phone}</span>
                           </td>
-                          <td className="py-3.5 px-4 max-w-xs truncate">
-                            {eo.items.map((i) => (
-                              <div key={i.order_item_id} className="truncate">
-                                <span className="font-medium text-[#28192A]">{i.formula_name.split('(')[0]}</span>
-                                <span className="text-[11px] text-[#6B6166] ml-1">({i.bottle.size}ml · x{i.qty})</span>
-                              </div>
-                            ))}
-                          </td>
-                          <td className="py-3.5 px-4 font-serif text-sm font-medium text-[#28192A]">
-                            ฿ {eo.order.total_price.toLocaleString()}
+                          <td className="py-3.5 px-4 font-serif text-[#28192A]">
+                            {eo.items[0]?.formula_name || 'Bespoke Blend'}
                           </td>
                           <td className="py-3.5 px-4">
-                            <div className="flex items-center gap-2">
-                              {eo.payment.qr_receipt_url ? (
-                                <img
-                                  src={eo.payment.qr_receipt_url}
-                                  alt="PromptPay Slip"
-                                  className="w-9 h-9 object-cover border border-[#DAD1C5] rounded-xs cursor-pointer hover:scale-105 transition-transform shrink-0"
-                                  onClick={() => setPreviewImage(eo.payment.qr_receipt_url)}
-                                  title="Click to view full PromptPay receipt"
-                                />
-                              ) : (
-                                <div className="w-9 h-9 bg-[#FBF7F0] border border-dashed border-[#DAD1C5] flex items-center justify-center text-[9px] text-[#6B6166] shrink-0">
-                                  No Slip
-                                </div>
-                              )}
-                              <div className="space-y-0.5">
-                                {eo.payment.status === 'verified' ? (
-                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] uppercase font-mono font-bold">
-                                    <Check className="w-3 h-3" />
-                                    Verified
-                                  </span>
-                                ) : eo.payment.status === 'pending' ? (
-                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-amber-50 text-amber-900 border border-amber-300 text-[10px] uppercase font-mono font-bold">
-                                    <Clock className="w-3 h-3 text-amber-700" />
-                                    Pending Slip
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-rose-50 text-rose-800 border border-rose-200 text-[10px] uppercase font-mono">
-                                    Failed
-                                  </span>
-                                )}
-                                {eo.payment.qr_receipt_url && (
-                                  <button
-                                    onClick={() => setPreviewImage(eo.payment.qr_receipt_url)}
-                                    className="text-[10px] text-[#6B6166] hover:text-[#28192A] underline block"
-                                  >
-                                    View slip
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <select
-                              value={eo.order.status}
-                              onChange={(e) =>
-                                handleUpdateOrderStatus(eo.order.order_id, e.target.value as any)
-                              }
-                              className={`text-[11px] font-medium border px-2 py-1 bg-[#FFFDF8] focus:outline-none ${
+                            <span
+                              className={`inline-block px-2 py-0.5 text-[9px] uppercase font-mono tracking-wider ${
                                 eo.order.status === 'completed'
-                                  ? 'border-emerald-300 text-emerald-900'
+                                  ? 'bg-emerald-100 text-emerald-800'
                                   : eo.order.status === 'processing'
-                                  ? 'border-blue-300 text-blue-900'
-                                  : eo.order.status === 'pending'
-                                  ? 'border-amber-300 text-amber-900'
-                                  : 'border-stone-300 text-stone-700'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : eo.order.status === 'cancelled'
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-zinc-100 text-zinc-800'
                               }`}
                             >
-                              <option value="pending">pending</option>
-                              <option value="processing">processing</option>
-                              <option value="completed">completed</option>
-                              <option value="cancelled">cancelled</option>
-                            </select>
+                              {eo.order.status}
+                            </span>
                           </td>
-                          <td className="py-3.5 px-4 font-mono text-[11px] text-[#6B6166]">
-                            <div className="font-medium text-[#28192A]">{eo.shipping.courier_name}</div>
-                            <div className="text-[10px] truncate max-w-[100px]">{eo.shipping.tracking_number}</div>
+                          <td className="py-3.5 px-4">
+                            <span
+                              className={`inline-block px-2 py-0.5 text-[9px] uppercase font-mono tracking-wider ${
+                                eo.payment.status === 'verified'
+                                  ? 'bg-emerald-100 text-emerald-800 font-medium'
+                                  : eo.payment.status === 'failed'
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-amber-100 text-amber-800'
+                              }`}
+                            >
+                              {eo.payment.status}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 font-mono font-medium text-[#28192A]">
+                            ฿{eo.order.total_price.toLocaleString()}
                           </td>
                           <td className="py-3.5 px-4 text-right">
                             <div className="flex items-center justify-end gap-1.5">
-                              {eo.order.status === 'pending' && (
-                                <>
-                                  <button
-                                    onClick={() => handleConfirmOrder(eo.order.order_id)}
-                                    className="px-2 py-1 bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] font-medium transition-colors inline-flex items-center gap-1 shadow-xs"
-                                    title="Confirm Order & Verify Payment"
-                                  >
-                                    <Check className="w-3 h-3" />
-                                    <span>Confirm</span>
-                                  </button>
-                                  <button
-                                    onClick={() => handleCancelOrder(eo.order.order_id)}
-                                    className="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 text-[11px] font-medium transition-colors inline-flex items-center gap-1"
-                                    title="Cancel Order"
-                                  >
-                                    <X className="w-3 h-3" />
-                                    <span>Cancel</span>
-                                  </button>
-                                </>
+                              {eo.payment.status === 'pending' && (
+                                <button
+                                  onClick={() => handleConfirmOrder(eo.order.order_id)}
+                                  className="px-2 py-1 bg-emerald-700 hover:bg-emerald-800 text-white text-[10px] uppercase font-mono transition-colors"
+                                  title="Verify Slip & Confirm Order"
+                                >
+                                  Verify
+                                </button>
                               )}
                               <button
                                 onClick={() => {
@@ -926,10 +1755,9 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
                                     tracking: eo.shipping.tracking_number,
                                   });
                                 }}
-                                className="px-2.5 py-1 bg-[#28192A] text-[#FFFDF8] hover:bg-[#3D2540] text-xs transition-colors inline-flex items-center gap-1"
+                                className="px-2 py-1 bg-[#28192A] hover:bg-[#3D2540] text-[#FBF7F0] text-[10px] uppercase font-mono transition-colors"
                               >
-                                <Eye className="w-3.5 h-3.5" />
-                                <span>Inspect</span>
+                                View
                               </button>
                             </div>
                           </td>
@@ -939,495 +1767,1509 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
                   </tbody>
                 </table>
               </div>
-
             </div>
-          )}
 
-          {/* TAB 3: FORMULAS & INGREDIENTS INVENTORY */}
-          {activeTab === 'inventory' && (
-            <div className="space-y-8 animate-in fade-in duration-200">
-              
-              {/* Ingredients Table */}
-              <div className="bg-[#FFFDF8] border border-[#DAD1C5] p-4 sm:p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#DAD1C5]/50 mb-6 gap-2">
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 3: BOTTLE AND PRICING MANAGEMENT (NEW REQUESTED PAGE) */}
+        {/* ========================================================================= */}
+        {activeTab === 'bottles' && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            
+            {/* Header with Add Button */}
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-[10px] tracking-[0.25em] uppercase text-[#C9A25C] font-semibold block mb-1">
+                  Packaging &amp; Pricing Catalog
+                </span>
+                <h2 className="font-serif text-2xl sm:text-3xl text-[#28192A]">
+                  Bottle Sizes &amp; Pricing Management
+                </h2>
+                <p className="text-xs text-[#6B6166] mt-1 max-w-xl">
+                  Add custom bottle capacities, select existing sizes to update their retail prices in Thai Baht (THB), or toggle stock availability. Updates are immediately displayed to customers in the bespoke customizer.
+                </p>
+              </div>
+
+              <button
+                onClick={handleOpenAddBottle}
+                className="px-4 py-2.5 bg-[#28192A] hover:bg-[#3D2540] text-[#FBF7F0] text-xs uppercase tracking-wider font-medium flex items-center justify-center gap-2 transition-all shadow-sm shrink-0"
+              >
+                <Plus className="w-4 h-4 text-[#C9A25C]" />
+                <span>Add Bottle Size</span>
+              </button>
+            </div>
+
+            {/* Bottles Grid Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {bottles.map((bottle) => (
+                <div
+                  key={bottle.bottle_id}
+                  className={`bg-[#FBF7F0] border transition-all p-6 flex flex-col justify-between ${
+                    bottle.inStock ? 'border-[#DAD1C5] shadow-xs' : 'border-dashed border-[#DAD1C5] opacity-75'
+                  }`}
+                >
                   <div>
-                    <h3 className="font-serif text-2xl text-[#28192A]">Ingredient Library Inventory</h3>
-                    <p className="text-xs text-[#6B6166]">
-                      Tracks raw botanical essences from `ingredient` table used in Scentify
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-[#6B6166]">Stock Status:</span>
-                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-mono">Good</span>
-                    <span className="px-2 py-0.5 bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-mono">Low (&lt;25)</span>
-                    <span className="px-2 py-0.5 bg-rose-50 text-rose-800 border border-rose-200 text-[10px] font-mono">Critical (&lt;15)</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {ingredients.map((ing) => (
-                    <div
-                      key={ing.ingredient_id}
-                      className="p-4 bg-[#FBF7F0] border border-[#DAD1C5] flex flex-col justify-between"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <span className="text-[10px] font-mono uppercase tracking-widest text-[#6B6166]">
-                            ID #{ing.ingredient_id} · {ing.category}
-                          </span>
-                          <h4 className="font-serif text-lg text-[#28192A] mt-0.5">{ing.name}</h4>
-                        </div>
-                        <span
-                          className={`px-2 py-0.5 text-[10px] font-mono uppercase border ${
-                            ing.stock_qty < 15
-                              ? 'bg-rose-50 text-rose-800 border-rose-200 font-bold'
-                              : ing.stock_qty < 25
-                              ? 'bg-amber-50 text-amber-800 border-amber-200'
-                              : 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                          }`}
-                        >
-                          {ing.stock_qty} fl oz in stock
+                    <div className="flex items-start justify-between gap-3 pb-3 border-b border-[#DAD1C5]/40 mb-4">
+                      <div>
+                        <span className="text-[10px] font-mono uppercase tracking-widest text-[#6B6166]">
+                          FLACON ID #{bottle.bottle_id}
+                        </span>
+                        <h3 className="font-serif text-2xl text-[#28192A] mt-0.5">
+                          {bottle.size}
+                        </h3>
+                        <span className="text-xs text-[#C9A25C] font-medium block">
+                          {bottle.bottleType}
                         </span>
                       </div>
 
-                      <div className="mt-4 pt-3 border-t border-[#DAD1C5]/40 flex items-center justify-between">
-                        <span className="text-[11px] text-[#6B6166]">Quick Restock:</span>
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            onClick={() => handleAdjustStock(ing.ingredient_id, 10)}
-                            className="px-2 py-1 bg-[#FFFDF8] border border-[#DAD1C5] hover:bg-[#28192A] hover:text-[#FFFDF8] text-[11px] transition-colors"
-                          >
-                            +10
-                          </button>
-                          <button
-                            onClick={() => handleAdjustStock(ing.ingredient_id, 50)}
-                            className="px-2 py-1 bg-[#FFFDF8] border border-[#DAD1C5] hover:bg-[#28192A] hover:text-[#FFFDF8] text-[11px] transition-colors"
-                          >
-                            +50
-                          </button>
-                        </div>
+                      <div className="text-right">
+                        <span className="font-serif text-2xl font-semibold text-[#28192A]">
+                          ฿{bottle.price.toLocaleString()}
+                        </span>
+                        <span className="text-[9px] uppercase tracking-wider text-[#6B6166] block">
+                          Retail Price
+                        </span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
 
-              {/* Bottle Specifications Table */}
-              <div className="bg-[#FFFDF8] border border-[#DAD1C5] p-4 sm:p-6">
-                <h3 className="font-serif text-2xl text-[#28192A] mb-1">Bottle Catalog (`bottle` table)</h3>
-                <p className="text-xs text-[#6B6166] mb-5">Flacon sizes and retail prices configured for custom perfumes</p>
+                    <p className="text-xs text-[#6B6166] font-light leading-relaxed mb-4">
+                      {bottle.description || 'Signature Scentify Studio luxury perfume bottle.'}
+                    </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {INITIAL_DB_BOTTLES.map((bottle) => (
-                    <div key={bottle.bottle_id} className="p-4 bg-[#FBF7F0] border border-[#DAD1C5]">
-                      <span className="text-[10px] font-mono uppercase text-[#6B6166] block">BOTTLE #{bottle.bottle_id}</span>
-                      <h4 className="font-serif text-xl text-[#28192A] mt-1">{bottle.size} ml Flacon</h4>
-                      <div className="mt-3 font-serif text-2xl font-medium text-[#28192A]">
-                        ฿ {bottle.price.toLocaleString()}
-                      </div>
-                      <span className="text-[11px] text-[#6B6166] block mt-1">
-                        Artisanal Italian glass with gold atomizer
-                      </span>
+                    <div className="flex items-center justify-between text-xs py-2 px-3 bg-[#FBF7F0] border border-[#DAD1C5]/50 mb-4">
+                      <span className="text-[#6B6166]">Inventory Availability:</span>
+                      <button
+                        onClick={() => handleToggleBottleStock(bottle.bottle_id)}
+                        className={`font-mono text-[10px] font-semibold uppercase px-2 py-0.5 ${
+                          bottle.inStock ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                        }`}
+                      >
+                        {bottle.inStock ? 'In Stock (Active)' : 'Out of Stock'}
+                      </button>
                     </div>
-                  ))}
-                </div>
-              </div>
-
-            </div>
-          )}
-
-          {/* TAB 4: CUSTOMER DIRECTORY */}
-          {activeTab === 'users' && (
-            <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="bg-[#FFFDF8] border border-[#DAD1C5] p-4 sm:p-6">
-                <div className="flex items-center justify-between pb-4 border-b border-[#DAD1C5]/50 mb-6">
-                  <div>
-                    <h3 className="font-serif text-2xl text-[#28192A]">Registered Users (`user` table)</h3>
-                    <p className="text-xs text-[#6B6166]">Customer accounts and administrative roles</p>
                   </div>
-                  <span className="text-xs text-[#6B6166]">
-                    Total Accounts: <strong>{users.length}</strong>
-                  </span>
-                </div>
 
-                <div className="max-w-full overflow-x-auto">
-                  <table className="w-full min-w-[720px] text-left border-collapse text-xs">
-                    <thead>
-                      <tr className="bg-[#FBF7F0] border-b border-[#DAD1C5] text-[10px] uppercase font-mono tracking-wider text-[#6B6166]">
-                        <th className="py-3 px-4">User ID</th>
-                        <th className="py-3 px-4">Name</th>
-                        <th className="py-3 px-4">Email</th>
-                        <th className="py-3 px-4">Phone</th>
-                        <th className="py-3 px-4">Delivery Address</th>
-                        <th className="py-3 px-4">Role</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#DAD1C5]/40">
-                      {users.map((u) => (
-                        <tr key={u.id} className="hover:bg-[#FBF7F0]/50 transition-colors">
-                          <td className="py-3.5 px-4 font-mono font-medium text-[#28192A]">#{u.id}</td>
-                          <td className="py-3.5 px-4 font-medium text-[#28192A]">{u.name}</td>
-                          <td className="py-3.5 px-4 text-[#6B6166]">{u.email}</td>
-                          <td className="py-3.5 px-4 text-[#6B6166]">{u.phone}</td>
-                          <td className="py-3.5 px-4 max-w-xs text-[#6B6166] truncate">{u.address}</td>
-                          <td className="py-3.5 px-4">
-                            <span
-                              className={`px-2 py-0.5 text-[10px] uppercase font-mono border ${
-                                u.role === 'admin'
-                                  ? 'bg-[#28192A] text-[#FFFDF8] border-[#28192A] font-bold'
-                                  : 'bg-[#FBF7F0] text-[#6B6166] border-[#DAD1C5]'
-                              }`}
-                            >
-                              {u.role}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  {/* Card Action Buttons */}
+                  <div className="flex items-center gap-2 pt-3 border-t border-[#DAD1C5]/30">
+                    <button
+                      onClick={() => handleOpenEditBottle(bottle)}
+                      className="flex-1 py-2 bg-[#28192A] hover:bg-[#3D2540] text-[#FBF7F0] text-xs font-medium flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <Edit className="w-3.5 h-3.5 text-[#C9A25C]" />
+                      <span>Edit Price &amp; Info</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleDeleteBottle(bottle.bottle_id)}
+                      className="p-2 border border-red-300 text-red-700 hover:bg-red-50 transition-colors"
+                      title="Delete Bottle Size"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
+              ))}
+            </div>
+
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 4: CUSTOMIZATION RULES & FORMULAS (NEW REQUESTED PAGE) */}
+        {/* ========================================================================= */}
+        {activeTab === 'rules' && (
+          <div className="space-y-8 animate-in fade-in duration-200">
+            
+            {/* Top Info Banner */}
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <span className="text-[10px] tracking-[0.25em] uppercase text-[#C9A25C] font-semibold block mb-1">
+                  Olfactory Guardrails &amp; Formulations
+                </span>
+                <h2 className="font-serif text-2xl sm:text-3xl text-[#28192A]">
+                  Customization Rules &amp; Master Formulas
+                </h2>
+                <p className="text-xs text-[#6B6166] mt-1 max-w-2xl">
+                  Configure real-time olfactory combination rules (max notes, mandatory harmonic anchors, forbidden pairings) and curate master pre-formulated blends that customers can select as bespoke inspirations.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => {
+                    setEditingRule(null);
+                    setRuleForm({
+                      name: '',
+                      description: '',
+                      type: 'recommended_pairing',
+                      active: true,
+                      familyA: 'Citrus',
+                      familyB: 'Woody',
+                      requiredFamily: 'Floral',
+                      maxNotes: 3,
+                      reason: '',
+                    });
+                    setIsRuleModalOpen(true);
+                  }}
+                  className="px-3.5 py-2 bg-[#28192A] hover:bg-[#3D2540] text-[#FBF7F0] text-xs uppercase tracking-wider font-medium flex items-center gap-1.5 transition-colors shadow-sm"
+                >
+                  <Plus className="w-3.5 h-3.5 text-[#C9A25C]" />
+                  <span>Add Rule</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setEditingFormula(null);
+                    setFormulaForm({
+                      name: '',
+                      topNote: 'Bergamot',
+                      heartNote: 'Jasmine',
+                      baseNote: 'Sandalwood',
+                      recommendedBottle: '50 ml',
+                      description: 'Signature balanced formula.',
+                      active: true,
+                    });
+                    setIsFormulaModalOpen(true);
+                  }}
+                  className="px-3.5 py-2 bg-[#C9A25C] hover:bg-[#B38F4D] text-[#28192A] text-xs uppercase tracking-wider font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Add Formula</span>
+                </button>
               </div>
             </div>
-          )}
 
-        </div>
-
-      </div>
-
-      {/* DETAIL MODAL: RELATIONAL ORDER INSPECTION */}
-      {selectedOrder && (
-        <div className="fixed inset-0 z-60 bg-[#28192A]/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4">
-          <div className="bg-[#FFFDF8] border border-[#DAD1C5] max-w-3xl w-full max-h-[calc(100dvh-1rem)] sm:max-h-[90vh] overflow-y-auto p-4 sm:p-8 shadow-2xl animate-in zoom-in-95 duration-150">
-            
-            <div className="flex items-center justify-between pb-4 border-b border-[#DAD1C5] mb-6">
-              <div>
-                <span className="text-[10px] uppercase font-mono tracking-widest text-[#C9A25C] block">
-                  ORDER RECORD #{selectedOrder.order.order_id}
+            {/* SECTION 1: CUSTOMIZATION RULES */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b border-[#DAD1C5] pb-2">
+                <h3 className="font-serif text-xl text-[#28192A] flex items-center gap-2">
+                  <Sliders className="w-5 h-5 text-[#C9A25C]" />
+                  <span>Active Customization Rules ({rules.length})</span>
+                </h3>
+                <span className="text-xs text-[#6B6166]">
+                  Applied live to customer perfume creation
                 </span>
-                <h3 className="font-serif text-2xl text-[#28192A]">Relational Order Management</h3>
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {rules.map((rule) => (
+                  <div
+                    key={rule.id}
+                    className={`bg-[#FBF7F0] border p-5 transition-all flex flex-col justify-between ${
+                      rule.active ? 'border-[#DAD1C5] shadow-xs' : 'border-dashed border-[#DAD1C5] opacity-60'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-serif text-lg font-medium text-[#28192A]">
+                              {rule.name}
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-mono tracking-wider uppercase text-[#C9A25C]">
+                            TYPE: {rule.type.replace('_', ' ').toUpperCase()}
+                          </span>
+                        </div>
+
+                        <button
+                          onClick={() => handleToggleRule(rule.id)}
+                          className={`px-2.5 py-1 text-[10px] font-mono uppercase font-bold transition-colors ${
+                            rule.active ? 'bg-emerald-100 text-emerald-800' : 'bg-zinc-200 text-zinc-700'
+                          }`}
+                        >
+                          {rule.active ? 'ACTIVE' : 'DEACTIVATED'}
+                        </button>
+                      </div>
+
+                      <p className="text-xs text-[#6B6166] font-light leading-relaxed mb-3">
+                        {rule.description}
+                      </p>
+
+                      {rule.params?.reason && (
+                        <div className="text-[11px] bg-[#FBF7F0] p-2.5 border border-[#DAD1C5]/60 text-[#28192A] mb-3">
+                          <span className="font-semibold text-[#C9A25C]">Olfactory Rule: </span>
+                          {rule.params.reason}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#DAD1C5]/30">
+                      <button
+                        onClick={() => {
+                          setEditingRule(rule);
+                          setRuleForm({
+                            name: rule.name,
+                            description: rule.description,
+                            type: rule.type,
+                            active: rule.active,
+                            familyA: rule.params?.familyA || 'Citrus',
+                            familyB: rule.params?.familyB || 'Woody',
+                            requiredFamily: rule.params?.requiredFamily || 'Floral',
+                            maxNotes: rule.params?.maxNotes || 3,
+                            reason: rule.params?.reason || '',
+                          });
+                          setIsRuleModalOpen(true);
+                        }}
+                        className="px-2.5 py-1 text-xs text-[#28192A] hover:bg-[#FBF7F0] border border-[#DAD1C5] flex items-center gap-1"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                        <span>Edit</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleDeleteRule(rule.id)}
+                        className="px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 border border-red-200 flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* SECTION 2: MASTER FORMULAS */}
+            <div className="space-y-4 pt-4">
+              <div className="flex items-center justify-between border-b border-[#DAD1C5] pb-2">
+                <h3 className="font-serif text-xl text-[#28192A] flex items-center gap-2">
+                  <FlaskConical className="w-5 h-5 text-[#C9A25C]" />
+                  <span>Master Formulations Catalog ({masterFormulas.length})</span>
+                </h3>
+                <span className="text-xs text-[#6B6166]">
+                  Available in Scentify customizer as inspiration blends
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {masterFormulas.map((form) => (
+                  <div
+                    key={form.id}
+                    className={`bg-[#FBF7F0] border p-5 transition-all flex flex-col justify-between ${
+                      form.active ? 'border-[#DAD1C5] shadow-xs' : 'border-dashed border-[#DAD1C5] opacity-60'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-2 pb-2 border-b border-[#DAD1C5]/30 mb-3">
+                        <div>
+                          <span className="text-[10px] font-mono text-[#6B6166]">FORMULA #{form.id}</span>
+                          <h4 className="font-serif text-lg text-[#28192A] font-medium">
+                            {form.name}
+                          </h4>
+                        </div>
+                        <button
+                          onClick={() => handleToggleFormula(form.id)}
+                          className={`px-2 py-0.5 text-[9px] font-mono uppercase font-bold ${
+                            form.active ? 'bg-emerald-100 text-emerald-800' : 'bg-zinc-200 text-zinc-700'
+                          }`}
+                        >
+                          {form.active ? 'LIVE' : 'OFF'}
+                        </button>
+                      </div>
+
+                      <div className="space-y-1.5 text-xs mb-3 bg-[#FBF7F0] p-2.5 border border-[#DAD1C5]/50">
+                        <div className="flex justify-between">
+                          <span className="text-[#6B6166] text-[10px] uppercase">Top Note:</span>
+                          <span className="font-medium text-[#28192A]">{form.topNote}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#6B6166] text-[10px] uppercase">Heart Note:</span>
+                          <span className="font-medium text-[#28192A]">{form.heartNote}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-[#6B6166] text-[10px] uppercase">Base Note:</span>
+                          <span className="font-medium text-[#28192A]">{form.baseNote}</span>
+                        </div>
+                        {form.recommendedBottle && (
+                          <div className="flex justify-between pt-1 border-t border-[#DAD1C5]/30">
+                            <span className="text-[#C9A25C] text-[10px] uppercase">Vessel:</span>
+                            <span className="font-mono text-[11px] text-[#28192A]">{form.recommendedBottle}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <p className="text-xs text-[#6B6166] font-light leading-relaxed mb-4">
+                        {form.description}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#DAD1C5]/30">
+                      <button
+                        onClick={() => {
+                          setEditingFormula(form);
+                          setFormulaForm({
+                            name: form.name,
+                            topNote: form.topNote,
+                            heartNote: form.heartNote,
+                            baseNote: form.baseNote,
+                            recommendedBottle: form.recommendedBottle || '50 ml',
+                            description: form.description,
+                            active: form.active,
+                          });
+                          setIsFormulaModalOpen(true);
+                        }}
+                        className="px-2.5 py-1 text-xs text-[#28192A] hover:bg-[#FBF7F0] border border-[#DAD1C5] flex items-center gap-1"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                        <span>Edit</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleDeleteFormula(form.id)}
+                        className="px-2.5 py-1 text-xs text-red-600 hover:bg-red-50 border border-red-200 flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 5: SCENT & INGREDIENT MANAGEMENT (ADD / EDIT / DELETE) */}
+        {/* ========================================================================= */}
+        {activeTab === 'inventory' && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            
+            {/* Header with Add Buttons */}
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <span className="text-[10px] tracking-[0.25em] uppercase text-[#C9A25C] font-semibold block mb-1">
+                  Botanical Extraction Inventory
+                </span>
+                <h2 className="font-serif text-2xl sm:text-3xl text-[#28192A]">
+                  Scent Categories &amp; Botanical Ingredients
+                </h2>
+                <p className="text-xs text-[#6B6166] mt-1 max-w-xl">
+                  Add new scent categories or ingredients, edit extraction details, adjust warehouse stock, or remove discontinued scents. All modifications dynamically update the customer library.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => setIsCategoryModalOpen(true)}
+                  className="px-3.5 py-2.5 bg-[#FBF7F0] hover:bg-[#FBF7F0] border border-[#DAD1C5] text-[#28192A] text-xs uppercase tracking-wider font-medium flex items-center gap-1.5 transition-colors shadow-xs"
+                >
+                  <Plus className="w-3.5 h-3.5 text-[#C9A25C]" />
+                  <span>Add Scent Category</span>
+                </button>
+
+                <button
+                  onClick={handleOpenAddIngredient}
+                  className="px-4 py-2.5 bg-[#28192A] hover:bg-[#3D2540] text-[#FBF7F0] text-xs uppercase tracking-wider font-medium flex items-center gap-1.5 transition-colors shadow-sm"
+                >
+                  <Plus className="w-4 h-4 text-[#C9A25C]" />
+                  <span>Add Ingredient</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Ingredients Table */}
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] overflow-hidden shadow-xs">
+              <div className="px-5 py-3.5 border-b border-[#DAD1C5] bg-[#FBF7F0] flex items-center justify-between">
+                <span className="font-serif text-base text-[#28192A]">
+                  Catalog Ingredients ({ingredients.length} items)
+                </span>
+                <span className="text-xs text-[#6B6166]">
+                  Live status across all botanical families
+                </span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-[#FBF7F0]/60 border-b border-[#DAD1C5] text-[10px] font-mono uppercase tracking-wider text-[#6B6166]">
+                      <th className="py-3 px-4">ID</th>
+                      <th className="py-3 px-4">Botanical Name</th>
+                      <th className="py-3 px-4">Category</th>
+                      <th className="py-3 px-4">Stock Qty</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#DAD1C5]/40 font-light">
+                    {ingredients.map((ing) => (
+                      <tr key={ing.ingredient_id} className="hover:bg-[#FBF7F0]/60 transition-colors">
+                        <td className="py-3 px-4 font-mono font-medium text-[#28192A]">
+                          #{ing.ingredient_id}
+                        </td>
+                        <td className="py-3 px-4 font-serif text-base text-[#28192A]">
+                          {ing.name}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="px-2.5 py-0.5 bg-[#FBF7F0] border border-[#DAD1C5] text-[11px] font-medium text-[#28192A]">
+                            {ing.category}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleAdjustStock(ing.ingredient_id, -5)}
+                              className="w-6 h-6 border border-[#DAD1C5] text-[#28192A] hover:bg-[#FBF7F0] flex items-center justify-center font-bold"
+                            >
+                              -
+                            </button>
+                            <span className="font-mono text-xs w-10 text-center font-medium">
+                              {ing.stock_qty}
+                            </span>
+                            <button
+                              onClick={() => handleAdjustStock(ing.ingredient_id, 5)}
+                              className="w-6 h-6 border border-[#DAD1C5] text-[#28192A] hover:bg-[#FBF7F0] flex items-center justify-center font-bold"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          {ing.stock_qty <= 20 ? (
+                            <span className="px-2 py-0.5 bg-red-100 text-red-800 text-[9px] font-mono uppercase font-bold">
+                              Critical Low
+                            </span>
+                          ) : ing.stock_qty <= 50 ? (
+                            <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-[9px] font-mono uppercase font-bold">
+                              Low Reorder
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-mono uppercase font-bold">
+                              Available
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => handleOpenEditIngredient(ing)}
+                              className="px-2 py-1 bg-[#28192A] hover:bg-[#3D2540] text-[#FBF7F0] text-[10px] uppercase font-mono transition-colors"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteIngredient(ing.ingredient_id)}
+                              className="px-2 py-1 border border-red-300 text-red-700 hover:bg-red-50 text-[10px] uppercase font-mono transition-colors"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 6: ADMIN & STAFF MANAGEMENT (ADD ANOTHER ADMIN) */}
+        {/* ========================================================================= */}
+        {activeTab === 'admins' && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            
+            {/* Header with Add Admin button */}
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-[10px] tracking-[0.25em] uppercase text-[#C9A25C] font-semibold block mb-1">
+                  Access Control &amp; Administration
+                </span>
+                <h2 className="font-serif text-2xl sm:text-3xl text-[#28192A]">
+                  Studio Administrators &amp; Staff
+                </h2>
+                <p className="text-xs text-[#6B6166] mt-1 max-w-xl">
+                  Add another administrator or studio staff member. New administrators can sign in directly through the Admin Console modal using their studio credentials to manage orders, inventory, and formulas.
+                </p>
+              </div>
+
               <button
-                onClick={() => {
-                  setSelectedOrder(null);
-                  setIsEditingShipping(false);
-                }}
-                className="p-1.5 text-[#6B6166] hover:text-[#28192A]"
+                onClick={handleOpenAddAdmin}
+                className="px-4 py-2.5 bg-[#28192A] hover:bg-[#3D2540] text-[#FBF7F0] text-xs uppercase tracking-wider font-medium flex items-center justify-center gap-2 transition-all shadow-sm shrink-0"
+              >
+                <UserPlus className="w-4 h-4 text-[#C9A25C]" />
+                <span>Add Another Admin</span>
+              </button>
+            </div>
+
+            {/* Administrators Table */}
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] overflow-hidden shadow-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-[#FBF7F0] border-b border-[#DAD1C5] text-[10px] font-mono uppercase tracking-wider text-[#6B6166]">
+                      <th className="py-3.5 px-4">Admin ID</th>
+                      <th className="py-3.5 px-4">Staff Member</th>
+                      <th className="py-3.5 px-4">Email</th>
+                      <th className="py-3.5 px-4">Title / Role</th>
+                      <th className="py-3.5 px-4">Status</th>
+                      <th className="py-3.5 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#DAD1C5]/40 font-light">
+                    {adminStaffUsers.map((staff) => (
+                      <tr key={staff.id} className="hover:bg-[#FBF7F0]/60 transition-colors">
+                        <td className="py-3.5 px-4 font-mono font-medium text-[#28192A]">
+                          #{staff.id}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="font-serif text-base text-[#28192A] font-medium block">
+                            {staff.name}
+                          </span>
+                          <span className="text-[10px] text-[#6B6166] font-mono">{staff.phone}</span>
+                        </td>
+                        <td className="py-3.5 px-4 font-mono text-[#28192A]">
+                          {staff.email}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="text-xs text-[#28192A] font-medium block">
+                            {staff.title}
+                          </span>
+                          <span className="text-[10px] font-mono uppercase text-[#C9A25C]">
+                            ROLE: {staff.role.toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[9px] font-mono uppercase font-bold">
+                            Active Admin
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => handleOpenEditAdmin(staff)}
+                              className="px-2 py-1 bg-[#28192A] hover:bg-[#3D2540] text-[#FBF7F0] text-[10px] uppercase font-mono transition-colors"
+                            >
+                              Edit
+                            </button>
+                            {staff.id !== 99 && (
+                              <button
+                                onClick={() => handleDeleteAdmin(staff.id)}
+                                className="px-2 py-1 border border-red-300 text-red-700 hover:bg-red-50 text-[10px] uppercase font-mono transition-colors"
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* TAB 7: STUDIO MEMBERS & CUSTOMERS */}
+        {/* ========================================================================= */}
+        {activeTab === 'users' && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] p-5 shadow-xs">
+              <h3 className="font-serif text-2xl text-[#28192A]">
+                Studio Members &amp; Registered Clients ({users.length})
+              </h3>
+              <p className="text-xs text-[#6B6166] mt-1">
+                Directory of customer accounts, delivery addresses, and customer profiles.
+              </p>
+            </div>
+
+            <div className="bg-[#FBF7F0] border border-[#DAD1C5] overflow-hidden shadow-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-[#FBF7F0] border-b border-[#DAD1C5] text-[10px] font-mono uppercase tracking-wider text-[#6B6166]">
+                      <th className="py-3.5 px-4">User ID</th>
+                      <th className="py-3.5 px-4">Customer Name</th>
+                      <th className="py-3.5 px-4">Email</th>
+                      <th className="py-3.5 px-4">Phone</th>
+                      <th className="py-3.5 px-4">Delivery Address</th>
+                      <th className="py-3.5 px-4">Role</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#DAD1C5]/40 font-light">
+                    {users.map((u) => (
+                      <tr key={u.id} className="hover:bg-[#FBF7F0]/60 transition-colors">
+                        <td className="py-3.5 px-4 font-mono font-medium text-[#28192A]">
+                          #{u.id}
+                        </td>
+                        <td className="py-3.5 px-4 font-medium text-[#28192A]">
+                          {u.name}
+                        </td>
+                        <td className="py-3.5 px-4 font-mono text-[#6B6166]">
+                          {u.email}
+                        </td>
+                        <td className="py-3.5 px-4 text-[#6B6166]">
+                          {u.phone}
+                        </td>
+                        <td className="py-3.5 px-4 text-[#6B6166] max-w-xs truncate">
+                          {u.address}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span
+                            className={`px-2 py-0.5 text-[9px] font-mono uppercase font-bold ${
+                              u.role === 'admin'
+                                ? 'bg-[#28192A] text-[#FBF7F0]'
+                                : 'bg-[#FBF7F0] text-[#28192A] border border-[#DAD1C5]'
+                            }`}
+                          >
+                            {u.role}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        )}
+
+      </main>
+
+      {/* ========================================================================= */}
+      {/* MODAL 1: BOTTLE AND PRICING MODAL */}
+      {/* ========================================================================= */}
+      {isBottleModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FBF7F0] border border-[#DAD1C5] max-w-lg w-full p-6 shadow-2xl animate-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#DAD1C5] mb-5">
+              <h3 className="font-serif text-xl text-[#28192A]">
+                {editingBottle ? 'Edit Bottle Size & Price' : 'Add New Bottle Size'}
+              </h3>
+              <button
+                onClick={() => setIsBottleModalOpen(false)}
+                className="text-[#6B6166] hover:text-[#28192A]"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-6 text-xs">
-              
-              {/* PRIMARY ADMIN SLIP REVIEW & ACTION BANNER */}
-              <div className="p-4 bg-[#FBF7F0] border border-[#C9A25C] shadow-xs">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    {selectedOrder.payment.qr_receipt_url ? (
-                      <div
-                        className="relative group cursor-pointer shrink-0"
-                        onClick={() => setPreviewImage(selectedOrder.payment.qr_receipt_url)}
-                      >
-                        <img
-                          src={selectedOrder.payment.qr_receipt_url}
-                          alt="Attached PromptPay Slip"
-                          className="w-16 h-16 object-cover border border-[#DAD1C5] rounded-xs shadow-xs group-hover:opacity-85 transition-opacity"
-                        />
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-xs text-white text-[10px] font-medium">
-                          <Eye className="w-3.5 h-3.5 mr-0.5" />
-                          <span>Zoom</span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="w-16 h-16 bg-[#FFFDF8] border border-dashed border-[#DAD1C5] flex items-center justify-center text-[10px] text-[#6B6166] text-center px-1 shrink-0">
-                        No Slip Attached
-                      </div>
-                    )}
+            <form onSubmit={handleSaveBottle} className="space-y-4">
+              <div>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                  Bottle Size Display Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 50 ml, 100 ml, 30 ml Travel"
+                  value={bottleForm.size}
+                  onChange={(e) => setBottleForm({ ...bottleForm, size: e.target.value })}
+                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A] focus:outline-none focus:border-[#C9A25C]"
+                />
+              </div>
 
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] uppercase font-mono tracking-wider font-bold text-[#28192A]">
-                          Admin Order Decision
-                        </span>
-                        <span
-                          className={`px-2 py-0.5 text-[10px] uppercase font-mono font-bold ${
-                            selectedOrder.payment.status === 'verified'
-                              ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
-                              : selectedOrder.payment.status === 'pending'
-                              ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                              : 'bg-rose-100 text-rose-900 border border-rose-300'
-                          }`}
-                        >
-                          Payment: {selectedOrder.payment.status}
-                        </span>
-                        <span
-                          className={`px-2 py-0.5 text-[10px] uppercase font-mono font-bold ${
-                            selectedOrder.order.status === 'completed'
-                              ? 'bg-emerald-100 text-emerald-900'
-                              : selectedOrder.order.status === 'processing'
-                              ? 'bg-blue-100 text-blue-900'
-                              : selectedOrder.order.status === 'pending'
-                              ? 'bg-amber-100 text-amber-900'
-                              : 'bg-stone-200 text-stone-700'
-                          }`}
-                        >
-                          Order: {selectedOrder.order.status}
-                        </span>
-                      </div>
-                      <p className="text-xs text-[#28192A] mt-1">
-                        Total Order Amount: <strong className="font-serif text-sm">฿ {selectedOrder.order.total_price.toLocaleString()}.00</strong>
-                        {selectedOrder.payment.qr_receipt_url && (
-                          <button
-                            onClick={() => setPreviewImage(selectedOrder.payment.qr_receipt_url)}
-                            className="text-[11px] text-[#28192A] underline hover:text-[#C9A25C] ml-2 inline-flex items-center gap-1"
-                          >
-                            <Eye className="w-3 h-3" />
-                            <span>Inspect attached transfer slip</span>
-                          </button>
-                        )}
-                      </p>
-                    </div>
-                  </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                    Volume Capacity (ml)
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min={5}
+                    max={1000}
+                    value={bottleForm.volume}
+                    onChange={(e) => setBottleForm({ ...bottleForm, volume: Number(e.target.value) })}
+                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A] focus:outline-none focus:border-[#C9A25C]"
+                  />
+                </div>
 
-                  {/* Two Main Admin Action Buttons: Confirm or Cancel */}
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <button
-                      onClick={() => handleConfirmOrder(selectedOrder.order.order_id)}
-                      className={`flex-1 sm:flex-initial px-4 py-2.5 text-xs uppercase tracking-wider font-semibold transition-all flex items-center justify-center gap-1.5 shadow-xs ${
-                        selectedOrder.order.status === 'processing' || selectedOrder.order.status === 'completed'
-                          ? 'bg-emerald-800 text-white'
-                          : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                      }`}
-                    >
-                      <Check className="w-4 h-4" />
-                      <span>Confirm Order</span>
-                    </button>
-
-                    <button
-                      onClick={() => handleCancelOrder(selectedOrder.order.order_id)}
-                      className={`flex-1 sm:flex-initial px-4 py-2.5 text-xs uppercase tracking-wider font-semibold transition-all flex items-center justify-center gap-1.5 ${
-                        selectedOrder.order.status === 'cancelled'
-                          ? 'bg-stone-800 text-white'
-                          : 'bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300'
-                      }`}
-                    >
-                      <X className="w-4 h-4" />
-                      <span>Cancel Order</span>
-                    </button>
-                  </div>
+                <div>
+                  <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                    Retail Price (THB ฿)
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min={0}
+                    value={bottleForm.price}
+                    onChange={(e) => setBottleForm({ ...bottleForm, price: Number(e.target.value) })}
+                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A] font-semibold text-[#C9A25C] focus:outline-none focus:border-[#C9A25C]"
+                  />
                 </div>
               </div>
 
-              {/* Customer and Shipping Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-[#FBF7F0] border border-[#DAD1C5]">
-                  <span className="text-[10px] font-mono uppercase text-[#C9A25C] block mb-2 font-bold">
-                    01 / CUSTOMER (`user`)
-                  </span>
-                  <div className="space-y-1">
-                    <p className="font-semibold text-sm text-[#28192A]">{selectedOrder.user.name}</p>
-                    <p className="text-[#6B6166]">Email: {selectedOrder.user.email}</p>
-                    <p className="text-[#6B6166]">Phone: {selectedOrder.user.phone}</p>
-                    <p className="text-[#6B6166]">Role: {selectedOrder.user.role}</p>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-[#FBF7F0] border border-[#DAD1C5]">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-mono uppercase text-[#C9A25C] font-bold">
-                      02 / SHIPPING (`shipping`)
-                    </span>
-                    <button
-                      onClick={() => setIsEditingShipping(!isEditingShipping)}
-                      className="text-[11px] underline text-[#28192A] hover:text-[#C9A25C]"
-                    >
-                      {isEditingShipping ? 'Cancel' : 'Edit Tracking'}
-                    </button>
-                  </div>
-
-                  {isEditingShipping ? (
-                    <div className="space-y-2 mt-2">
-                      <div>
-                        <label className="text-[10px] uppercase text-[#6B6166] block">Courier Name</label>
-                        <input
-                          type="text"
-                          value={shippingForm.courier}
-                          onChange={(e) => setShippingForm({ ...shippingForm, courier: e.target.value })}
-                          className="w-full bg-[#FFFDF8] border border-[#DAD1C5] px-2 py-1 text-xs"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] uppercase text-[#6B6166] block">Tracking Number</label>
-                        <input
-                          type="text"
-                          value={shippingForm.tracking}
-                          onChange={(e) => setShippingForm({ ...shippingForm, tracking: e.target.value })}
-                          className="w-full bg-[#FFFDF8] border border-[#DAD1C5] px-2 py-1 text-xs"
-                        />
-                      </div>
-                      <button
-                        onClick={() => handleSaveShipping(selectedOrder.shipping.shipping_id)}
-                        className="px-3 py-1 bg-[#28192A] text-[#FFFDF8] text-[11px] uppercase tracking-wider"
-                      >
-                        Save Tracking
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-1">
-                      <p className="text-[#28192A]">
-                        Courier: <strong>{selectedOrder.shipping.courier_name}</strong>
-                      </p>
-                      <p className="text-[#28192A]">
-                        Tracking: <strong className="font-mono">{selectedOrder.shipping.tracking_number}</strong>
-                      </p>
-                      <p className="text-[#6B6166]">Destination: {selectedOrder.shipping.shipping_address}</p>
-                    </div>
-                  )}
-                </div>
+              <div>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                  Bottle Flacon Style / Type
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Classic Flacon, Grand Flacon, Travel Atomizer"
+                  value={bottleForm.bottleType}
+                  onChange={(e) => setBottleForm({ ...bottleForm, bottleType: e.target.value })}
+                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A] focus:outline-none focus:border-[#C9A25C]"
+                />
               </div>
 
-              {/* Items Breakdown */}
-              <div className="p-4 bg-[#FFFDF8] border border-[#DAD1C5]">
-                <span className="text-[10px] font-mono uppercase text-[#C9A25C] block mb-3 font-bold">
-                  03 / ORDER ITEMS (`order_item`, `formula`, `formula_detail`, `ingredient`)
-                </span>
-
-                <div className="space-y-3 divide-y divide-[#DAD1C5]/30">
-                  {selectedOrder.items.map((item) => (
-                    <div key={item.order_item_id} className="pt-3 first:pt-0 flex items-start justify-between">
-                      <div>
-                        <h4 className="font-serif text-base text-[#28192A]">{item.formula_name}</h4>
-                        <div className="flex items-center gap-1.5 mt-1">
-                          <span className="text-[10px] uppercase font-mono text-[#6B6166]">Notes:</span>
-                          <span className="text-xs text-[#28192A]">
-                            {item.ingredients.map((ing) => ing.name).join(' · ')}
-                          </span>
-                        </div>
-                        <span className="text-[11px] text-[#6B6166]">
-                          {item.bottle.size} ml Flacon · Quantity: {item.qty}
-                        </span>
-                      </div>
-                      <div className="font-serif text-base text-[#28192A] font-medium">
-                        ฿ {(item.price * item.qty).toLocaleString()}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <div>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                  Packaging Description
+                </label>
+                <textarea
+                  rows={2}
+                  value={bottleForm.description}
+                  onChange={(e) => setBottleForm({ ...bottleForm, description: e.target.value })}
+                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A] focus:outline-none focus:border-[#C9A25C]"
+                />
               </div>
 
-              {/* Payment and Preparation Photo */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
-                {/* Payment Verification Card */}
-                <div className="p-4 bg-[#FBF7F0] border border-[#DAD1C5]">
-                  <span className="text-[10px] font-mono uppercase text-[#C9A25C] block mb-2 font-bold">
-                    04 / PAYMENT (`payment`)
-                  </span>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[#6B6166]">Payment Status:</span>
-                      <span
-                        className={`px-2 py-0.5 text-[10px] uppercase font-mono font-bold ${
-                          selectedOrder.payment.status === 'verified'
-                            ? 'bg-emerald-100 text-emerald-900'
-                            : 'bg-amber-100 text-amber-900'
-                        }`}
-                      >
-                        {selectedOrder.payment.status}
-                      </span>
-                    </div>
-
-                    {selectedOrder.payment.qr_receipt_url ? (
-                      <div>
-                        <span className="text-[11px] text-[#6B6166] block mb-1">Attached Receipt / PromptPay Slip:</span>
-                        <div className="w-24 h-24 bg-[#FFFDF8] border border-[#DAD1C5] p-1 flex items-center justify-center">
-                          <img
-                            src={selectedOrder.payment.qr_receipt_url}
-                            alt="PromptPay Slip"
-                            className="max-h-full max-w-full object-contain cursor-pointer hover:opacity-80"
-                            onClick={() => setPreviewImage(selectedOrder.payment.qr_receipt_url)}
-                          />
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-[11px] text-[#6B6166]">No receipt slip uploaded yet.</p>
-                    )}
-
-                    <div className="pt-2 flex items-center gap-2">
-                      <button
-                        onClick={() => handleConfirmOrder(selectedOrder.order.order_id)}
-                        className="flex-1 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs uppercase tracking-wider font-medium transition-colors flex items-center justify-center gap-1 shadow-xs"
-                      >
-                        <Check className="w-3.5 h-3.5" />
-                        <span>Confirm Order</span>
-                      </button>
-                      <button
-                        onClick={() => handleCancelOrder(selectedOrder.order.order_id)}
-                        className="flex-1 py-2 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 text-xs uppercase tracking-wider font-medium transition-colors flex items-center justify-center gap-1"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                        <span>Cancel Order</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Perfumer Preparation Photo */}
-                <div className="p-4 bg-[#FBF7F0] border border-[#DAD1C5]">
-                  <span className="text-[10px] font-mono uppercase text-[#C9A25C] block mb-2 font-bold">
-                    05 / DISPATCH PHOTO (`prep_photo_url`)
-                  </span>
-                  <p className="text-[11px] text-[#6B6166] mb-2">
-                    Photo of blended custom flacon before packaging
-                  </p>
-
-                  <div className="flex items-center gap-3">
-                    <div className="w-20 h-20 bg-[#FFFDF8] border border-[#DAD1C5] flex items-center justify-center overflow-hidden">
-                      {selectedOrder.order.prep_photo_url ? (
-                        <img
-                          src={selectedOrder.order.prep_photo_url}
-                          alt="Preparation flacon"
-                          className="max-h-full max-w-full object-contain"
-                        />
-                      ) : (
-                        <Camera className="w-6 h-6 text-[#DAD1C5]" />
-                      )}
-                    </div>
-
-                    <div className="space-y-1.5 flex-1">
-                      <button
-                        onClick={() =>
-                          handleSetPrepPhoto(selectedOrder.order.order_id, '/assets/botanicals/custom_bottle.png')
-                        }
-                        className="w-full py-1.5 px-2 bg-[#FFFDF8] border border-[#DAD1C5] text-[11px] text-[#28192A] hover:bg-[#28192A] hover:text-[#FFFDF8] transition-colors"
-                      >
-                        Attach Custom Flacon Photo
-                      </button>
-                      <button
-                        onClick={() =>
-                          handleSetPrepPhoto(selectedOrder.order.order_id, '/assets/botanicals/woody.png')
-                        }
-                        className="w-full py-1.5 px-2 bg-[#FFFDF8] border border-[#DAD1C5] text-[11px] text-[#28192A] hover:bg-[#28192A] hover:text-[#FFFDF8] transition-colors"
-                      >
-                        Attach Artisanal Studio Study
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
+              <div className="flex items-center gap-2 pt-2">
+                <input
+                  type="checkbox"
+                  id="bottleStockCheck"
+                  checked={bottleForm.inStock}
+                  onChange={(e) => setBottleForm({ ...bottleForm, inStock: e.target.checked })}
+                  className="w-4 h-4 text-[#C9A25C] accent-[#C9A25C]"
+                />
+                <label htmlFor="bottleStockCheck" className="text-xs text-[#28192A]">
+                  Active and available for customer bespoke orders
+                </label>
               </div>
 
+              <div className="flex justify-end gap-3 pt-4 border-t border-[#DAD1C5]/40">
+                <button
+                  type="button"
+                  onClick={() => setIsBottleModalOpen(false)}
+                  className="px-4 py-2 border border-[#DAD1C5] text-xs text-[#6B6166] hover:bg-[#FBF7F0]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-[#28192A] text-[#FBF7F0] text-xs uppercase tracking-wider font-medium hover:bg-[#3D2540]"
+                >
+                  Save Bottle Options
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 2: CUSTOMIZATION RULES MODAL */}
+      {/* ========================================================================= */}
+      {isRuleModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FBF7F0] border border-[#DAD1C5] max-w-lg w-full p-6 shadow-2xl animate-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#DAD1C5] mb-5">
+              <h3 className="font-serif text-xl text-[#28192A]">
+                {editingRule ? 'Edit Customization Rule' : 'Add Customization Rule'}
+              </h3>
+              <button onClick={() => setIsRuleModalOpen(false)} className="text-[#6B6166]">
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <div className="mt-6 pt-4 border-t border-[#DAD1C5] flex justify-end">
+            <form onSubmit={handleSaveRule} className="space-y-4">
+              <div>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                  Rule Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Citrus & Woody Harmonious Bridge"
+                  value={ruleForm.name}
+                  onChange={(e) => setRuleForm({ ...ruleForm, name: e.target.value })}
+                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                  Rule Type
+                </label>
+                <select
+                  value={ruleForm.type}
+                  onChange={(e) => setRuleForm({ ...ruleForm, type: e.target.value as any })}
+                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                >
+                  <option value="max_notes">Maximum Notes Limit</option>
+                  <option value="recommended_pairing">Harmonious Pairing Recommendation</option>
+                  <option value="required_family">Mandatory Olfactory Family Anchor</option>
+                  <option value="forbidden_pairing">Incompatible Pairing Restriction</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                  Description / Instruction
+                </label>
+                <textarea
+                  rows={2}
+                  required
+                  placeholder="Explain how this rule protects the fragrance balance..."
+                  value={ruleForm.description}
+                  onChange={(e) => setRuleForm({ ...ruleForm, description: e.target.value })}
+                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                  Olfactory Reason shown to customer
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Bridging with Floral creates a smooth transition."
+                  value={ruleForm.reason}
+                  onChange={(e) => setRuleForm({ ...ruleForm, reason: e.target.value })}
+                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="ruleActiveCheck"
+                  checked={ruleForm.active}
+                  onChange={(e) => setRuleForm({ ...ruleForm, active: e.target.checked })}
+                  className="w-4 h-4 text-[#C9A25C] accent-[#C9A25C]"
+                />
+                <label htmlFor="ruleActiveCheck" className="text-xs text-[#28192A]">
+                  Rule is active and strictly enforced in customer Scentify customizer
+                </label>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-[#DAD1C5]/40">
+                <button
+                  type="button"
+                  onClick={() => setIsRuleModalOpen(false)}
+                  className="px-4 py-2 border border-[#DAD1C5] text-xs text-[#6B6166]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-[#28192A] text-[#FBF7F0] text-xs uppercase tracking-wider font-medium hover:bg-[#3D2540]"
+                >
+                  Save Customization Rule
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 3: MASTER FORMULA MODAL */}
+      {/* ========================================================================= */}
+      {isFormulaModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FBF7F0] border border-[#DAD1C5] max-w-lg w-full p-6 shadow-2xl animate-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#DAD1C5] mb-5">
+              <h3 className="font-serif text-xl text-[#28192A]">
+                {editingFormula ? 'Edit Master Formula' : 'Add Master Formula'}
+              </h3>
+              <button onClick={() => setIsFormulaModalOpen(false)} className="text-[#6B6166]">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveFormula} className="space-y-4">
+              <div>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                  Formula Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Golden Dawn, Imperial Oud"
+                  value={formulaForm.name}
+                  onChange={(e) => setFormulaForm({ ...formulaForm, name: e.target.value })}
+                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[10px] uppercase font-semibold text-[#28192A] mb-1">
+                    Top Note
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formulaForm.topNote}
+                    onChange={(e) => setFormulaForm({ ...formulaForm, topNote: e.target.value })}
+                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-2.5 py-1.5 text-xs text-[#28192A]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-semibold text-[#28192A] mb-1">
+                    Heart Note
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formulaForm.heartNote}
+                    onChange={(e) => setFormulaForm({ ...formulaForm, heartNote: e.target.value })}
+                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-2.5 py-1.5 text-xs text-[#28192A]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] uppercase font-semibold text-[#28192A] mb-1">
+                    Base Note
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formulaForm.baseNote}
+                    onChange={(e) => setFormulaForm({ ...formulaForm, baseNote: e.target.value })}
+                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-2.5 py-1.5 text-xs text-[#28192A]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                  Recommended Bottle Size
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 50 ml, 100 ml"
+                  value={formulaForm.recommendedBottle}
+                  onChange={(e) => setFormulaForm({ ...formulaForm, recommendedBottle: e.target.value })}
+                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                  Formula Description
+                </label>
+                <textarea
+                  rows={2}
+                  required
+                  placeholder="Artisanal description of this fragrance blend..."
+                  value={formulaForm.description}
+                  onChange={(e) => setFormulaForm({ ...formulaForm, description: e.target.value })}
+                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="formulaActiveCheck"
+                  checked={formulaForm.active}
+                  onChange={(e) => setFormulaForm({ ...formulaForm, active: e.target.checked })}
+                  className="w-4 h-4 text-[#C9A25C] accent-[#C9A25C]"
+                />
+                <label htmlFor="formulaActiveCheck" className="text-xs text-[#28192A]">
+                  Formula is live and available in customer studio presets
+                </label>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-[#DAD1C5]/40">
+                <button
+                  type="button"
+                  onClick={() => setIsFormulaModalOpen(false)}
+                  className="px-4 py-2 border border-[#DAD1C5] text-xs text-[#6B6166]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-[#28192A] text-[#FBF7F0] text-xs uppercase tracking-wider font-medium hover:bg-[#3D2540]"
+                >
+                  Save Master Formula
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 4: INGREDIENT MODAL (ADD / EDIT) */}
+      {/* ========================================================================= */}
+      {isIngredientModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FBF7F0] border border-[#DAD1C5] max-w-lg w-full p-6 shadow-2xl animate-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#DAD1C5] mb-5">
+              <h3 className="font-serif text-xl text-[#28192A]">
+                {editingIngredient ? 'Edit Botanical Ingredient' : 'Add New Ingredient'}
+              </h3>
+              <button onClick={() => setIsIngredientModalOpen(false)} className="text-[#6B6166]">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveIngredient} className="space-y-4">
+              <div>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                  Ingredient Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Cardamom, White Musk, Neroli"
+                  value={ingredientForm.name}
+                  onChange={(e) => setIngredientForm({ ...ingredientForm, name: e.target.value })}
+                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                    Scent Category
+                  </label>
+                  <select
+                    value={ingredientForm.category}
+                    onChange={(e) => setIngredientForm({ ...ingredientForm, category: e.target.value })}
+                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                  >
+                    <option value="Citrus">Citrus</option>
+                    <option value="Floral">Floral</option>
+                    <option value="Woody">Woody</option>
+                    <option value="Fruity">Fruity</option>
+                    <option value="Sweet">Sweet</option>
+                    <option value="Fresh">Fresh</option>
+                    {propScentFamilies
+                      ?.filter(
+                        (f) =>
+                          !['citrus', 'floral', 'woody', 'fruity', 'sweet', 'fresh'].includes(
+                            f.id.toLowerCase()
+                          )
+                      )
+                      .map((f) => (
+                        <option key={f.id} value={f.name}>
+                          {f.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                    Stock Quantity (Units)
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={ingredientForm.stock_qty}
+                    onChange={(e) =>
+                      setIngredientForm({ ...ingredientForm, stock_qty: Number(e.target.value) })
+                    }
+                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                  Botanical Description
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Describe its aromatic facets and origin..."
+                  value={ingredientForm.description}
+                  onChange={(e) => setIngredientForm({ ...ingredientForm, description: e.target.value })}
+                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="ingPopularCheck"
+                  checked={ingredientForm.isPopular}
+                  onChange={(e) => setIngredientForm({ ...ingredientForm, isPopular: e.target.checked })}
+                  className="w-4 h-4 text-[#C9A25C] accent-[#C9A25C]"
+                />
+                <label htmlFor="ingPopularCheck" className="text-xs text-[#28192A]">
+                  Mark as "Popular" note in customer fragrance creator
+                </label>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-[#DAD1C5]/40">
+                <button
+                  type="button"
+                  onClick={() => setIsIngredientModalOpen(false)}
+                  className="px-4 py-2 border border-[#DAD1C5] text-xs text-[#6B6166]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-[#28192A] text-[#FBF7F0] text-xs uppercase tracking-wider font-medium hover:bg-[#3D2540]"
+                >
+                  Save Ingredient
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 5: CATEGORY MODAL */}
+      {/* ========================================================================= */}
+      {isCategoryModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FBF7F0] border border-[#DAD1C5] max-w-lg w-full p-6 shadow-2xl animate-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#DAD1C5] mb-5">
+              <h3 className="font-serif text-xl text-[#28192A]">
+                Add New Scent Category
+              </h3>
+              <button onClick={() => setIsCategoryModalOpen(false)} className="text-[#6B6166]">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCategory} className="space-y-4">
+              <div>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                  Category Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Spicy, Oriental, Gourmand, Aquatic"
+                  value={categoryForm.name}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, name: e.target.value })}
+                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                  Subtitle
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Exotic · Warm · Enveloping"
+                  value={categoryForm.subtitle}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, subtitle: e.target.value })}
+                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                  Category Description
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Aromatic profile and character of this scent family..."
+                  value={categoryForm.description}
+                  onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })}
+                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-[#DAD1C5]/40">
+                <button
+                  type="button"
+                  onClick={() => setIsCategoryModalOpen(false)}
+                  className="px-4 py-2 border border-[#DAD1C5] text-xs text-[#6B6166]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-[#28192A] text-[#FBF7F0] text-xs uppercase tracking-wider font-medium hover:bg-[#3D2540]"
+                >
+                  Create Scent Category
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 6: ADMIN & STAFF MODAL (ADD ANOTHER ADMIN) */}
+      {/* ========================================================================= */}
+      {isAdminModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FBF7F0] border border-[#DAD1C5] max-w-lg w-full p-6 shadow-2xl animate-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#DAD1C5] mb-5">
+              <h3 className="font-serif text-xl text-[#28192A]">
+                {editingAdmin ? 'Edit Administrator Details' : 'Add Another Administrator'}
+              </h3>
+              <button onClick={() => setIsAdminModalOpen(false)} className="text-[#6B6166]">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveAdmin} className="space-y-4">
+              <div>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Kasem Prasert (Junior Perfumer)"
+                  value={adminForm.name}
+                  onChange={(e) => setAdminForm({ ...adminForm, name: e.target.value })}
+                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                  Admin Login Email
+                </label>
+                <input
+                  type="email"
+                  required
+                  placeholder="e.g. kasem.p@scentify.com"
+                  value={adminForm.email}
+                  onChange={(e) => setAdminForm({ ...adminForm, email: e.target.value })}
+                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                    System Role
+                  </label>
+                  <select
+                    value={adminForm.role}
+                    onChange={(e) => setAdminForm({ ...adminForm, role: e.target.value as any })}
+                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                  >
+                    <option value="admin">Super Admin</option>
+                    <option value="perfumer">Master Perfumer</option>
+                    <option value="staff">Studio Staff / Orders</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                    Contact Phone
+                  </label>
+                  <input
+                    type="tel"
+                    placeholder="+66 81 234 5678"
+                    value={adminForm.phone}
+                    onChange={(e) => setAdminForm({ ...adminForm, phone: e.target.value })}
+                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                  Job Title
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Studio Formulation Specialist"
+                  value={adminForm.title}
+                  onChange={(e) => setAdminForm({ ...adminForm, title: e.target.value })}
+                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
+                  Access Key / Password
+                </label>
+                <input
+                  type="password"
+                  placeholder="Leave blank to use default studio PIN"
+                  value={adminForm.password}
+                  onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })}
+                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-[#DAD1C5]/40">
+                <button
+                  type="button"
+                  onClick={() => setIsAdminModalOpen(false)}
+                  className="px-4 py-2 border border-[#DAD1C5] text-xs text-[#6B6166]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-[#28192A] text-[#FBF7F0] text-xs uppercase tracking-wider font-medium hover:bg-[#3D2540]"
+                >
+                  Grant Administrator Access
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 7: ORDER DETAILS DRAWER */}
+      {/* ========================================================================= */}
+      {selectedOrder && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#FBF7F0] border border-[#DAD1C5] max-w-2xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto animate-in zoom-in-95">
+            
+            <div className="flex items-center justify-between pb-3 border-b border-[#DAD1C5] mb-5">
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-widest text-[#C9A25C]">
+                  Order #{selectedOrder.order.order_id}
+                </span>
+                <h3 className="font-serif text-2xl text-[#28192A]">
+                  Order &amp; Formulation Details
+                </h3>
+              </div>
+              <button onClick={() => setSelectedOrder(null)} className="text-[#6B6166]">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Customer & Shipping Details */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#FBF7F0] p-4 border border-[#DAD1C5]/50 mb-5 text-xs">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-[#6B6166] block mb-1">
+                  Customer
+                </span>
+                <div className="font-medium text-[#28192A]">{selectedOrder.user.name}</div>
+                <div className="text-[#6B6166]">{selectedOrder.user.email}</div>
+                <div className="text-[#6B6166]">{selectedOrder.user.phone}</div>
+              </div>
+
+              <div>
+                <span className="text-[10px] uppercase font-bold text-[#6B6166] block mb-1">
+                  Shipping Destination
+                </span>
+                <div className="text-[#28192A] font-light leading-relaxed">
+                  {selectedOrder.shipping.shipping_address}
+                </div>
+                <div className="mt-1 text-[11px] font-mono text-[#C9A25C]">
+                  Courier: {selectedOrder.shipping.courier_name} · Track: {selectedOrder.shipping.tracking_number}
+                </div>
+              </div>
+            </div>
+
+            {/* Items */}
+            <div className="space-y-3 mb-5">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#28192A] block">
+                Formulated Items
+              </span>
+              {selectedOrder.items.map((it, idx) => (
+                <div
+                  key={idx}
+                  className="bg-[#FBF7F0] border border-[#DAD1C5] p-3.5 flex items-center justify-between text-xs"
+                >
+                  <div>
+                    <h4 className="font-serif text-base text-[#28192A] font-medium">
+                      {it.formula_name}
+                    </h4>
+                    <span className="text-[#6B6166] text-[11px]">
+                      {it.bottle?.size || 50} ml Vessel · Quantity: {it.qty}
+                    </span>
+                  </div>
+                  <span className="font-mono font-semibold text-[#28192A]">
+                    ฿{(it.price * it.qty).toLocaleString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* PromptPay Slip Section */}
+            {selectedOrder.payment.qr_receipt_url && (
+              <div className="border border-[#DAD1C5] p-4 mb-5 bg-[#FBF7F0]">
+                <span className="text-xs font-semibold uppercase text-[#28192A] block mb-2">
+                  PromptPay Transfer Slip
+                </span>
+                <div className="flex items-center gap-4">
+                  <img
+                    src={selectedOrder.payment.qr_receipt_url}
+                    alt="Payment Slip"
+                    className="w-20 h-20 object-contain border border-[#DAD1C5] bg-white cursor-pointer hover:opacity-90"
+                    onClick={() => setPreviewImage(selectedOrder.payment.qr_receipt_url)}
+                  />
+                  <div>
+                    <span className="text-xs text-[#6B6166] block">
+                      Status: <strong className="uppercase">{selectedOrder.payment.status}</strong>
+                    </span>
+                    {selectedOrder.payment.status === 'pending' && (
+                      <button
+                        onClick={() => handleConfirmOrder(selectedOrder.order.order_id)}
+                        className="mt-2 px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-medium"
+                      >
+                        Verify Slip &amp; Advance
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Shipping Tracking Update Form */}
+            <div className="border border-[#DAD1C5] p-4 mb-5 bg-[#FBF7F0]">
+              <span className="text-xs font-semibold uppercase text-[#28192A] block mb-2">
+                Courier &amp; Tracking Update
+              </span>
+              <div className="grid grid-cols-2 gap-3 text-xs mb-2">
+                <input
+                  type="text"
+                  placeholder="Courier (e.g. DHL Express)"
+                  value={shippingForm.courier}
+                  onChange={(e) => setShippingForm({ ...shippingForm, courier: e.target.value })}
+                  className="bg-[#FBF7F0] border border-[#DAD1C5] px-2.5 py-1.5"
+                />
+                <input
+                  type="text"
+                  placeholder="Tracking Number"
+                  value={shippingForm.tracking}
+                  onChange={(e) => setShippingForm({ ...shippingForm, tracking: e.target.value })}
+                  className="bg-[#FBF7F0] border border-[#DAD1C5] px-2.5 py-1.5"
+                />
+              </div>
               <button
-                onClick={() => {
-                  setSelectedOrder(null);
-                  setIsEditingShipping(false);
-                }}
-                className="px-6 py-2.5 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-wider font-medium hover:bg-[#3D2540] transition-colors"
+                onClick={() => handleSaveShipping(selectedOrder.shipping.shipping_id)}
+                className="px-3 py-1.5 bg-[#28192A] text-[#FBF7F0] text-xs font-medium"
               >
-                Close Details
+                Save Courier Details
+              </button>
+            </div>
+
+            {/* Quick Status Adjustments */}
+            <div className="flex items-center justify-between pt-4 border-t border-[#DAD1C5]/40 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-[#6B6166]">Status:</span>
+                <button
+                  onClick={() => handleUpdateOrderStatus(selectedOrder.order.order_id, 'processing')}
+                  className="px-2 py-1 bg-amber-100 text-amber-800 uppercase font-mono font-bold text-[10px]"
+                >
+                  Set Processing
+                </button>
+                <button
+                  onClick={() => handleUpdateOrderStatus(selectedOrder.order.order_id, 'completed')}
+                  className="px-2 py-1 bg-emerald-100 text-emerald-800 uppercase font-mono font-bold text-[10px]"
+                >
+                  Set Completed
+                </button>
+                <button
+                  onClick={() => handleCancelOrder(selectedOrder.order.order_id)}
+                  className="px-2 py-1 bg-red-100 text-red-800 uppercase font-mono font-bold text-[10px]"
+                >
+                  Cancel Order
+                </button>
+              </div>
+
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="px-4 py-1.5 border border-[#DAD1C5] text-[#28192A]"
+              >
+                Close
               </button>
             </div>
 
@@ -1435,16 +3277,17 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
         </div>
       )}
 
-      {/* Slip Zoom Modal */}
+      {/* Slip Image Full Preview Modal */}
       {previewImage && (
         <div
-          className="fixed inset-0 z-70 bg-[#28192A]/80 flex items-center justify-center p-4 cursor-pointer"
           onClick={() => setPreviewImage(null)}
+          className="fixed inset-0 z-60 bg-black/80 flex items-center justify-center p-4 cursor-pointer"
         >
-          <div className="max-w-md bg-[#FFFDF8] p-4 border border-[#DAD1C5]">
-            <img src={previewImage} alt="Payment Receipt" className="w-full h-auto object-contain" />
-            <p className="text-center text-xs text-[#6B6166] mt-2">Click anywhere to close</p>
-          </div>
+          <img
+            src={previewImage}
+            alt="Full Slip Preview"
+            className="max-w-md max-h-[85vh] object-contain border-2 border-white shadow-2xl"
+          />
         </div>
       )}
 

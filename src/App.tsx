@@ -36,10 +36,16 @@ import {
   DbFormulaDetail,
   DbOrderItem,
   PurchaseHistoryOrder,
+  BottleOption,
+  CustomizationRule,
+  MasterFormula,
+  AdminStaffUser,
+  ScentFamily,
 } from './types';
 import {
   INITIAL_ORDER,
   INITIAL_CHAT_MESSAGES,
+  SCENT_FAMILIES,
 } from './data/perfumeData';
 import {
   INITIAL_DB_ORDERS,
@@ -50,6 +56,10 @@ import {
   INITIAL_DB_FORMULAS,
   INITIAL_DB_FORMULA_DETAILS,
   INITIAL_DB_ORDER_ITEMS,
+  INITIAL_BOTTLE_OPTIONS,
+  INITIAL_CUSTOMIZATION_RULES,
+  INITIAL_MASTER_FORMULAS,
+  INITIAL_ADMIN_USERS,
 } from './data/adminDatabaseData';
 
 function parseOrderItems(value: unknown): CartItem[] {
@@ -124,6 +134,97 @@ export default function App() {
   const [dbFormulaDetails, setDbFormulaDetails] = useState<DbFormulaDetail[]>(INITIAL_DB_FORMULA_DETAILS);
   const [dbOrderItems, setDbOrderItems] = useState<DbOrderItem[]>(INITIAL_DB_ORDER_ITEMS);
 
+  // Dynamic Admin Management State (Persisted in localStorage)
+  const [bottles, setBottles] = useState<BottleOption[]>(() => {
+    try {
+      const raw = localStorage.getItem('scentify_bottles');
+      return raw ? JSON.parse(raw) : INITIAL_BOTTLE_OPTIONS;
+    } catch {
+      return INITIAL_BOTTLE_OPTIONS;
+    }
+  });
+
+  const [scentFamilies, setScentFamilies] = useState<ScentFamily[]>(() => {
+    try {
+      const raw = localStorage.getItem('scentify_scent_families');
+      return raw ? JSON.parse(raw) : SCENT_FAMILIES;
+    } catch {
+      return SCENT_FAMILIES;
+    }
+  });
+
+  const [rules, setRules] = useState<CustomizationRule[]>(() => {
+    try {
+      const raw = localStorage.getItem('scentify_rules');
+      return raw ? JSON.parse(raw) : INITIAL_CUSTOMIZATION_RULES;
+    } catch {
+      return INITIAL_CUSTOMIZATION_RULES;
+    }
+  });
+
+  const [masterFormulas, setMasterFormulas] = useState<MasterFormula[]>(() => {
+    try {
+      const raw = localStorage.getItem('scentify_master_formulas');
+      return raw ? JSON.parse(raw) : INITIAL_MASTER_FORMULAS;
+    } catch {
+      return INITIAL_MASTER_FORMULAS;
+    }
+  });
+
+  const [adminStaffUsers, setAdminStaffUsers] = useState<AdminStaffUser[]>(() => {
+    try {
+      const raw = localStorage.getItem('scentify_admin_users');
+      return raw ? JSON.parse(raw) : INITIAL_ADMIN_USERS;
+    } catch {
+      return INITIAL_ADMIN_USERS;
+    }
+  });
+
+  const handleUpdateBottles = (newBottles: BottleOption[]) => {
+    setBottles(newBottles);
+    try {
+      localStorage.setItem('scentify_bottles', JSON.stringify(newBottles));
+    } catch (e) {
+      console.error('Failed to save bottles to storage:', e);
+    }
+  };
+
+  const handleUpdateScentFamilies = (newFamilies: ScentFamily[]) => {
+    setScentFamilies(newFamilies);
+    try {
+      localStorage.setItem('scentify_scent_families', JSON.stringify(newFamilies));
+    } catch (e) {
+      console.error('Failed to save scent families to storage:', e);
+    }
+  };
+
+  const handleUpdateRules = (newRules: CustomizationRule[]) => {
+    setRules(newRules);
+    try {
+      localStorage.setItem('scentify_rules', JSON.stringify(newRules));
+    } catch (e) {
+      console.error('Failed to save customization rules to storage:', e);
+    }
+  };
+
+  const handleUpdateMasterFormulas = (newFormulas: MasterFormula[]) => {
+    setMasterFormulas(newFormulas);
+    try {
+      localStorage.setItem('scentify_master_formulas', JSON.stringify(newFormulas));
+    } catch (e) {
+      console.error('Failed to save master formulas to storage:', e);
+    }
+  };
+
+  const handleUpdateAdminStaffUsers = (newAdmins: AdminStaffUser[]) => {
+    setAdminStaffUsers(newAdmins);
+    try {
+      localStorage.setItem('scentify_admin_users', JSON.stringify(newAdmins));
+    } catch (e) {
+      console.error('Failed to save admin staff users to storage:', e);
+    }
+  };
+
   // Customer Care Chat Messages
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(INITIAL_CHAT_MESSAGES);
 
@@ -182,6 +283,9 @@ export default function App() {
         setIsAdminUser(isAdmin);
         setAdminUser(name);
         setCurrentUser(isAdmin ? null : name);
+        if (isAdmin) {
+          setCurrentView('admin');
+        }
 
         if (!isAdmin) {
           const { data: customerOrders, error: customerOrdersError } = await supabase
@@ -245,7 +349,6 @@ export default function App() {
 
           if (ordersError) {
             console.error('Failed to load orders from Supabase:', ordersError);
-            window.alert(`Could not load saved orders: ${ordersError.message}`);
           } else if (active && rows) {
             const savedOrders = rows.map((row) => {
               const id = Number(row.order_id);
@@ -621,7 +724,6 @@ export default function App() {
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Failed to sign out of Supabase:', error);
-      window.alert(`Could not sign out: ${error.message}`);
       return;
     }
     setCurrentUser(null);
@@ -637,14 +739,16 @@ export default function App() {
   };
 
   if (!isAuthResolved) {
-    return <div className="min-h-screen bg-[#FFFDF8]" aria-busy="true" />;
+    return <div className="min-h-screen bg-[#FBF7F0]" aria-busy="true" />;
   }
 
-  if (isAdminUser) {
+  // Admin full-page portal view
+  if (isAdminUser && currentView === 'admin') {
     return (
       <AdminSidePanel
         isOpen
         onClose={handleLogout}
+        onSwitchToStorefront={() => setCurrentView('home')}
         adminUser={adminUser}
         orders={dbOrders}
         users={dbUsers}
@@ -654,6 +758,16 @@ export default function App() {
         formulas={dbFormulas}
         formulaDetails={dbFormulaDetails}
         orderItems={dbOrderItems}
+        bottles={bottles}
+        onUpdateBottles={handleUpdateBottles}
+        scentFamilies={scentFamilies}
+        onUpdateScentFamilies={handleUpdateScentFamilies}
+        rules={rules}
+        onUpdateRules={handleUpdateRules}
+        masterFormulas={masterFormulas}
+        onUpdateMasterFormulas={handleUpdateMasterFormulas}
+        adminStaffUsers={adminStaffUsers}
+        onUpdateAdminStaffUsers={handleUpdateAdminStaffUsers}
         onConfirmOrder={handleAdminConfirmOrder}
         onCancelOrder={handleAdminCancelOrder}
         onUpdateOrderStatus={handleAdminUpdateOrderStatus}
@@ -663,7 +777,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFFDF8] text-[#28192A] flex flex-col font-sans selection:bg-[#C9A25C]/20">
+    <div className="min-h-screen bg-[#FBF7F0] text-[#28192A] flex flex-col font-sans selection:bg-[#C9A25C]/20">
       
       {/* Navigation Bar */}
       <Navbar
@@ -671,6 +785,8 @@ export default function App() {
         onNavigate={navigateTo}
         cartCount={cartItems.reduce((acc, i) => acc + i.quantity, 0)}
         userName={currentUser}
+        isAdminUser={isAdminUser}
+        onOpenAdmin={() => setCurrentView('admin')}
         onOpenAuth={(mode = 'signup') => {
           setAuthModalMode(mode);
           setAuthModalOpen(true);
@@ -692,6 +808,7 @@ export default function App() {
           <IngredientLibraryView
             onNavigate={navigateTo}
             onSelectIngredientToScentify={handleAddIngredientToScentify}
+            scentFamilies={scentFamilies}
           />
         )}
 
@@ -700,6 +817,10 @@ export default function App() {
             composition={composition}
             onUpdateComposition={setComposition}
             onNavigate={navigateTo}
+            scentFamilies={scentFamilies}
+            bottles={bottles}
+            rules={rules}
+            formulas={masterFormulas}
           />
         )}
 
@@ -709,6 +830,7 @@ export default function App() {
             onConfirmAndShip={handleConfirmAndShipCustom}
             onRequestChange={() => navigateTo('chat')}
             onNavigate={navigateTo}
+            bottles={bottles}
           />
         )}
 
@@ -809,7 +931,8 @@ export default function App() {
           if (role === 'admin') {
             setIsAdminUser(true);
             setAdminUser(name);
-            setCurrentUser(null); // Admin should not access to normal user role!
+            setCurrentUser(null);
+            setCurrentView('admin');
           } else {
             setCurrentUser(name);
             setIsAdminUser(false);
@@ -818,7 +941,8 @@ export default function App() {
         }}
         onAdminLogin={() => {
           setIsAdminUser(true);
-          setCurrentUser(null); // Admin should not access to normal user role!
+          setCurrentUser(null);
+          setCurrentView('admin');
         }}
       />
 
@@ -827,6 +951,7 @@ export default function App() {
         onClose={() => setSearchModalOpen(false)}
         onSelectIngredient={handleAddIngredientToScentify}
         onNavigate={navigateTo}
+        scentFamilies={scentFamilies}
       />
 
       <StoryModal

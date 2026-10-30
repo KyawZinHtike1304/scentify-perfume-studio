@@ -56,7 +56,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ onNavigate }) => {
     : articles.filter(a => a.category === activeCategory);
 
   return (
-    <div className="min-h-screen bg-[#FFFDF8] text-[#28192A] py-16 sm:py-24">
+    <div className="min-h-screen bg-[#FBF7F0] text-[#28192A] py-16 sm:py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
@@ -121,7 +121,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ onNavigate }) => {
           {filteredArticles.map((article, idx) => (
             <article
               key={article.id}
-              className="bg-[#FFFDF8] border border-[#DAD1C5] p-6 sm:p-10 lg:p-12 hover:border-[#C9A25C] transition-all hover:shadow-xs"
+              className="bg-[#FBF7F0] border border-[#DAD1C5] p-6 sm:p-10 lg:p-12 hover:border-[#C9A25C] transition-all hover:shadow-xs"
             >
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                 
