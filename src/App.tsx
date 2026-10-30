@@ -37,7 +37,6 @@ import {
   DbOrderItem,
 } from './types';
 import {
-  INITIAL_CART_ITEMS,
   INITIAL_ORDER,
   INITIAL_CHAT_MESSAGES,
 } from './data/perfumeData';
@@ -66,7 +65,7 @@ export default function App() {
   });
 
   // Shopping Bag / Cart State
-  const [cartItems, setCartItems] = useState<CartItem[]>(INITIAL_CART_ITEMS);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   // Active Order State
   const [order, setOrder] = useState<OrderDetails>(INITIAL_ORDER);

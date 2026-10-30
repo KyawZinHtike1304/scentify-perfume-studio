@@ -8,7 +8,6 @@ import {
   Edit2,
   CheckCircle2,
   Clock,
-  ArrowRight,
   ShieldCheck,
   ShoppingBag,
   ExternalLink,
@@ -48,35 +47,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     country: order.country || 'Thailand',
     phone: order.phone || '+66 91 234 5678',
   });
-
-  // Sample order history list combined with current active order
-  const ordersList = [
-    {
-      id: order.orderId || 'LM-2026-0042',
-      date: '27 Oct 2026',
-      status: order.status === 'verified'
-        ? 'Verified · Preparing Blend'
-        : order.status === 'slip_uploaded'
-        ? 'Payment Slip Under Review'
-        : 'Awaiting Payment Confirmation',
-      statusColor: order.status === 'verified' ? 'text-emerald-800 bg-emerald-50' : 'text-amber-800 bg-amber-50',
-      total: order.total || 2202,
-      items: [
-        { name: 'Custom Blend', desc: 'Bergamot · Jasmine · Oud · 50 ml', qty: 1, price: 1680 },
-        { name: 'Signature Bottle', desc: 'Oud · 30 ml', qty: 2, price: 522 },
-      ],
-    },
-    {
-      id: 'LRM-8941',
-      date: '14 Oct 2026',
-      status: 'Delivered',
-      statusColor: 'text-slate-700 bg-slate-100',
-      total: 1680,
-      items: [
-        { name: 'Custom Fragrance', desc: 'Bergamot · Jasmine · Sandalwood · 50 ml', qty: 1, price: 1680 },
-      ],
-    },
-  ];
 
   const handleSaveAddress = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -347,72 +317,16 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                   <h2 className="font-serif text-2xl text-[#28192A]">Purchase History</h2>
                 </div>
                 <span className="text-xs text-[#6B6166]">
-                  {ordersList.length} orders recorded
+                  0 orders recorded
                 </span>
               </div>
 
-              {/* Orders List */}
-              <div className="space-y-6">
-                {ordersList.map((ord) => (
-                  <div
-                    key={ord.id}
-                    className="border border-[#DAD1C5]/70 bg-[#FBF7F0]/40 p-5 rounded-none hover:border-[#DAD1C5] transition-colors space-y-4"
-                  >
-                    {/* Order header row */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#DAD1C5]/40">
-                      <div>
-                        <span className="text-[10px] tracking-widest uppercase text-[#6B6166]">
-                          ORDER REF
-                        </span>
-                        <h4 className="font-mono text-sm font-semibold text-[#28192A]">
-                          #{ord.id}
-                        </h4>
-                        <span className="text-[11px] text-[#6B6166]">{ord.date}</span>
-                      </div>
-
-                      <div className="text-right">
-                        <span className={`inline-block px-2.5 py-1 text-[11px] font-medium border border-current/20 ${ord.statusColor}`}>
-                          {ord.status}
-                        </span>
-                        <div className="font-serif text-base font-semibold text-[#28192A] mt-1">
-                          ฿ {ord.total.toLocaleString()}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Order Items */}
-                    <div className="space-y-2 text-xs">
-                      {ord.items.map((item, idx) => (
-                        <div key={idx} className="flex justify-between items-center text-[#6B6166]">
-                          <div>
-                            <span className="font-medium text-[#28192A]">{item.name}</span>
-                            <span className="text-[11px] block">{item.desc}</span>
-                          </div>
-                          <span className="font-medium text-[#28192A]">
-                            Qty {item.qty} · ฿ {item.price.toLocaleString()}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Action footer */}
-                    <div className="pt-3 border-t border-[#DAD1C5]/30 flex justify-between items-center text-xs">
-                      <button
-                        onClick={() => onNavigate('chat')}
-                        className="text-[#C9A25C] hover:text-[#28192A] underline font-medium"
-                      >
-                        Ask Perfumer about Order #{ord.id} →
-                      </button>
-                      <button
-                        onClick={() => onNavigate('cart')}
-                        className="text-[#28192A] hover:text-[#C9A25C] flex items-center gap-1"
-                      >
-                        <span>Re-order Blend</span>
-                        <ArrowRight className="w-3 h-3" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+              <div className="py-12 text-center border border-dashed border-[#DAD1C5] bg-[#FBF7F0]/40">
+                <ShoppingBag className="w-9 h-9 text-[#C9A25C] mx-auto mb-3 stroke-1" />
+                <h3 className="font-serif text-xl text-[#28192A]">No purchases yet</h3>
+                <p className="text-xs text-[#6B6166] mt-2">
+                  Your completed orders will appear here.
+                </p>
               </div>
 
               {/* Bottom inquiry prompt */}
