@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, AlertCircle, Loader2, ShieldCheck, Lock, KeyRound } from 'lucide-react';
+import { X, Check, AlertCircle, Loader2, ShieldCheck, Lock, KeyRound, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../supabase';
 
 interface AuthModalProps {
@@ -32,6 +32,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   // Dedicated Admin Console Login State
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
   const [adminError, setAdminError] = useState<string | null>(null);
   const [adminLoading, setAdminLoading] = useState(false);
 
@@ -381,14 +383,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <label className="block text-[#6B6166] text-[11px] uppercase tracking-wider mb-1.5 font-medium">
                     Admin Password
                   </label>
-                  <input
-                    type="password"
-                    value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
-                    placeholder="Enter admin password"
-                    required
-                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3.5 py-3 text-xs text-[#28192A] placeholder-[#6B6166]/50 focus:outline-none focus:border-[#28192A] transition-colors"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showAdminPassword ? 'text' : 'password'}
+                      value={adminPassword}
+                      onChange={(e) => setAdminPassword(e.target.value)}
+                      placeholder="Enter admin password"
+                      required
+                      className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3.5 py-3 pr-11 text-xs text-[#28192A] placeholder-[#6B6166]/50 focus:outline-none focus:border-[#28192A] transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowAdminPassword((visible) => !visible)}
+                      aria-label={showAdminPassword ? 'Hide admin password' : 'Show admin password'}
+                      aria-pressed={showAdminPassword}
+                      className="absolute inset-y-0 right-0 flex items-center px-3 text-[#6B6166] hover:text-[#28192A]"
+                    >
+                      {showAdminPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 <button
@@ -489,14 +502,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       forgot password
                     </button>
                   </div>
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3.5 py-3 text-xs text-[#28192A] placeholder-[#6B6166]/60 focus:outline-none focus:border-[#28192A]"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3.5 py-3 pr-11 text-xs text-[#28192A] placeholder-[#6B6166]/60 focus:outline-none focus:border-[#28192A]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((visible) => !visible)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      aria-pressed={showPassword}
+                      className="absolute inset-y-0 right-0 flex items-center px-3 text-[#6B6166] hover:text-[#28192A]"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 {forgotPasswordSent && (
@@ -624,14 +648,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <label className="block text-[#28192A] font-medium mb-1.5">
                     Password
                   </label>
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Create a password (min. 6 characters)"
-                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3.5 py-3 text-xs text-[#28192A] placeholder-[#6B6166]/60 focus:outline-none focus:border-[#28192A]"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Create a password (min. 6 characters)"
+                      className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3.5 py-3 pr-11 text-xs text-[#28192A] placeholder-[#6B6166]/60 focus:outline-none focus:border-[#28192A]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((visible) => !visible)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      aria-pressed={showPassword}
+                      className="absolute inset-y-0 right-0 flex items-center px-3 text-[#6B6166] hover:text-[#28192A]"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-2 pt-1">

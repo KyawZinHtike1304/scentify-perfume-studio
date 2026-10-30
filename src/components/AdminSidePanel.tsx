@@ -10,6 +10,7 @@ import {
   Search,
   Filter,
   Eye,
+  EyeOff,
   Edit,
   Truck,
   FileText,
@@ -326,6 +327,7 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
     phone: '',
     password: '',
   });
+  const [showAdminFormPassword, setShowAdminFormPassword] = useState(false);
 
   // -------------------------------------------------------------
   // ENRICHED ORDERS BUILDER
@@ -3083,13 +3085,24 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
                 <label className="block text-xs uppercase tracking-wider font-semibold text-[#28192A] mb-1">
                   Access Key / Password
                 </label>
-                <input
-                  type="password"
-                  placeholder="Leave blank to use default studio PIN"
-                  value={adminForm.password}
-                  onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })}
-                  className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 text-xs text-[#28192A]"
-                />
+                <div className="relative">
+                  <input
+                    type={showAdminFormPassword ? 'text' : 'password'}
+                    placeholder="Leave blank to use default studio PIN"
+                    value={adminForm.password}
+                    onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })}
+                    className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 pr-10 text-xs text-[#28192A]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowAdminFormPassword((visible) => !visible)}
+                    aria-label={showAdminFormPassword ? 'Hide password' : 'Show password'}
+                    aria-pressed={showAdminFormPassword}
+                    className="absolute inset-y-0 right-0 flex items-center px-3 text-[#6B6166] hover:text-[#28192A]"
+                  >
+                    {showAdminFormPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <div className="flex justify-end gap-3 pt-4 border-t border-[#DAD1C5]/40">
