@@ -171,33 +171,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  const handleGoogleAuth = async (e?: React.MouseEvent) => {
+  const handleGoogleAuth = (e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
 
-    setErrorMsg(null);
-    setGoogleLoading(true); // Use a separate loading state for Google
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const redirectTo = encodeURIComponent(window.location.origin);
 
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin,
-        },
-      });
-
-      if (error) throw error;
-
-      if (data?.url) {
-        window.location.href = data.url; // Direct browser navigation
-      }
-    } catch (err: any) {
-      console.error("Google sign-in error:", err);
-      setErrorMsg(err?.message || 'Google sign-in failed');
-      setGoogleLoading(false);
-    }
+    // Direct window redirect to Supabase Google OAuth endpoint
+    window.location.href = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}`;
   };
 
   const handleForgotPassword = async () => {
