@@ -20,7 +20,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ onNavigate }) => {
       title: 'The Dual Nature of Bergamot: Balancing Citrus Sparkle with Floral Cream',
       summary:
         'Why high-altitude sunlight and slow cold-press extraction create the crystalline top note essential to opening bespoke perfumery without sharp chemical acidity.',
-      image: '/assets/aistudio/image_7e0296e0.png',
+      image: '/assets/botanicals/citrus.png',
       quote: '“A great opening does not shout; it invites the nose forward into the heart.”',
     },
     {

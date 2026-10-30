@@ -141,7 +141,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onNavigate, onOpenStoryModal
 
               <div className="my-8 flex justify-center">
                 <img
-                  src="/assets/aistudio/image_7e0296e0.png"
+                  src="/assets/botanicals/citrus.png"
                   alt="Citrus Botanical Study"
                   className="w-36 h-36 object-contain group-hover:scale-105 transition-transform duration-300"
                 />

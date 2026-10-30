@@ -200,7 +200,7 @@ export const CartView: React.FC<CartViewProps> = ({
                   <div className="flex items-center gap-5">
                     <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#FBF7F0] border border-[#DAD1C5]/40 p-2 shrink-0 flex items-center justify-center">
                       <img
-                        src={item.image || '/assets/aistudio/image_7e0296e0.png'}
+                        src={item.image || '/assets/botanicals/custom_bottle.png'}
                         alt={item.title}
                         className="max-h-full max-w-full object-contain"
                       />

@@ -8,7 +8,7 @@ export const SCENT_FAMILIES: ScentFamily[] = [
     subtitle: 'Bright · sparkling',
     description: 'Bright, fresh notes that uplift and energize. A luminous beginning to your story.',
     notes: ['BERGAMOT', 'LEMON', 'GRAPEFRUIT', 'ORANGE'],
-    image: '/assets/aistudio/image_7e0296e0.png',
+    image: '/assets/botanicals/citrus.png',
     ingredients: [
       { id: 'bergamot', name: 'Bergamot', description: 'Elegant citrus with a soft floral edge', familyId: 'citrus', familyName: 'Citrus', isPopular: true },
       { id: 'lemon', name: 'Lemon', description: 'Crisp, clean and luminous', familyId: 'citrus', familyName: 'Citrus' },
@@ -83,7 +83,7 @@ export const SCENT_FAMILIES: ScentFamily[] = [
     subtitle: 'Clean · awakening',
     description: 'Crisp mountain air, dew drops on wild herbs, and crystalline ocean breezes.',
     notes: ['MINT', 'GREEN TEA', 'EUCALYPTUS', 'AQUATIC ACCORD'],
-    image: '/assets/aistudio/image_7e0296e0.png',
+    image: '/assets/botanicals/fresh.png',
     ingredients: [
       { id: 'mint', name: 'Mint', description: 'Crushed spearmint leaves with frosty cooling breeze', familyId: 'fresh', familyName: 'Fresh' },
       { id: 'green-tea', name: 'Green Tea', description: 'Steeped sencha leaves with zen botanical calm', familyId: 'fresh', familyName: 'Fresh' },
@@ -114,7 +114,7 @@ export const INITIAL_CART_ITEMS: CartItem[] = [
     description: 'A warm finishing note for your personal collection',
     price: 522,
     quantity: 2,
-    image: '/assets/aistudio/image_7e0296e0.png',
+    image: '/assets/botanicals/woody.png',
     details: {
       notes: ['Oud'],
       size: '30 ml'
@@ -174,7 +174,7 @@ export const CATALOG_PERFUMES = [
     price: 1850,
     size: '50 ml',
     description: 'An effervescent morning mist through Italian citrus groves. Crisp, crystalline, and delicately grounded by amber warmth.',
-    image: '/assets/aistudio/image_7e0296e0.png',
+    image: '/assets/botanicals/citrus.png',
     mood: 'Luminous · Uplifting · Awakening'
   },
   {
@@ -244,8 +244,7 @@ export const CATALOG_PERFUMES = [
     price: 1800,
     size: '50 ml',
     description: 'A breath of crisp ocean air rushing across cliffside cedar and wild herbs after mountain rain. Pure, awakening clarity.',
-    image: '/assets/aistudio/image_7e0296e0.png',
+    image: '/assets/botanicals/fresh.png',
     mood: 'Clean · Crisp · Awakening'
   }
 ];
-
