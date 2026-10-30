@@ -1,21 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, AlertCircle, Loader2, ExternalLink, ShieldCheck, Lock, KeyRound } from 'lucide-react';
-import {
-  auth,
-  googleProvider,
-  syncUserProfile,
-} from '../firebase';
-import {
-  signInWithPopup,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  updateProfile,
-  sendPasswordResetEmail,
-} from 'firebase/auth';
-import {
-  validateAdminCredentials,
-  isRegisteredAdminEmail,
-} from '../config/adminAccounts';
+import { X, Check, AlertCircle, Loader2, ShieldCheck, Lock, KeyRound } from 'lucide-react';
+import { supabase } from '../supabase';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -40,6 +25,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [rememberMe, setRememberMe] = useState(true);
   const [agreed, setAgreed] = useState(true);
   const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
+  const [emailConfirmationRequired, setEmailConfirmationRequired] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -54,6 +40,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setMode(initialMode);
       setErrorMsg(null);
       setAdminError(null);
+      setEmailConfirmationRequired(false);
     }
   }, [isOpen, initialMode]);
 
@@ -66,38 +53,48 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setAdminError(null);
   };
 
-  const handleAdminSubmit = (e: React.FormEvent) => {
+  const handleAdminSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAdminError(null);
     setAdminLoading(true);
 
-    setTimeout(() => {
-      const res = validateAdminCredentials(adminEmail, adminPassword);
-      setAdminLoading(false);
-      if (res.success && res.account) {
-        onLoginSuccess(res.account.name, res.account.email, 'admin');
-        if (onAdminLogin) {
-          onAdminLogin();
-        }
-        onClose();
-      } else {
-        setAdminError(res.error || 'Authentication failed. Please verify admin email and password.');
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: adminEmail.trim(),
+        password: adminPassword,
+      });
+      if (error) {
+        throw error;
       }
-    }, 350);
+      if (data.user.app_metadata?.role !== 'admin') {
+        const { error: signOutError } = await supabase.auth.signOut();
+        if (signOutError) {
+          throw signOutError;
+        }
+        throw new Error('This account is not authorized for the Admin Console.');
+      }
+
+      const displayName =
+        data.user.user_metadata?.display_name ||
+        data.user.email?.split('@')[0] ||
+        'Scentify Studio Admin';
+      onLoginSuccess(displayName, data.user.email || adminEmail, 'admin');
+      onAdminLogin?.();
+      onClose();
+    } catch (err) {
+      setAdminError(err instanceof Error ? err.message : 'Admin sign-in failed.');
+    } finally {
+      setAdminLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setEmailConfirmationRequired(false);
     setLoading(true);
 
     try {
-      if (mode === 'signup' || mode === 'login') {
-        if (isRegisteredAdminEmail(email)) {
-          throw new Error('Uncorrect email or password!');
-        }
-      }
-
       if (mode === 'signup') {
         if (password.length < 6) {
           throw new Error('Password must be at least 6 characters.');
@@ -106,35 +103,54 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           throw new Error('Passwords do not match.');
         }
 
-        const userCred = await createUserWithEmailAndPassword(auth, email, password);
-        if (name.trim()) {
-          await updateProfile(userCred.user, { displayName: name.trim() });
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: { data: { display_name: name.trim() } },
+        });
+        if (error) {
+          throw error;
         }
-        await syncUserProfile(userCred.user, { displayName: name.trim() });
-        
-        const displayName = name.trim() || userCred.user.email?.split('@')[0] || 'Studio Member';
-        onLoginSuccess(displayName, userCred.user.email || email);
-        onClose();
-      } else {
-        const userCred = await signInWithEmailAndPassword(auth, email, password);
-        await syncUserProfile(userCred.user);
 
-        const displayName = userCred.user.displayName || userCred.user.email?.split('@')[0] || 'Studio Member';
-        onLoginSuccess(displayName, userCred.user.email || email);
+        if (data.session && data.user) {
+          const displayName = name.trim() || data.user.email?.split('@')[0] || 'Studio Member';
+          onLoginSuccess(displayName, data.user.email || email);
+          onClose();
+        } else {
+          setEmailConfirmationRequired(true);
+        }
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+        if (error) {
+          throw error;
+        }
+        const displayName =
+          data.user.user_metadata?.display_name ||
+          data.user.user_metadata?.full_name ||
+          data.user.email?.split('@')[0] ||
+          'Studio Member';
+        const isAdmin = data.user.app_metadata?.role === 'admin';
+        onLoginSuccess(displayName, data.user.email || email, isAdmin ? 'admin' : undefined);
+        if (isAdmin) {
+          onAdminLogin?.();
+        }
         onClose();
       }
-    } catch (err: any) {
-      console.warn('Auth notice:', err?.code || err?.message);
-      const code = err?.code;
-      let message = err?.message || 'Authentication failed. Please try again.';
+    } catch (err) {
+      console.warn('Supabase auth error:', err);
+      let message = err instanceof Error ? err.message : 'Authentication failed. Please try again.';
+      const lowerMessage = message.toLowerCase();
 
-      if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
+      if (lowerMessage.includes('invalid login credentials')) {
         message = 'invalid_credentials';
-      } else if (code === 'auth/email-already-in-use') {
+      } else if (lowerMessage.includes('already registered')) {
         message = 'already_in_use';
-      } else if (code === 'auth/weak-password') {
+      } else if (lowerMessage.includes('password should be at least')) {
         message = 'Password should be at least 6 characters.';
-      } else if (code === 'auth/operation-not-allowed') {
+      } else if (lowerMessage.includes('provider is not enabled') || lowerMessage.includes('unsupported provider')) {
         message = 'email_not_enabled';
       }
       setErrorMsg(message);
@@ -147,19 +163,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setErrorMsg(null);
     setLoading(true);
     try {
-      const res = await signInWithPopup(auth, googleProvider);
-      await syncUserProfile(res.user);
-
-      const displayName = res.user.displayName || res.user.email?.split('@')[0] || 'Studio Member';
-      onLoginSuccess(displayName, res.user.email || '');
-      onClose();
-    } catch (err: any) {
-      if (err?.code === 'auth/popup-closed-by-user' || err?.code === 'auth/cancelled-popup-request') {
-        // User closed the popup, do not treat as an error
-        return;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin },
+      });
+      if (error) {
+        throw error;
       }
-      console.warn('Google auth notice:', err?.code || err?.message);
-      setErrorMsg(err.message || 'Google sign-in could not be completed.');
+    } catch (err) {
+      console.warn('Supabase Google sign-in error:', err);
+      setErrorMsg(err instanceof Error ? err.message : 'Google sign-in could not be completed.');
     } finally {
       setLoading(false);
     }
@@ -172,15 +185,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
     setErrorMsg(null);
     try {
-      await sendPasswordResetEmail(auth, email);
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: window.location.origin,
+      });
+      if (error) {
+        throw error;
+      }
       setForgotPasswordSent(true);
-    } catch (err: any) {
-      console.warn('Password reset notice:', err?.code || err?.message);
-      setErrorMsg(err.message || 'Unable to send password reset email.');
+    } catch (err) {
+      console.warn('Supabase password reset error:', err);
+      setErrorMsg(err instanceof Error ? err.message : 'Unable to send password reset email.');
     }
   };
 
   const renderErrorBanner = () => {
+    if (emailConfirmationRequired) {
+      return (
+        <div className="mb-5 p-3.5 bg-emerald-50 border border-emerald-200 text-xs text-emerald-900">
+          Check your inbox to confirm your email address, then sign in.
+        </div>
+      );
+    }
     if (!errorMsg) return null;
 
     if (errorMsg === 'invalid_credentials') {
@@ -249,39 +274,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-800" />
             <div>
               <p className="font-semibold text-amber-950">
-                Email/Password provider is not yet enabled in Firebase Console.
+                Email sign-in is not enabled for this Supabase project.
               </p>
               <p className="text-[11px] text-amber-900 mt-1 leading-relaxed">
-                Google Login is already configured and works immediately! Click below to sign in with Google:
+                Enable Email under Authentication → Providers in the Supabase dashboard, then try again.
               </p>
             </div>
           </div>
-
-          <button
-            type="button"
-            onClick={handleGoogleAuth}
-            disabled={loading}
-            className="w-full py-2.5 px-4 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-wider font-medium hover:bg-[#3D2540] transition-colors flex items-center justify-center gap-2 shadow-xs"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-            </svg>
-            <span>Sign In with Google (Instant)</span>
-          </button>
-
-          <details className="text-[11px] text-amber-950 pt-1 border-t border-amber-200">
-            <summary className="cursor-pointer font-medium hover:underline py-1">
-              Want to enable Email/Password sign-up? Click here for 3-step guide
-            </summary>
-            <div className="pl-3 mt-2 space-y-1.5 text-amber-900 bg-amber-100/50 p-2.5 rounded-xs">
-              <p>1. Open your Firebase Console: <a href="https://console.firebase.google.com/project/charged-sum-511804-q2/authentication/providers" target="_blank" rel="noreferrer" className="underline font-bold text-amber-950 inline-flex items-center gap-1">Open Sign-in Providers <ExternalLink className="w-3 h-3" /></a></p>
-              <p>2. Click on <strong>Email/Password</strong> from the provider list.</p>
-              <p>3. Toggle <strong>Enable</strong> to ON and click <strong>Save</strong>.</p>
-            </div>
-          </details>
         </div>
       );
     }

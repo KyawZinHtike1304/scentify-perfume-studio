@@ -21,7 +21,7 @@ interface PaymentViewProps {
   order: OrderDetails;
   items: CartItem[];
   onSlipUploaded?: (fileDataUrl: string) => void;
-  onPlaceOrder?: (payload: { slipUrl: string; orderId: string; total: number }) => void;
+  onPlaceOrder?: (payload: { slipUrl: string; orderId: string; total: number }) => Promise<void>;
   onNavigate: (view: ViewMode) => void;
 }
 
@@ -34,6 +34,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
 }) => {
   const [uploadedSlip, setUploadedSlip] = useState<string | null>(order.paymentSlipUrl || null);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [placeOrderError, setPlaceOrderError] = useState<string | null>(null);
   const [isOrderPlaced, setIsOrderPlaced] = useState(
     order.status === 'slip_uploaded' || order.status === 'verified'
   );
@@ -61,16 +62,13 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
     setUploadedSlip(sampleSlip);
   };
 
-  const handlePlaceOrderSubmit = () => {
+  const handlePlaceOrderSubmit = async () => {
     if (!uploadedSlip) return;
     setIsPlacingOrder(true);
-
-    setTimeout(() => {
-      setIsPlacingOrder(false);
-      setIsOrderPlaced(true);
-
+    setPlaceOrderError(null);
+    try {
       if (onPlaceOrder) {
-        onPlaceOrder({
+        await onPlaceOrder({
           slipUrl: uploadedSlip,
           orderId: order.orderId,
           total,
@@ -78,7 +76,16 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
       } else if (onSlipUploaded) {
         onSlipUploaded(uploadedSlip);
       }
-    }, 1000);
+      setIsOrderPlaced(true);
+    } catch (error) {
+      console.error('Failed to place order:', error);
+      setIsOrderPlaced(false);
+      setPlaceOrderError(
+        error instanceof Error ? error.message : 'The order could not be saved. Please try again.'
+      );
+    } finally {
+      setIsPlacingOrder(false);
+    }
   };
 
   return (
@@ -399,6 +406,11 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
 
                       {/* Prominent PLACE ORDER BUTTON */}
                       <div className="pt-2">
+                        {placeOrderError && (
+                          <p className="mb-3 p-3 bg-rose-50 border border-rose-200 text-xs text-rose-900" role="alert">
+                            {placeOrderError}
+                          </p>
+                        )}
                         <button
                           onClick={handlePlaceOrderSubmit}
                           disabled={isPlacingOrder}

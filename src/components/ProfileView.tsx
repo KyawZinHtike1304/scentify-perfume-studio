@@ -15,8 +15,7 @@ import {
   Save,
 } from 'lucide-react';
 import { OrderDetails, ViewMode } from '../types';
-import { auth, db } from '../firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { updateShippingAddress } from '../supabase';
 
 interface ProfileViewProps {
   userName: string;
@@ -38,6 +37,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const [addressForm, setAddressForm] = useState({
     customerName: order.customerName || userName,
@@ -81,29 +81,19 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   const handleSaveAddress = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
-    onUpdateAddress(addressForm);
-
-    // Save to Firestore if authenticated
-    if (auth.currentUser) {
-      try {
-        const userRef = doc(db, 'users', auth.currentUser.uid);
-        await setDoc(
-          userRef,
-          {
-            shippingAddress: addressForm,
-            updatedAt: new Date().toISOString(),
-          },
-          { merge: true }
-        );
-      } catch (err) {
-        console.warn('Failed to sync address to Firestore:', err);
-      }
+    setSaveError(null);
+    try {
+      await updateShippingAddress(addressForm);
+      onUpdateAddress(addressForm);
+      setIsEditingAddress(false);
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3500);
+    } catch (err) {
+      console.error('Failed to save shipping address to Supabase:', err);
+      setSaveError(err instanceof Error ? err.message : 'Unable to save the shipping address.');
+    } finally {
+      setSaving(false);
     }
-
-    setSaving(false);
-    setIsEditingAddress(false);
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 3500);
   };
 
   return (
@@ -149,6 +139,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               <span>Shipping address successfully updated and saved to your studio profile.</span>
             </div>
+          </div>
+        )}
+        {saveError && (
+          <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-xs text-rose-900" role="alert">
+            {saveError}
           </div>
         )}
 

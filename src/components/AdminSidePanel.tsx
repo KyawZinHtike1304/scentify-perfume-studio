@@ -64,10 +64,10 @@ interface AdminSidePanelProps {
   formulas?: DbFormula[];
   formulaDetails?: DbFormulaDetail[];
   orderItems?: DbOrderItem[];
-  onConfirmOrder?: (orderId: number) => void;
-  onCancelOrder?: (orderId: number) => void;
-  onUpdateOrderStatus?: (orderId: number, status: DbOrder['status']) => void;
-  onVerifyPayment?: (paymentId: number, orderId: number) => void;
+  onConfirmOrder?: (orderId: number) => void | Promise<void>;
+  onCancelOrder?: (orderId: number) => void | Promise<void>;
+  onUpdateOrderStatus?: (orderId: number, status: DbOrder['status']) => void | Promise<void>;
+  onVerifyPayment?: (paymentId: number, orderId: number) => void | Promise<void>;
 }
 
 export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
@@ -204,7 +204,15 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
   }, [orders, totalRevenue]);
 
   // Handle Order Status Update
-  const handleUpdateOrderStatus = (orderId: number, newStatus: DbOrder['status']) => {
+  const handleUpdateOrderStatus = async (orderId: number, newStatus: DbOrder['status']) => {
+    try {
+      await onUpdateOrderStatus?.(orderId, newStatus);
+    } catch (error) {
+      console.error('Failed to update order status:', error);
+      showToast(error instanceof Error ? error.message : 'Order status could not be saved.');
+      return;
+    }
+
     setOrders((prev) =>
       prev.map((ord) => (ord.order_id === orderId ? { ...ord, status: newStatus } : ord))
     );
@@ -216,16 +224,20 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
   };
 
   // Handle Payment Status Update
-  const handleVerifyPayment = (paymentId: number, orderId: number) => {
+  const handleVerifyPayment = async (paymentId: number, orderId: number) => {
     const now = new Date().toISOString();
+    try {
+      await onVerifyPayment?.(paymentId, orderId);
+    } catch (error) {
+      console.error('Failed to verify payment:', error);
+      showToast(error instanceof Error ? error.message : 'Payment verification could not be saved.');
+      return;
+    }
+
     setPayments((prev) =>
       prev.map((p) => (p.payment_id === paymentId ? { ...p, status: 'verified', verified_at: now } : p))
     );
     showToast(`PromptPay payment verified for Order #${orderId}`);
-
-    if (onVerifyPayment) {
-      onVerifyPayment(paymentId, orderId);
-    }
 
     if (selectedOrder && selectedOrder.payment.payment_id === paymentId) {
       setSelectedOrder((prev) =>
@@ -240,20 +252,26 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
   };
 
   // Handle Admin Confirm Order (verifies slip & advances status to processing)
-  const handleConfirmOrder = (orderId: number) => {
+  const handleConfirmOrder = async (orderId: number) => {
     const now = new Date().toISOString();
+    try {
+      if (onConfirmOrder) {
+        await onConfirmOrder(orderId);
+      } else {
+        await onUpdateOrderStatus?.(orderId, 'processing');
+      }
+    } catch (error) {
+      console.error('Failed to confirm order:', error);
+      showToast(error instanceof Error ? error.message : 'Order confirmation could not be saved.');
+      return;
+    }
+
     setOrders((prev) =>
       prev.map((ord) => (ord.order_id === orderId ? { ...ord, status: 'processing' } : ord))
     );
     setPayments((prev) =>
       prev.map((p) => (p.order_id === orderId ? { ...p, status: 'verified', verified_at: now } : p))
     );
-
-    if (onConfirmOrder) {
-      onConfirmOrder(orderId);
-    } else if (onUpdateOrderStatus) {
-      onUpdateOrderStatus(orderId, 'processing');
-    }
 
     if (selectedOrder && selectedOrder.order.order_id === orderId) {
       setSelectedOrder((prev) =>
@@ -271,19 +289,25 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
   };
 
   // Handle Admin Cancel Order
-  const handleCancelOrder = (orderId: number) => {
+  const handleCancelOrder = async (orderId: number) => {
+    try {
+      if (onCancelOrder) {
+        await onCancelOrder(orderId);
+      } else {
+        await onUpdateOrderStatus?.(orderId, 'cancelled');
+      }
+    } catch (error) {
+      console.error('Failed to cancel order:', error);
+      showToast(error instanceof Error ? error.message : 'Order cancellation could not be saved.');
+      return;
+    }
+
     setOrders((prev) =>
       prev.map((ord) => (ord.order_id === orderId ? { ...ord, status: 'cancelled' } : ord))
     );
     setPayments((prev) =>
       prev.map((p) => (p.order_id === orderId ? { ...p, status: 'failed' } : p))
     );
-
-    if (onCancelOrder) {
-      onCancelOrder(orderId);
-    } else if (onUpdateOrderStatus) {
-      onUpdateOrderStatus(orderId, 'cancelled');
-    }
 
     if (selectedOrder && selectedOrder.order.order_id === orderId) {
       setSelectedOrder((prev) =>

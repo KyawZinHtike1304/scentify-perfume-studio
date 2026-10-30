@@ -17,13 +17,8 @@ import { SearchModal } from './components/SearchModal';
 import { StoryModal } from './components/StoryModal';
 import { AdminSidePanel } from './components/AdminSidePanel';
 
-import {
-  auth,
-  db,
-  testConnection,
-} from './firebase';
-import { signOut, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { supabase } from './supabase';
+import type { User } from '@supabase/supabase-js';
 
 import {
   Composition,
@@ -91,6 +86,7 @@ export default function App() {
 
   // User State: start without log in (null)
   const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const [authenticatedUser, setAuthenticatedUser] = useState<User | null>(null);
   const [isAdminUser, setIsAdminUser] = useState<boolean>(false);
   const [adminUser, setAdminUser] = useState<string>('Scentify Studio Master Perfumer');
   const [isAuthResolved, setIsAuthResolved] = useState<boolean>(false);
@@ -101,61 +97,161 @@ export default function App() {
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [storyModalOpen, setStoryModalOpen] = useState(false);
 
-  // Test connection to Firestore on mount and sync auth state
+  // Resolve the current Supabase session and load the signed-in user's profile.
   useEffect(() => {
-    testConnection();
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        try {
-          const userRef = doc(db, 'users', firebaseUser.uid);
-          const snap = await getDoc(userRef);
-          const name =
-            snap.exists() && snap.data()?.displayName
-              ? snap.data().displayName
-              : firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Studio Member';
-          const isAdmin =
-            Boolean(snap.exists() && snap.data()?.role === 'admin') ||
-            Boolean(firebaseUser.email?.toLowerCase().includes('admin'));
-          setIsAdminUser(isAdmin);
-          setAdminUser(name);
-          setCurrentUser(isAdmin ? null : name);
-          
-          if (!isAdmin && snap.exists()) {
-            const data = snap.data();
-            const savedAddr = data.shippingAddress;
-            setOrder((prev) => ({
-              ...prev,
-              customerName: name,
-              address: savedAddr?.address || prev.address,
-              city: savedAddr?.city || prev.city,
-              province: savedAddr?.province || prev.province,
-              postalCode: savedAddr?.postalCode || prev.postalCode,
-              country: savedAddr?.country || prev.country,
-              phone: savedAddr?.phone || prev.phone,
-            }));
-          } else if (!isAdmin) {
-            setOrder((prev) => ({ ...prev, customerName: name }));
-          }
-        } catch (e) {
-          console.warn('Notice reading user profile from Firestore:', e);
-          const fallback =
-            firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Studio Member';
-          const isAdmin = Boolean(firebaseUser.email?.toLowerCase().includes('admin'));
-          setIsAdminUser(isAdmin);
-          setAdminUser(fallback);
-          setCurrentUser(isAdmin ? null : fallback);
-          if (!isAdmin) {
-            setOrder((prev) => ({ ...prev, customerName: fallback }));
+    let active = true;
+
+    const resolveUser = async (user: User | null) => {
+      if (!user) {
+        if (active) {
+          setAuthenticatedUser(null);
+          setCurrentUser(null);
+          setIsAdminUser(false);
+          setIsAuthResolved(true);
+        }
+        return;
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('display_name, shipping_address')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profileError) {
+        console.error('Failed to load the Supabase profile:', profileError);
+      }
+
+      const name =
+        profile?.display_name ||
+        user.user_metadata?.display_name ||
+        user.user_metadata?.full_name ||
+        user.email?.split('@')[0] ||
+        'Studio Member';
+      const isAdmin = user.app_metadata?.role === 'admin';
+
+      if (active) {
+        setAuthenticatedUser(user);
+        setIsAdminUser(isAdmin);
+        setAdminUser(name);
+        setCurrentUser(isAdmin ? null : name);
+
+        if (!isAdmin) {
+          const savedAddress = profile?.shipping_address || {};
+          setOrder((prev) => ({
+            ...prev,
+            customerName: name,
+            address: savedAddress.address || prev.address,
+            city: savedAddress.city || prev.city,
+            province: savedAddress.province || prev.province,
+            postalCode: savedAddress.postalCode || prev.postalCode,
+            country: savedAddress.country || prev.country,
+            phone: savedAddress.phone || prev.phone,
+          }));
+        } else {
+          const { data: rows, error: ordersError } = await supabase
+            .from('orders')
+            .select(
+              'order_id, user_id, customer_name, customer_email, customer_phone, shipping_address, total, status, payment_status, payment_slip_url, items, created_at, verified_at'
+            )
+            .order('created_at', { ascending: false });
+
+          if (ordersError) {
+            console.error('Failed to load orders from Supabase:', ordersError);
+            window.alert(`Could not load saved orders: ${ordersError.message}`);
+          } else if (active && rows) {
+            const savedOrders = rows.map((row) => {
+              const id = Number(row.order_id);
+              const adminId = 1_000_000 + id;
+              const status: DbOrder['status'] =
+                row.status === 'processing' ||
+                row.status === 'completed' ||
+                row.status === 'cancelled'
+                  ? row.status
+                  : 'pending';
+
+              return {
+                row,
+                adminId,
+                order: {
+                  order_id: id,
+                  shipping_id: adminId,
+                  user_id: adminId,
+                  order_date: row.created_at,
+                  status,
+                  total_price: Number(row.total),
+                  prep_photo_url: '',
+                } satisfies DbOrder,
+              };
+            });
+
+            setDbOrders((current) => [
+              ...savedOrders.map((entry) => entry.order),
+              ...current.filter(
+                (existing) =>
+                  !savedOrders.some((entry) => entry.order.order_id === existing.order_id)
+              ),
+            ]);
+            setDbUsers((current) => [
+              ...savedOrders.map(({ row, adminId }) => ({
+                id: adminId,
+                name: row.customer_name,
+                email: row.customer_email,
+                phone: row.customer_phone,
+                address: row.shipping_address,
+                role: 'customer' as const,
+              })),
+              ...current.filter(
+                (existing) => !savedOrders.some((entry) => entry.adminId === existing.id)
+              ),
+            ]);
+            setDbShippings((current) => [
+              ...savedOrders.map(({ row, adminId }) => ({
+                shipping_id: adminId,
+                shipping_fee: Number(row.total) > 1500 ? 0 : 50,
+                tracking_number: 'PENDING-VERIFICATION',
+                courier_name: 'DHL Express',
+                shipping_address: row.shipping_address,
+              })),
+              ...current.filter(
+                (existing) => !savedOrders.some((entry) => entry.adminId === existing.shipping_id)
+              ),
+            ]);
+            setDbPayments((current) => [
+              ...savedOrders.map(({ row, order }) => ({
+                payment_id: 1_000_000 + order.order_id,
+                order_id: order.order_id,
+                qr_receipt_url: row.payment_slip_url || '',
+                status:
+                  row.payment_status === 'verified' || row.payment_status === 'failed'
+                    ? row.payment_status
+                    : 'pending',
+                verified_at: row.verified_at || undefined,
+              })),
+              ...current.filter(
+                (existing) =>
+                  !savedOrders.some((entry) => entry.order.order_id === existing.order_id)
+              ),
+            ]);
           }
         }
-      } else {
-        setCurrentUser(null);
-        setIsAdminUser(false);
       }
-      setIsAuthResolved(true);
+
+      if (active) {
+        setIsAuthResolved(true);
+      }
+    };
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      queueMicrotask(() => {
+        void resolveUser(session?.user ?? null);
+      });
     });
 
-    return () => unsubscribe();
+    return () => {
+      active = false;
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   // Cart operations
@@ -242,28 +338,45 @@ export default function App() {
 
   // Place Order handler: triggers when customer attaches slip and clicks "Place Order"
   const handlePlaceOrder = async (payload: { slipUrl: string; orderId: string; total: number }) => {
-    // 1. Update customer active order state
-    setOrder((prev) => ({
-      ...prev,
-      orderId: payload.orderId,
-      paymentSlipUrl: payload.slipUrl,
-      status: 'slip_uploaded',
-      total: payload.total,
-    }));
-
-    // 2. Parse numeric order ID
-    const numericOrderId =
-      parseInt(payload.orderId.replace(/\D/g, ''), 10) || 1000 + dbOrders.length + 1;
-    const newUserId = 10;
-    const newShippingId = 500 + dbShippings.length + 1;
-    const newPaymentId = 300 + dbPayments.length + 1;
+    if (!authenticatedUser) {
+      throw new Error('Please sign in before placing your order.');
+    }
 
     const custName = order.customerName || currentUser || 'Studio Client';
-    const custEmail = auth.currentUser?.email || 'customer@studio.scentify.com';
-    const custPhone = order.phone || '+66 81 234 5678';
+    const custEmail = authenticatedUser.email || '';
+    const custPhone = order.phone || '';
     const fullAddr = `${order.address}, ${order.city}, ${order.province} ${order.postalCode}, ${order.country}`;
+    const { data: savedOrder, error } = await supabase
+      .from('orders')
+      .insert({
+        order_number: payload.orderId,
+        user_id: authenticatedUser.id,
+        customer_name: custName,
+        customer_email: custEmail,
+        customer_phone: custPhone,
+        shipping_address: fullAddr,
+        total: payload.total,
+        status: 'pending',
+        payment_status: 'pending',
+        payment_slip_url: payload.slipUrl,
+        items: cartItems.map((item) => ({
+          title: item.title,
+          price: item.price,
+          quantity: item.quantity,
+          size: item.details?.size || '50 ml',
+        })),
+      })
+      .select('order_id, created_at')
+      .single();
 
-    // 3. Create relational records matching user's database diagram
+    if (error) {
+      throw error;
+    }
+
+    const numericOrderId = Number(savedOrder.order_id);
+    const newUserId = 1_000_000 + numericOrderId;
+    const newShippingId = newUserId;
+    const newPaymentId = newUserId;
     const newDbUser: DbUser = {
       id: newUserId,
       name: custName,
@@ -272,7 +385,6 @@ export default function App() {
       address: fullAddr,
       role: 'customer',
     };
-
     const newDbShipping: DbShipping = {
       shipping_id: newShippingId,
       shipping_fee: payload.total > 1500 ? 0 : 50,
@@ -280,99 +392,65 @@ export default function App() {
       courier_name: 'DHL Express',
       shipping_address: fullAddr,
     };
-
     const newDbPayment: DbPayment = {
       payment_id: newPaymentId,
       order_id: numericOrderId,
       qr_receipt_url: payload.slipUrl,
       status: 'pending',
     };
-
     const newDbOrder: DbOrder = {
       order_id: numericOrderId,
       shipping_id: newShippingId,
       user_id: newUserId,
-      order_date: new Date().toISOString(),
+      order_date: savedOrder.created_at,
       status: 'pending',
       total_price: payload.total,
       prep_photo_url: '',
     };
-
-    const newFormulaId = 200 + dbFormulas.length + 1;
+    const newFormulaId = 1_000_000 + numericOrderId;
     const formulaName =
       cartItems[0]?.title ||
       `Bespoke Blend (${composition.topNote} · ${composition.heartNote} · ${composition.baseNote})`;
     const newDbFormula: DbFormula = {
       formula_id: newFormulaId,
       formula_name: formulaName,
-      created_at: new Date().toISOString(),
+      created_at: savedOrder.created_at,
     };
-
     const newDbOrderItem: DbOrderItem = {
-      order_item_id: 800 + dbOrderItems.length + 1,
+      order_item_id: newFormulaId,
       formula_detail_id: 1,
       order_id: numericOrderId,
       bottle_id: composition.bottleSize === '100 ml' ? 2 : 1,
-      qty: cartItems.reduce((acc, i) => acc + i.quantity, 0) || 1,
+      qty: cartItems.reduce((acc, item) => acc + item.quantity, 0) || 1,
     };
 
-    // Prepend to Admin panel state so it immediately shows at the top of the orders table!
-    setDbUsers((prev) => [newDbUser, ...prev.filter((u) => u.id !== newUserId)]);
+    setDbUsers((prev) => [newDbUser, ...prev]);
     setDbShippings((prev) => [newDbShipping, ...prev]);
     setDbPayments((prev) => [newDbPayment, ...prev]);
     setDbFormulas((prev) => [newDbFormula, ...prev]);
     setDbOrderItems((prev) => [newDbOrderItem, ...prev]);
     setDbOrders((prev) => [newDbOrder, ...prev]);
-
-    // Persist to Firestore
-    try {
-      const orderRef = doc(db, 'orders', String(numericOrderId));
-      await setDoc(
-        orderRef,
-        {
-          orderId: numericOrderId,
-          customerName: custName,
-          customerEmail: custEmail,
-          customerPhone: custPhone,
-          address: fullAddr,
-          total: payload.total,
-          status: 'pending',
-          paymentStatus: 'pending',
-          paymentSlipUrl: payload.slipUrl,
-          items: cartItems.map((c) => ({
-            title: c.title,
-            price: c.price,
-            quantity: c.quantity,
-            size: c.details?.size || '50 ml',
-          })),
-          createdAt: new Date().toISOString(),
-        },
-        { merge: true }
-      );
-
-      if (auth.currentUser) {
-        const userOrderRef = doc(db, 'users', auth.currentUser.uid, 'orders', String(numericOrderId));
-        await setDoc(
-          userOrderRef,
-          {
-            orderId: numericOrderId,
-            total: payload.total,
-            status: 'pending',
-            paymentStatus: 'pending',
-            paymentSlipUrl: payload.slipUrl,
-            createdAt: new Date().toISOString(),
-          },
-          { merge: true }
-        );
-      }
-    } catch (e) {
-      console.warn('Notice saving order to Firestore:', e);
-    }
+    setOrder((prev) => ({
+      ...prev,
+      orderId: payload.orderId,
+      paymentSlipUrl: payload.slipUrl,
+      status: 'slip_uploaded',
+      total: payload.total,
+    }));
   };
 
   // Admin verifies slip and confirms the order
   const handleAdminConfirmOrder = async (orderId: number) => {
     const now = new Date().toISOString();
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: 'processing', payment_status: 'verified', verified_at: now })
+      .eq('order_id', orderId);
+    if (error) {
+      console.error('Failed to confirm Supabase order:', error);
+      throw new Error(`Could not confirm order: ${error.message}`);
+    }
+
     setDbOrders((prev) =>
       prev.map((o) => (o.order_id === orderId ? { ...o, status: 'processing' } : o))
     );
@@ -381,77 +459,78 @@ export default function App() {
         p.order_id === orderId ? { ...p, status: 'verified', verified_at: now } : p
       )
     );
-    setOrder((prev) => {
-      const numActive = parseInt(prev.orderId.replace(/\D/g, ''), 10);
-      if (numActive === orderId) {
-        return { ...prev, status: 'verified' };
-      }
-      return prev;
-    });
-
-    try {
-      const orderRef = doc(db, 'orders', String(orderId));
-      await setDoc(
-        orderRef,
-        { status: 'processing', paymentStatus: 'verified', verifiedAt: now },
-        { merge: true }
-      );
-      if (auth.currentUser) {
-        const userOrderRef = doc(db, 'users', auth.currentUser.uid, 'orders', String(orderId));
-        await setDoc(
-          userOrderRef,
-          { status: 'processing', paymentStatus: 'verified', verifiedAt: now },
-          { merge: true }
-        );
-      }
-    } catch (e) {
-      console.warn('Notice confirming order in Firestore:', e);
-    }
+    setOrder((prev) =>
+      Number(prev.orderId.replace(/\D/g, '')) === orderId
+        ? { ...prev, status: 'verified' }
+        : prev
+    );
   };
 
   // Admin cancels the order
   const handleAdminCancelOrder = async (orderId: number) => {
+    const { error } = await supabase
+      .from('orders')
+      .update({ status: 'cancelled', payment_status: 'failed' })
+      .eq('order_id', orderId);
+    if (error) {
+      console.error('Failed to cancel Supabase order:', error);
+      throw new Error(`Could not cancel order: ${error.message}`);
+    }
+
     setDbOrders((prev) =>
       prev.map((o) => (o.order_id === orderId ? { ...o, status: 'cancelled' } : o))
     );
     setDbPayments((prev) =>
       prev.map((p) => (p.order_id === orderId ? { ...p, status: 'failed' } : p))
     );
-    setOrder((prev) => {
-      const numActive = parseInt(prev.orderId.replace(/\D/g, ''), 10);
-      if (numActive === orderId) {
-        return { ...prev, status: 'cancelled' };
-      }
-      return prev;
-    });
+    setOrder((prev) =>
+      Number(prev.orderId.replace(/\D/g, '')) === orderId
+        ? { ...prev, status: 'cancelled' }
+        : prev
+    );
+  };
 
-    try {
-      const orderRef = doc(db, 'orders', String(orderId));
-      await setDoc(
-        orderRef,
-        { status: 'cancelled', paymentStatus: 'failed' },
-        { merge: true }
-      );
-      if (auth.currentUser) {
-        const userOrderRef = doc(db, 'users', auth.currentUser.uid, 'orders', String(orderId));
-        await setDoc(
-          userOrderRef,
-          { status: 'cancelled', paymentStatus: 'failed' },
-          { merge: true }
-        );
-      }
-    } catch (e) {
-      console.warn('Notice cancelling order in Firestore:', e);
+  const handleAdminUpdateOrderStatus = async (orderId: number, status: DbOrder['status']) => {
+    const { error } = await supabase.from('orders').update({ status }).eq('order_id', orderId);
+    if (error) {
+      console.error('Failed to update Supabase order status:', error);
+      throw new Error(`Could not update order status: ${error.message}`);
     }
+
+    setDbOrders((prev) =>
+      prev.map((order) => (order.order_id === orderId ? { ...order, status } : order))
+    );
+  };
+
+  const handleAdminVerifyPayment = async (_paymentId: number, orderId: number) => {
+    const now = new Date().toISOString();
+    const { error } = await supabase
+      .from('orders')
+      .update({ payment_status: 'verified', verified_at: now })
+      .eq('order_id', orderId);
+    if (error) {
+      console.error('Failed to verify Supabase payment:', error);
+      throw new Error(`Could not verify payment: ${error.message}`);
+    }
+
+    setDbPayments((prev) =>
+      prev.map((payment) =>
+        payment.order_id === orderId
+          ? { ...payment, status: 'verified', verified_at: now }
+          : payment
+      )
+    );
   };
 
   const handleLogout = async () => {
-    try {
-      await signOut(auth);
-    } catch (e) {
-      console.warn('Notice signing out:', e);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error('Failed to sign out of Supabase:', error);
+      window.alert(`Could not sign out: ${error.message}`);
+      return;
     }
     setCurrentUser(null);
+    setAuthenticatedUser(null);
     setIsAdminUser(false);
     setOrder((prev) => ({ ...prev, customerName: '' }));
     setCurrentView('home');
@@ -482,11 +561,8 @@ export default function App() {
         orderItems={dbOrderItems}
         onConfirmOrder={handleAdminConfirmOrder}
         onCancelOrder={handleAdminCancelOrder}
-        onUpdateOrderStatus={(orderId, status) => {
-          setDbOrders((prev) =>
-            prev.map((o) => (o.order_id === orderId ? { ...o, status } : o))
-          );
-        }}
+        onUpdateOrderStatus={handleAdminUpdateOrderStatus}
+        onVerifyPayment={handleAdminVerifyPayment}
       />
     );
   }
@@ -607,7 +683,7 @@ export default function App() {
         {currentView === 'profile' && (
           <ProfileView
             userName={currentUser || 'Studio Member'}
-            userEmail={auth.currentUser?.email || undefined}
+            userEmail={authenticatedUser?.email || undefined}
             order={order}
             onUpdateAddress={handleAddressUpdate}
             onLogout={handleLogout}
