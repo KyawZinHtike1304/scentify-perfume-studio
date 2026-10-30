@@ -44,7 +44,6 @@ import {
 } from './types';
 import {
   INITIAL_ORDER,
-  INITIAL_CHAT_MESSAGES,
   SCENT_FAMILIES,
 } from './data/perfumeData';
 import {
@@ -226,7 +225,8 @@ export default function App() {
   };
 
   // Customer Care Chat Messages
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>(INITIAL_CHAT_MESSAGES);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatLoadError, setChatLoadError] = useState<string | null>(null);
 
   // User State: start without log in (null)
   const [currentUser, setCurrentUser] = useState<string | null>(null);
@@ -236,6 +236,102 @@ export default function App() {
   const [isAdminUser, setIsAdminUser] = useState<boolean>(false);
   const [adminUser, setAdminUser] = useState<string>('Scentify Studio Master Perfumer');
   const [isAuthResolved, setIsAuthResolved] = useState<boolean>(false);
+
+  useEffect(() => {
+    let active = true;
+    const userId = authenticatedUser?.id;
+
+    if (!userId || isAdminUser) {
+      setChatMessages([]);
+      setChatLoadError(null);
+      return;
+    }
+
+    const loadMessages = async () => {
+      const { data, error } = await supabase
+        .from('studio_chat_messages')
+        .select('id, user_id, sender_role, message, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Failed to load customer chat messages:', error);
+        if (active) setChatLoadError(`Could not load messages: ${error.message}`);
+        return;
+      }
+
+      if (active && data) {
+        setChatMessages(
+          data.map((row) => ({
+            id: row.id,
+            sender: row.sender_role === 'admin' ? 'studio' : 'user',
+            text: row.message,
+            timestamp: new Date(row.created_at).toLocaleTimeString([], {
+              hour: 'numeric',
+              minute: '2-digit',
+            }),
+          }))
+        );
+        setChatLoadError(null);
+      }
+    };
+
+    void loadMessages();
+
+    if (!supabase.realtime) {
+      return () => {
+        active = false;
+      };
+    }
+
+    const channel = supabase
+      .channel(`customer-studio-chat-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'studio_chat_messages',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const row = payload.new as {
+            id: string;
+            sender_role: 'customer' | 'admin';
+            message: string;
+            created_at: string;
+          };
+          if (!active || !row?.id) return;
+          const incoming: ChatMessage = {
+            id: row.id,
+            sender: row.sender_role === 'admin' ? 'studio' : 'user',
+            text: row.message,
+            timestamp: new Date(row.created_at).toLocaleTimeString([], {
+              hour: 'numeric',
+              minute: '2-digit',
+            }),
+          };
+          setChatMessages((current) =>
+            current.some((message) => message.id === incoming.id)
+              ? current
+              : [...current, incoming]
+          );
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.error(`Customer chat realtime subscription failed: ${status}`);
+          if (active) {
+            setChatLoadError('Live chat updates are unavailable. Refresh to check for replies.');
+          }
+        }
+      });
+
+    return () => {
+      active = false;
+      void supabase.removeChannel(channel);
+    };
+  }, [authenticatedUser?.id, isAdminUser]);
 
   // Modals
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -478,43 +574,39 @@ export default function App() {
     }
   };
 
-  // Chat message send handler with automatic studio perfumer response
-  const handleSendMessage = (text: string) => {
-    const now = new Date();
-    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    
-    const userMsg: ChatMessage = {
-      id: `usr-${Date.now()}`,
+  // Persist customer messages so admins can read and reply from the admin portal.
+  const handleSendMessage = async (text: string) => {
+    if (!authenticatedUser) {
+      throw new Error('Please sign in to send a message to the studio.');
+    }
+
+    const { data, error } = await supabase
+      .from('studio_chat_messages')
+      .insert({
+        user_id: authenticatedUser.id,
+        sender_id: authenticatedUser.id,
+        sender_role: 'customer',
+        message: text,
+      })
+      .select('id, user_id, sender_role, message, created_at')
+      .single();
+
+    if (error) throw error;
+
+    const savedMessage: ChatMessage = {
+      id: data.id,
       sender: 'user',
-      text,
-      timestamp: timeStr,
+      text: data.message,
+      timestamp: new Date(data.created_at).toLocaleTimeString([], {
+        hour: 'numeric',
+        minute: '2-digit',
+      }),
     };
-
-    setChatMessages((prev) => [...prev, userMsg]);
-
-    // Intelligent studio reply based on context
-    setTimeout(() => {
-      let reply = 'Thank you for reaching out to the studio. Our master perfumer has noted your request.';
-      const lower = text.toLowerCase();
-      if (lower.includes('oud') || lower.includes('soft') || lower.includes('adjust') || lower.includes('change')) {
-        reply = 'Of course! We have adjusted your formula notes in Scentify to balance the warmth and let the floral heart shine. 🌿';
-      } else if (lower.includes('delivery') || lower.includes('timeline') || lower.includes('order')) {
-        reply = `Your order #${order.orderId} is currently prepared with care. Standard delivery to ${order.city} is 2–4 business days with DHL Express tracking.`;
-      } else if (lower.includes('slip') || lower.includes('payment') || lower.includes('promptpay')) {
-        reply = 'We have received your PromptPay slip! Our accounts team has verified it and passed your custom flacon to the blending station.';
-        setOrder((prev) => ({ ...prev, status: 'verified' }));
-      } else if (lower.includes('ingredient') || lower.includes('jasmine') || lower.includes('bergamot')) {
-        reply = 'We harvest our Sambac Jasmine in small organic mountain estates at dusk, followed by gentle enfleurage to preserve its luminous freshness.';
-      }
-
-      const studioMsg: ChatMessage = {
-        id: `std-${Date.now()}`,
-        sender: 'studio',
-        text: reply,
-        timestamp: timeStr,
-      };
-      setChatMessages((prev) => [...prev, studioMsg]);
-    }, 1200);
+    setChatMessages((previous) =>
+      previous.some((message) => message.id === savedMessage.id)
+        ? previous
+        : [...previous, savedMessage]
+    );
   };
 
   const handleAddressUpdate = (newAddress: Partial<OrderDetails>) => {
@@ -901,6 +993,7 @@ export default function App() {
           <CustomerCareView
             order={order}
             messages={chatMessages}
+            loadError={chatLoadError}
             onSendMessage={handleSendMessage}
             onNavigate={navigateTo}
           />

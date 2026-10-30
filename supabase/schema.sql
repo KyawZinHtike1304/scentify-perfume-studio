@@ -28,12 +28,26 @@ create table if not exists public.orders (
 create index if not exists orders_user_id_created_at_idx
   on public.orders (user_id, created_at desc);
 
+create table if not exists public.studio_chat_messages (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  sender_id uuid not null references auth.users (id) on delete restrict,
+  sender_role text not null check (sender_role in ('customer', 'admin')),
+  message text not null check (length(trim(message)) > 0),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists studio_chat_messages_user_created_at_idx
+  on public.studio_chat_messages (user_id, created_at);
+
 alter table public.profiles enable row level security;
 alter table public.orders enable row level security;
+alter table public.studio_chat_messages enable row level security;
 
 grant select, insert, update, delete on table public.orders to authenticated;
 grant usage, select on sequence public.orders_order_id_seq to authenticated;
 grant select, update on table public.profiles to authenticated;
+grant select, insert on table public.studio_chat_messages to authenticated;
 
 drop policy if exists "Users can read their profile and admins can read profiles"
   on public.profiles;
@@ -78,6 +92,48 @@ drop policy if exists "Admins can delete orders" on public.orders;
 create policy "Admins can delete orders"
   on public.orders for delete
   using ((auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'staff', 'perfumer'));
+
+drop policy if exists "Customers and admins can read studio chat messages"
+  on public.studio_chat_messages;
+create policy "Customers and admins can read studio chat messages"
+  on public.studio_chat_messages for select
+  using (
+    auth.uid() = user_id
+    or (auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'staff', 'perfumer')
+  );
+
+drop policy if exists "Customers and admins can send studio chat messages"
+  on public.studio_chat_messages;
+create policy "Customers and admins can send studio chat messages"
+  on public.studio_chat_messages for insert
+  with check (
+    (
+      sender_role = 'customer'
+      and auth.uid() = user_id
+      and auth.uid() = sender_id
+    )
+    or (
+      sender_role = 'admin'
+      and (auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'staff', 'perfumer')
+      and auth.uid() = sender_id
+    )
+  );
+
+do $$
+begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+    and not exists (
+      select 1
+      from pg_publication_tables
+      where pubname = 'supabase_realtime'
+        and schemaname = 'public'
+        and tablename = 'studio_chat_messages'
+    )
+  then
+    alter publication supabase_realtime add table public.studio_chat_messages;
+  end if;
+end;
+$$;
 
 create or replace function public.handle_new_user()
 returns trigger

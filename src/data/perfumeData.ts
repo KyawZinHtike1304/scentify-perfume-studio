@@ -1,4 +1,4 @@
-import { ScentFamily, CartItem, OrderDetails, ChatMessage } from '../types';
+import { ScentFamily, CartItem, OrderDetails } from '../types';
 
 export const SCENT_FAMILIES: ScentFamily[] = [
   {
@@ -140,27 +140,6 @@ export const INITIAL_ORDER: OrderDetails = {
   status: 'awaiting_confirmation',
   perfumerNote: '“The final blend has been balanced to keep the Bergamot bright, the Jasmine soft, and the Oud warm without overpowering the floral heart.”'
 };
-
-export const INITIAL_CHAT_MESSAGES: ChatMessage[] = [
-  {
-    id: 'msg-1',
-    sender: 'studio',
-    text: 'Hello! How can we help with your fragrance today?',
-    timestamp: '10:24'
-  },
-  {
-    id: 'msg-2',
-    sender: 'user',
-    text: 'Could I make the Oud a little softer in my custom fragrance?',
-    timestamp: '10:25'
-  },
-  {
-    id: 'msg-3',
-    sender: 'studio',
-    text: 'Of course. We can reduce the Oud and keep the Jasmine more noticeable. 🌿',
-    timestamp: '10:26'
-  }
-];
 
 export const CATALOG_PERFUMES = [
   {

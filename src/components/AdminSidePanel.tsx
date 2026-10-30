@@ -40,7 +40,9 @@ import {
   BarChart3,
   Tag,
   ShieldAlert,
+  MessageCircle,
 } from 'lucide-react';
+import { AdminChatView } from './AdminChatView';
 import {
   DbOrder,
   DbShipping,
@@ -140,7 +142,7 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
 }) => {
   // Navigation Tabs
   const [activeTab, setActiveTab] = useState<
-    'sales' | 'orders' | 'bottles' | 'rules' | 'inventory' | 'admins' | 'users'
+    'sales' | 'orders' | 'messages' | 'bottles' | 'rules' | 'inventory' | 'admins' | 'users'
   >('sales');
 
   // Relational Database State
@@ -1317,6 +1319,18 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
             </button>
 
             <button
+              onClick={() => setActiveTab('messages')}
+              className={`py-3 px-3 sm:px-4 font-medium tracking-wider uppercase border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
+                activeTab === 'messages'
+                  ? 'border-[#C9A25C] text-[#FBF7F0] bg-white/5 font-semibold'
+                  : 'border-transparent text-[#DAD1C5]/70 hover:text-[#FBF7F0]'
+              }`}
+            >
+              <MessageCircle className="w-4 h-4 text-[#C9A25C]" />
+              <span>Messages</span>
+            </button>
+
+            <button
               onClick={() => setActiveTab('bottles')}
               className={`py-3 px-3 sm:px-4 font-medium tracking-wider uppercase border-b-2 flex items-center gap-2 transition-colors whitespace-nowrap ${
                 activeTab === 'bottles'
@@ -1382,6 +1396,10 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
 
       {/* Main Full-Page Workspace Body */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+        {activeTab === 'messages' && (
+          <AdminChatView adminName={adminUser || 'Scentify Studio'} />
+        )}
         
         {/* ========================================================================= */}
         {/* TAB 1: SALES & REPORTS STUDIO WITH DYNAMIC RANGE SELECTION & DOWNLOAD */}

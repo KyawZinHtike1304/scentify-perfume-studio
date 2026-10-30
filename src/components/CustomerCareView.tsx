@@ -5,18 +5,22 @@ import { ChatMessage, OrderDetails, ViewMode } from '../types';
 interface CustomerCareViewProps {
   order: OrderDetails;
   messages: ChatMessage[];
-  onSendMessage: (text: string) => void;
+  loadError?: string | null;
+  onSendMessage: (text: string) => Promise<void>;
   onNavigate: (view: ViewMode) => void;
 }
 
 export const CustomerCareView: React.FC<CustomerCareViewProps> = ({
   order,
   messages,
+  loadError,
   onSendMessage,
   onNavigate,
 }) => {
   const [inputText, setInputText] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const emojis = ['🌿', '✨', '💐', '🍋', '🪵', '🤍', '🌸', '🌹', '🕊️'];
@@ -25,12 +29,28 @@ export const CustomerCareView: React.FC<CustomerCareViewProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const sendMessage = async (text: string) => {
+    setIsSending(true);
+    setSendError(null);
+    try {
+      await onSendMessage(text);
+      setInputText('');
+      setShowEmojiPicker(false);
+    } catch (error) {
+      console.error('Failed to send customer chat message:', error);
+      setSendError(
+        `Could not send message: ${error instanceof Error ? error.message : 'Unexpected error'}`
+      );
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const handleSend = (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!inputText.trim()) return;
-    onSendMessage(inputText.trim());
-    setInputText('');
-    setShowEmojiPicker(false);
+    const message = inputText.trim();
+    if (!message || isSending) return;
+    void sendMessage(message);
   };
 
   const handleTopicClick = (topic: string) => {
@@ -45,7 +65,7 @@ export const CustomerCareView: React.FC<CustomerCareViewProps> = ({
       query = `I have uploaded my PromptPay slip. Could you verify my payment?`;
     }
     if (query) {
-      onSendMessage(query);
+      void sendMessage(query);
     }
   };
 
@@ -84,7 +104,7 @@ export const CustomerCareView: React.FC<CustomerCareViewProps> = ({
                   </h3>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
-                    <span className="text-[10px] uppercase tracking-wider text-[#6B6166]">Online</span>
+                    <span className="text-[10px] uppercase tracking-wider text-[#6B6166]">Direct studio chat</span>
                   </div>
                 </div>
               </div>
@@ -134,6 +154,11 @@ export const CustomerCareView: React.FC<CustomerCareViewProps> = ({
 
             {/* Chat Input Bar */}
             <div className="p-4 bg-[#FBF7F0] border-t border-[#DAD1C5]/60 relative">
+              {(loadError || sendError) && (
+                <p role="alert" className="mb-3 border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-800">
+                  {sendError || loadError}
+                </p>
+              )}
               {showEmojiPicker && (
                 <div className="absolute bottom-16 left-4 bg-[#FBF7F0] border border-[#DAD1C5] p-2 flex gap-2 shadow-lg z-20">
                   {emojis.map((emoji) => (
@@ -155,6 +180,7 @@ export const CustomerCareView: React.FC<CustomerCareViewProps> = ({
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     placeholder="Write a message..."
+                    disabled={isSending}
                     className="flex-1 bg-transparent text-xs text-[#28192A] placeholder-[#6B6166]/60 focus:outline-none py-1.5"
                   />
                   <button
@@ -177,10 +203,10 @@ export const CustomerCareView: React.FC<CustomerCareViewProps> = ({
 
                 <button
                   type="submit"
-                  disabled={!inputText.trim()}
+                  disabled={!inputText.trim() || isSending}
                   className="px-5 py-2.5 bg-[#28192A] text-[#FFFDF8] text-xs uppercase tracking-wider font-medium hover:bg-[#3D2540] transition-colors disabled:opacity-40 shrink-0"
                 >
-                  Send
+                  {isSending ? 'Sending…' : 'Send'}
                 </button>
               </form>
             </div>

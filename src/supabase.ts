@@ -37,9 +37,19 @@ interface MockOrder {
   created_at: string;
 }
 
+interface MockChatMessage {
+  id: string;
+  user_id: string;
+  sender_id: string;
+  sender_role: 'customer' | 'admin';
+  message: string;
+  created_at: string;
+}
+
 const STORAGE_KEY_USER = 'scentify_mock_auth_user';
 const STORAGE_KEY_PROFILES = 'scentify_mock_profiles';
 const STORAGE_KEY_ORDERS = 'scentify_mock_orders';
+const STORAGE_KEY_CHAT_MESSAGES = 'scentify_mock_chat_messages';
 
 function loadStored<T>(key: string, fallback: T): T {
   try {
@@ -159,6 +169,10 @@ function createMockSupabase(): SupabaseClient {
   });
 
   const orders: MockOrder[] = loadStored<MockOrder[]>(STORAGE_KEY_ORDERS, INITIAL_MOCK_ORDERS);
+  const chatMessages: MockChatMessage[] = loadStored<MockChatMessage[]>(
+    STORAGE_KEY_CHAT_MESSAGES,
+    []
+  );
 
   const authListeners: Array<(event: AuthChangeEvent, session: Session | null) => void> = [];
 
@@ -438,6 +452,35 @@ function createMockSupabase(): SupabaseClient {
               if (isMaybeSingle) {
                 return { data: results[0] || null, error: null };
               }
+              return { data: results, error: null };
+            }
+
+            if (tableName === 'studio_chat_messages') {
+              if (pendingInsert) {
+                const newMessage: MockChatMessage = {
+                  id: crypto.randomUUID(),
+                  user_id: pendingInsert.user_id || currentUser?.id || '',
+                  sender_id: pendingInsert.sender_id || currentUser?.id || '',
+                  sender_role: pendingInsert.sender_role || 'customer',
+                  message: pendingInsert.message || '',
+                  created_at: new Date().toISOString(),
+                };
+                chatMessages.push(newMessage);
+                saveStored(STORAGE_KEY_CHAT_MESSAGES, chatMessages);
+                return { data: newMessage, error: null };
+              }
+
+              let results = chatMessages.filter((message) =>
+                filters.every((filter) => filter(message))
+              );
+              if (sortFn) results.sort(sortFn);
+              if (isSingle) {
+                return {
+                  data: results[0] || null,
+                  error: results[0] ? null : { message: 'Row not found' },
+                };
+              }
+              if (isMaybeSingle) return { data: results[0] || null, error: null };
               return { data: results, error: null };
             }
 
