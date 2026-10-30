@@ -61,9 +61,16 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
   );
   const [previewSlipModal, setPreviewSlipModal] = useState<string | null>(null);
 
-  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = subtotal > 1500 ? 0 : 50;
-  const total = subtotal + (items.length > 0 ? shipping : 0);
+  const isSubmittedOrder =
+    order.status === 'slip_uploaded' || order.status === 'verified';
+  const displayedItems = isSubmittedOrder ? order.items : items;
+  const subtotal = isSubmittedOrder
+    ? order.subtotal
+    : items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const shipping = isSubmittedOrder ? order.shipping : subtotal > 1500 ? 0 : 50;
+  const total = isSubmittedOrder
+    ? order.total
+    : subtotal + (items.length > 0 ? shipping : 0);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -506,7 +513,7 @@ export const PaymentView: React.FC<PaymentViewProps> = ({
                 </h2>
 
                 <div className="py-4 space-y-4 divide-y divide-[#DAD1C5]/30">
-                  {items.map((item) => (
+                  {displayedItems.map((item) => (
                     <div key={item.id} className="pt-3 first:pt-0 flex justify-between items-start text-xs">
                       <div>
                         <h4 className="font-serif text-sm text-[#28192A]">{item.title}</h4>

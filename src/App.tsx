@@ -636,6 +636,11 @@ export default function App() {
       ...prev,
       orderId: payload.orderId,
       paymentSlipUrl: payload.slipUrl,
+      items: placedItems,
+      subtotal: placedItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
+      shipping:
+        payload.total -
+        placedItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
       status: 'slip_uploaded',
       total: payload.total,
     }));
