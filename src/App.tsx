@@ -539,6 +539,7 @@ export default function App() {
     const custEmail = authenticatedUser.email || '';
     const custPhone = order.phone || '';
     const fullAddr = `${order.address}, ${order.city}, ${order.province} ${order.postalCode}, ${order.country}`;
+    const placedItems = cartItems.map((item) => ({ ...item }));
     const { data: savedOrder, error } = await supabase
       .from('orders')
       .insert({
@@ -552,7 +553,7 @@ export default function App() {
         status: 'pending',
         payment_status: 'pending',
         payment_slip_url: payload.slipUrl,
-        items: cartItems.map((item) => ({ ...item })),
+        items: placedItems,
       })
       .select('order_id, created_at')
       .single();
@@ -567,7 +568,7 @@ export default function App() {
         date: savedOrder.created_at,
         status: 'Awaiting payment verification',
         total: payload.total,
-        items: cartItems.map((item) => ({ ...item })),
+        items: placedItems,
       },
       ...previous,
     ]);
@@ -609,7 +610,7 @@ export default function App() {
     };
     const newFormulaId = 1_000_000 + numericOrderId;
     const formulaName =
-      cartItems[0]?.title ||
+      placedItems[0]?.title ||
       `Bespoke Blend (${composition.topNote} · ${composition.heartNote} · ${composition.baseNote})`;
     const newDbFormula: DbFormula = {
       formula_id: newFormulaId,
@@ -621,7 +622,7 @@ export default function App() {
       formula_detail_id: 1,
       order_id: numericOrderId,
       bottle_id: composition.bottleSize === '100 ml' ? 2 : 1,
-      qty: cartItems.reduce((acc, item) => acc + item.quantity, 0) || 1,
+      qty: placedItems.reduce((acc, item) => acc + item.quantity, 0) || 1,
     };
 
     setDbUsers((prev) => [newDbUser, ...prev]);
@@ -630,6 +631,7 @@ export default function App() {
     setDbFormulas((prev) => [newDbFormula, ...prev]);
     setDbOrderItems((prev) => [newDbOrderItem, ...prev]);
     setDbOrders((prev) => [newDbOrder, ...prev]);
+    setCartItems([]);
     setOrder((prev) => ({
       ...prev,
       orderId: payload.orderId,
