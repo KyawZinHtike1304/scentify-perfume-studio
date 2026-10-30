@@ -33,6 +33,7 @@ alter table public.orders enable row level security;
 
 grant select, insert, update, delete on table public.orders to authenticated;
 grant usage, select on sequence public.orders_order_id_seq to authenticated;
+grant select, update on table public.profiles to authenticated;
 
 drop policy if exists "Users can read their profile and admins can read profiles"
   on public.profiles;
@@ -40,7 +41,7 @@ create policy "Users can read their profile and admins can read profiles"
   on public.profiles for select
   using (
     auth.uid() = id
-    or (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+    or (auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'staff', 'perfumer')
   );
 
 drop policy if exists "Users can create their own profile" on public.profiles;
@@ -59,7 +60,7 @@ create policy "Customers and admins can read orders"
   on public.orders for select
   using (
     auth.uid() = user_id
-    or (auth.jwt() -> 'app_metadata' ->> 'role') = 'admin'
+    or (auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'staff', 'perfumer')
   );
 
 drop policy if exists "Customers can create their own orders" on public.orders;
@@ -70,13 +71,13 @@ create policy "Customers can create their own orders"
 drop policy if exists "Admins can update orders" on public.orders;
 create policy "Admins can update orders"
   on public.orders for update
-  using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin')
-  with check ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
+  using ((auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'staff', 'perfumer'))
+  with check ((auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'staff', 'perfumer'));
 
 drop policy if exists "Admins can delete orders" on public.orders;
 create policy "Admins can delete orders"
   on public.orders for delete
-  using ((auth.jwt() -> 'app_metadata' ->> 'role') = 'admin');
+  using ((auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'staff', 'perfumer'));
 
 create or replace function public.handle_new_user()
 returns trigger

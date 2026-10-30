@@ -230,6 +230,7 @@ export interface MasterFormula {
 
 export interface AdminStaffUser {
   id: number;
+  authUserId?: string;
   name: string;
   email: string;
   role: 'admin' | 'staff' | 'perfumer';

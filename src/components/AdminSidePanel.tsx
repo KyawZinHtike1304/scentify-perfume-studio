@@ -74,6 +74,7 @@ import {
   INITIAL_ADMIN_USERS,
   buildEnrichedOrders,
 } from '../data/adminDatabaseData';
+import { supabase } from '../supabase';
 
 interface AdminSidePanelProps {
   isOpen: boolean;
@@ -328,6 +329,7 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
     password: '',
   });
   const [showAdminFormPassword, setShowAdminFormPassword] = useState(false);
+  const [isSavingAdmin, setIsSavingAdmin] = useState(false);
 
   // -------------------------------------------------------------
   // ENRICHED ORDERS BUILDER
@@ -927,73 +929,125 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
     setIsAdminModalOpen(true);
   };
 
-  const handleSaveAdmin = (e: React.FormEvent) => {
+  const handleSaveAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!adminForm.email.trim() || !adminForm.name.trim()) {
       showToast('Please provide both name and email.');
       return;
     }
 
-    let updated: AdminStaffUser[];
-    if (editingAdmin) {
-      updated = adminStaffUsers.map((a) =>
-        a.id === editingAdmin.id
-          ? {
-              ...a,
-              name: adminForm.name.trim(),
-              email: adminForm.email.trim().toLowerCase(),
-              role: adminForm.role,
-              title: adminForm.title.trim(),
-              phone: adminForm.phone.trim(),
-            }
-          : a
-      );
-      showToast(`Staff member "${adminForm.name}" updated.`);
-    } else {
-      const nextId =
-        adminStaffUsers.length > 0 ? Math.max(...adminStaffUsers.map((a) => a.id)) + 1 : 100;
-      const newAdmin: AdminStaffUser = {
-        id: nextId,
-        name: adminForm.name.trim(),
-        email: adminForm.email.trim().toLowerCase(),
-        role: adminForm.role,
-        title: adminForm.title.trim() || 'Studio Staff',
-        phone: adminForm.phone.trim(),
-        active: true,
-        createdAt: new Date().toISOString(),
-      };
-      updated = [...adminStaffUsers, newAdmin];
-
-      // Add to dbUsers
-      setUsers((prev) => [
-        ...prev,
-        {
-          id: nextId,
-          name: newAdmin.name,
-          email: newAdmin.email,
-          phone: newAdmin.phone || '+66 2 000 0000',
-          address: '123 Riverside Botanical Studio, Chiang Rai',
-          role: 'admin',
-        },
-      ]);
-
-      showToast(`New admin "${newAdmin.name}" added to Scentify Studio.`);
+    const needsAuthAccount = !editingAdmin?.authUserId;
+    if (needsAuthAccount && adminForm.password.length < 6) {
+      showToast('Enter a password with at least 6 characters to create a login.');
+      return;
     }
 
-    setAdminStaffUsers(updated);
-    onUpdateAdminStaffUsers?.(updated);
-    setIsAdminModalOpen(false);
+    setIsSavingAdmin(true);
+    let updated: AdminStaffUser[];
+    try {
+      let authUserId = editingAdmin?.authUserId;
+      if (needsAuthAccount || editingAdmin) {
+        const { data, error } = await supabase.functions.invoke('create-studio-staff', {
+          body: {
+            action: needsAuthAccount ? 'create' : 'update',
+            userId: editingAdmin?.authUserId,
+            name: adminForm.name.trim(),
+            email: adminForm.email.trim().toLowerCase(),
+            password: adminForm.password,
+            role: adminForm.role,
+            title: adminForm.title.trim() || 'Studio Staff',
+            phone: adminForm.phone.trim(),
+          },
+        });
+        if (error) throw error;
+        if (typeof data?.userId !== 'string') {
+          throw new Error('Supabase did not return the new staff account ID.');
+        }
+        authUserId = data.userId;
+      }
+
+      if (editingAdmin) {
+        updated = adminStaffUsers.map((staff) =>
+          staff.id === editingAdmin.id
+            ? {
+                ...staff,
+                authUserId,
+                name: adminForm.name.trim(),
+                email: adminForm.email.trim().toLowerCase(),
+                role: adminForm.role,
+                title: adminForm.title.trim(),
+                phone: adminForm.phone.trim(),
+              }
+            : staff
+        );
+      } else {
+        const nextId =
+          adminStaffUsers.length > 0 ? Math.max(...adminStaffUsers.map((staff) => staff.id)) + 1 : 100;
+        const newAdmin: AdminStaffUser = {
+          id: nextId,
+          authUserId,
+          name: adminForm.name.trim(),
+          email: adminForm.email.trim().toLowerCase(),
+          role: adminForm.role,
+          title: adminForm.title.trim() || 'Studio Staff',
+          phone: adminForm.phone.trim(),
+          active: true,
+          createdAt: new Date().toISOString(),
+        };
+        updated = [...adminStaffUsers, newAdmin];
+
+        setUsers((previous) => [
+          ...previous,
+          {
+            id: nextId,
+            name: newAdmin.name,
+            email: newAdmin.email,
+            phone: newAdmin.phone || '+66 2 000 0000',
+            address: '123 Riverside Botanical Studio, Chiang Rai',
+            role: 'admin',
+          },
+        ]);
+      }
+
+      setAdminStaffUsers(updated);
+      onUpdateAdminStaffUsers?.(updated);
+      setIsAdminModalOpen(false);
+      showToast(
+        needsAuthAccount
+          ? `Login account created for "${adminForm.name}". They can sign in with this email and password.`
+          : `Staff member "${adminForm.name}" updated.`
+      );
+    } catch (error) {
+      console.error('Failed to save studio staff account:', error);
+      showToast(error instanceof Error ? error.message : 'Could not save the staff account.');
+    } finally {
+      setIsSavingAdmin(false);
+    }
   };
 
-  const handleDeleteAdmin = (adminId: number) => {
+  const handleDeleteAdmin = async (adminId: number) => {
     if (adminId === 99) {
       showToast('Master Perfumer super-admin cannot be deleted.');
       return;
     }
-    const updated = adminStaffUsers.filter((a) => a.id !== adminId);
+    const staff = adminStaffUsers.find((admin) => admin.id === adminId);
+    if (staff?.authUserId) {
+      try {
+        const { error } = await supabase.functions.invoke('create-studio-staff', {
+          body: { action: 'disable', userId: staff.authUserId },
+        });
+        if (error) throw error;
+      } catch (error) {
+        console.error('Failed to disable Supabase staff account:', error);
+        showToast(error instanceof Error ? error.message : 'Could not disable the staff login.');
+        return;
+      }
+    }
+
+    const updated = adminStaffUsers.filter((admin) => admin.id !== adminId);
     setAdminStaffUsers(updated);
     onUpdateAdminStaffUsers?.(updated);
-    showToast('Admin account removed.');
+    showToast(staff?.authUserId ? 'Staff account disabled and removed.' : 'Staff entry removed.');
   };
 
   // -------------------------------------------------------------
@@ -2287,7 +2341,7 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
                   Studio Administrators &amp; Staff
                 </h2>
                 <p className="text-xs text-[#6B6166] mt-1 max-w-xl">
-                  Add another administrator or studio staff member. New administrators can sign in directly through the Admin Console modal using their studio credentials to manage orders, inventory, and formulas.
+                  Create login credentials for a studio administrator or staff member. They can sign in through the Admin Console using the email and password you set here.
                 </p>
               </div>
 
@@ -2550,7 +2604,8 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-[#28192A] text-[#FBF7F0] text-xs uppercase tracking-wider font-medium hover:bg-[#3D2540]"
+                  disabled={isSavingAdmin}
+                  className="px-5 py-2 bg-[#28192A] text-[#FBF7F0] text-xs uppercase tracking-wider font-medium hover:bg-[#3D2540] disabled:opacity-50"
                 >
                   Save Bottle Options
                 </button>
@@ -3088,7 +3143,11 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
                 <div className="relative">
                   <input
                     type={showAdminFormPassword ? 'text' : 'password'}
-                    placeholder="Leave blank to use default studio PIN"
+                    placeholder={
+                      editingAdmin?.authUserId
+                        ? 'Leave blank to keep the current password'
+                        : 'Required to create a login account'
+                    }
                     value={adminForm.password}
                     onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })}
                     className="w-full bg-[#FBF7F0] border border-[#DAD1C5] px-3 py-2 pr-10 text-xs text-[#28192A]"
@@ -3117,7 +3176,11 @@ export const AdminSidePanel: React.FC<AdminSidePanelProps> = ({
                   type="submit"
                   className="px-5 py-2 bg-[#28192A] text-[#FBF7F0] text-xs uppercase tracking-wider font-medium hover:bg-[#3D2540]"
                 >
-                  Grant Administrator Access
+                  {isSavingAdmin
+                    ? 'Saving Account...'
+                    : editingAdmin
+                    ? 'Save Staff Changes'
+                    : 'Create Login Account'}
                 </button>
               </div>
             </form>

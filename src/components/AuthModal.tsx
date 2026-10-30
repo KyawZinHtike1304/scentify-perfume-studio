@@ -6,7 +6,11 @@ interface AuthModalProps {
   isOpen: boolean;
   initialMode?: 'login' | 'signup' | 'admin';
   onClose: () => void;
-  onLoginSuccess: (name: string, email: string, role?: 'customer' | 'admin') => void;
+  onLoginSuccess: (
+    name: string,
+    email: string,
+    role?: 'customer' | 'admin' | 'staff' | 'perfumer'
+  ) => void;
   onAdminLogin?: () => void;
 }
 
@@ -29,7 +33,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Dedicated Admin Console Login State
+  // Dedicated Studio Console Login State
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -48,7 +52,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Clicking "Log In As Admin" opens the Admin Console login view
+  // Clicking "Log In As Admin" opens the Studio Console login view
   const handleAdminLogin = () => {
     setMode('admin');
     setErrorMsg(null);
@@ -68,19 +72,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       if (error) {
         throw error;
       }
-      if (data.user.app_metadata?.role !== 'admin') {
+      const role = data.user.app_metadata?.role;
+      if (role !== 'admin' && role !== 'staff' && role !== 'perfumer') {
         const { error: signOutError } = await supabase.auth.signOut();
         if (signOutError) {
           throw signOutError;
         }
-        throw new Error('This account is not authorized for the Admin Console.');
+        throw new Error('This account is not authorized for the Studio Console.');
       }
 
       const displayName =
         data.user.user_metadata?.display_name ||
         data.user.email?.split('@')[0] ||
         'Scentify Studio Admin';
-      onLoginSuccess(displayName, data.user.email || adminEmail, 'admin');
+      onLoginSuccess(displayName, data.user.email || adminEmail, role);
       onAdminLogin?.();
       onClose();
     } catch (err) {
@@ -134,9 +139,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           data.user.user_metadata?.full_name ||
           data.user.email?.split('@')[0] ||
           'Studio Member';
-        const isAdmin = data.user.app_metadata?.role === 'admin';
-        onLoginSuccess(displayName, data.user.email || email, isAdmin ? 'admin' : undefined);
-        if (isAdmin) {
+        const role = data.user.app_metadata?.role;
+        const isStudioStaff = role === 'admin' || role === 'staff' || role === 'perfumer';
+        onLoginSuccess(
+          displayName,
+          data.user.email || email,
+          isStudioStaff ? role : 'customer'
+        );
+        if (isStudioStaff) {
           onAdminLogin?.();
         }
         onClose();
@@ -354,7 +364,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 Console Login
               </h3>
               <p className="text-xs text-[#6B6166] font-light mt-1 mb-6">
-                Enter your administrative credentials to open the Admin Console.
+                Enter your studio staff credentials to open the Admin Console.
               </p>
 
               {adminError && (
@@ -367,7 +377,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <form onSubmit={handleAdminSubmit} className="space-y-4 text-xs">
                 <div>
                   <label className="block text-[#6B6166] text-[11px] uppercase tracking-wider mb-1.5 font-medium">
-                    Admin Email
+                    Staff Email
                   </label>
                   <input
                     type="email"
@@ -381,7 +391,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
                 <div>
                   <label className="block text-[#6B6166] text-[11px] uppercase tracking-wider mb-1.5 font-medium">
-                    Admin Password
+                    Staff Password
                   </label>
                   <div className="relative">
                     <input

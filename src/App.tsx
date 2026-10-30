@@ -276,7 +276,9 @@ export default function App() {
         user.user_metadata?.full_name ||
         user.email?.split('@')[0] ||
         'Studio Member';
-      const isAdmin = user.app_metadata?.role === 'admin';
+      const userRole = user.app_metadata?.role;
+      const isAdmin =
+        userRole === 'admin' || userRole === 'staff' || userRole === 'perfumer';
 
       if (active) {
         setAuthenticatedUser(user);
@@ -928,7 +930,7 @@ export default function App() {
         initialMode={authModalMode}
         onClose={() => setAuthModalOpen(false)}
         onLoginSuccess={(name, email, role) => {
-          if (role === 'admin') {
+          if (role === 'admin' || role === 'staff' || role === 'perfumer') {
             setIsAdminUser(true);
             setAdminUser(name);
             setCurrentUser(null);
