@@ -175,22 +175,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   setErrorMsg(null);
   setLoading(true);
   try {
-    console.log("Initiating Google Auth with redirect:", window.location.origin);
-
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}`,
+        redirectTo: window.location.origin,
       },
     });
 
-    console.log("Supabase response:", { data, error });
-
     if (error) throw error;
+
+    // Redirect the browser to Google's OAuth login page
+    if (data?.url) {
+      window.location.href = data.url;
+    }
   } catch (err: any) {
-    console.error("Full Supabase Google Sign-In error:", err);
+    console.error("Supabase Google Sign-In error:", err);
     setErrorMsg(err?.message || 'Google sign-in could not be completed.');
-  } finally {
     setLoading(false);
   }
 };
