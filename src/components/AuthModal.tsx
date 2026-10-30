@@ -32,7 +32,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [emailConfirmationRequired, setEmailConfirmationRequired] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
+  const [googleLoading, setGoogleLoading] = useState(false);
   // Dedicated Studio Console Login State
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
@@ -171,29 +171,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  const handleGoogleAuth = async () => {
-  setErrorMsg(null);
-  setLoading(true);
-  try {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin,
-      },
-    });
-
-    if (error) throw error;
-
-    // Redirect the browser to Google's OAuth login page
-    if (data?.url) {
-      window.location.href = data.url;
+  const handleGoogleAuth = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
     }
-  } catch (err: any) {
-    console.error("Supabase Google Sign-In error:", err);
-    setErrorMsg(err?.message || 'Google sign-in could not be completed.');
-    setLoading(false);
-  }
-};
+
+    setErrorMsg(null);
+    setGoogleLoading(true); // Use a separate loading state for Google
+
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.location.href = data.url; // Direct browser navigation
+      }
+    } catch (err: any) {
+      console.error("Google sign-in error:", err);
+      setErrorMsg(err?.message || 'Google sign-in failed');
+      setGoogleLoading(false);
+    }
+  };
 
   const handleForgotPassword = async () => {
     if (!email.trim()) {
@@ -313,7 +318,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 bg-[#28192A]/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
       <div className="relative max-w-4xl w-full my-8 bg-[#FBF7F0] border border-[#DAD1C5] shadow-2xl overflow-hidden">
-        
+
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -326,7 +331,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {mode === 'admin' ? (
           /* ADMIN CONSOLE LOGIN SCREEN */
           <div className="grid grid-cols-1 md:grid-cols-2">
-            
+
             {/* Left Decorative Studio Card */}
             <div className="hidden md:flex flex-col justify-between p-10 bg-[#28192A] text-[#FFFDF8] border-r border-[#C9A25C]/30">
               <div>
@@ -447,7 +452,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         ) : mode === 'login' ? (
           /* LOGIN SCREEN MATCHING FIGMA PAGE 5 & 13 */
           <div className="grid grid-cols-1 md:grid-cols-2">
-            
+
             {/* Left Decorative Studio Card */}
             <div className="hidden md:flex flex-col justify-between p-10 bg-[#FBF7F0] border-r border-[#DAD1C5]">
               <div>
@@ -579,10 +584,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   className="w-full py-2.5 px-4 border border-[#DAD1C5] bg-[#FBF7F0] text-xs text-[#28192A] font-medium flex items-center justify-center gap-2.5 transition-colors hover:bg-[#E9DFC9] hover:border-[#C9A25C] active:bg-[#DCC99F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A25C] focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs cursor-pointer"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                   </svg>
                   <span>Sign in with Google</span>
                 </button>
@@ -618,7 +623,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         ) : (
           /* SIGNUP SCREEN MATCHING FIGMA PAGE 8 & 14 */
           <div className="grid grid-cols-1 md:grid-cols-2">
-            
+
             {/* Left Form */}
             <div className="p-8 sm:p-12 flex flex-col justify-center order-2 md:order-1">
               <h3 className="font-serif text-3xl text-[#28192A]">
@@ -720,10 +725,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   className="w-full py-2.5 px-4 border border-[#DAD1C5] bg-[#FBF7F0] text-xs text-[#28192A] font-medium flex items-center justify-center gap-2.5 transition-colors hover:bg-[#E9DFC9] hover:border-[#C9A25C] active:bg-[#DCC99F] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9A25C] focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs cursor-pointer"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                   </svg>
                   <span>Sign in with Google</span>
                 </button>
