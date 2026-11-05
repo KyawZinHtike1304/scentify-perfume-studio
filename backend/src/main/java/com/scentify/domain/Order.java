@@ -1,17 +1,14 @@
 package com.scentify.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "orders")
@@ -55,8 +52,11 @@ public class Order {
   private OffsetDateTime verifiedAt;
 
   @JdbcTypeCode(SqlTypes.JSON)
-  @Column(nullable = false, columnDefinition = "jsonb")
+  @Column(nullable = false, columnDefinition = "text")
   private String items = "[]";
+
+  @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<OrderItem> orderItems = new ArrayList<>();
 
   @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
   private OffsetDateTime createdAt;
@@ -162,6 +162,14 @@ public class Order {
 
   public void setItems(String items) {
     this.items = items;
+  }
+
+  public List<OrderItem> getOrderItems() {
+    return orderItems;
+  }
+
+  public void addOrderItem(OrderItem item) {
+    orderItems.add(item);
   }
 
   public OffsetDateTime getCreatedAt() {

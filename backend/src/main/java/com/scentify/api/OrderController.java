@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Iterator;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -77,6 +78,7 @@ public class OrderController {
     order.setPaymentStatus("pending");
     order.setPaymentSlipUrl(request.paymentSlipUrl());
     order.setItems(writeJson(request.items()));
+    addOrderItems(order, request.items());
     return response(orders.save(order));
   }
 
@@ -106,6 +108,22 @@ public class OrderController {
       return objectMapper.writeValueAsString(value == null ? objectMapper.createArrayNode() : value);
     } catch (Exception exception) {
       throw new IllegalArgumentException("Order items must be valid JSON.", exception);
+    }
+  }
+
+  private void addOrderItems(Order order, JsonNode items) {
+    if (items == null || !items.isArray()) {
+      return;
+    }
+    Iterator<JsonNode> iterator = items.elements();
+    while (iterator.hasNext()) {
+      JsonNode item = iterator.next();
+      String name = item.path("name").asText(item.path("productName").asText("Custom fragrance"));
+      int quantity = Math.max(1, item.path("quantity").asInt(1));
+      BigDecimal unitPrice = item.path("price").isNumber()
+          ? item.path("price").decimalValue()
+          : item.path("unitPrice").decimalValue();
+      order.addOrderItem(new com.scentify.domain.OrderItem(order, name, quantity, unitPrice));
     }
   }
 

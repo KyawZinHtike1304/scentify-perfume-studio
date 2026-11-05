@@ -17,7 +17,7 @@ public class Profile {
   @Column(name = "display_name", nullable = false)
   private String displayName;
 
-  @Column(name = "shipping_address", nullable = false, columnDefinition = "jsonb")
+  @Column(name = "shipping_address", nullable = false, columnDefinition = "text")
   private String shippingAddress;
 
   @Column(name = "created_at", nullable = false, insertable = false, updatable = false)
