@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: scentify-backend
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/scentify}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${JWT_ISSUER_URI:http://localhost:8080/realms/scentify}
+server:
+  port: ${PORT:8080}
