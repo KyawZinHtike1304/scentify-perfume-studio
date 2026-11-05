@@ -6,13 +6,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.time.OffsetDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "profiles")
 public class Profile {
   @Id
-  private UUID id;
+  private String id;
 
   @Column(name = "display_name", nullable = false)
   private String displayName;
@@ -29,13 +28,13 @@ public class Profile {
   protected Profile() {
   }
 
-  public Profile(UUID id, String displayName, String shippingAddress) {
+  public Profile(String id, String displayName, String shippingAddress) {
     this.id = id;
     this.displayName = displayName;
     this.shippingAddress = shippingAddress;
   }
 
-  public UUID getId() {
+  public String getId() {
     return id;
   }
 

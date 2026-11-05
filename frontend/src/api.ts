@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { firebaseAuth } from './firebase';
 import type { CartItem } from './types';
 
 const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -30,7 +30,7 @@ export interface ApiMessage {
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const { data, error } = await supabase.auth.getSession();
+  const { data, error } = await firebaseAuth.auth.getSession();
   if (error) throw error;
   const response = await fetch(`${apiBaseUrl}${path}`, {
     ...init,

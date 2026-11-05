@@ -157,7 +157,7 @@ public class OrderController {
   public record OrderResponse(
       Long id,
       String orderNumber,
-      java.util.UUID userId,
+      String userId,
       String customerName,
       String customerEmail,
       String customerPhone,

@@ -68,6 +68,6 @@ public class ProfileController {
   public record ProfileRequest(@NotBlank String displayName, JsonNode shippingAddress) {
   }
 
-  public record ProfileResponse(java.util.UUID id, String displayName, JsonNode shippingAddress) {
+  public record ProfileResponse(String id, String displayName, JsonNode shippingAddress) {
   }
 }

@@ -1,5 +1,5 @@
 create table profiles (
-  id binary(16) primary key,
+  id varchar(128) primary key,
   display_name varchar(255) not null default 'Studio Member',
   shipping_address text not null,
   created_at timestamp not null default current_timestamp,
@@ -18,7 +18,7 @@ create table ingredients (
 create table orders (
   order_id bigint primary key auto_increment,
   order_number varchar(100) not null unique,
-  user_id binary(16) not null,
+  user_id varchar(128) not null,
   customer_name varchar(255) not null,
   customer_email varchar(320) not null,
   customer_phone varchar(50) not null,
@@ -43,9 +43,9 @@ create table order_items (
 );
 
 create table studio_chat_messages (
-  id binary(16) primary key,
-  user_id binary(16) not null,
-  sender_id binary(16) not null,
+  id varchar(128) primary key,
+  user_id varchar(128) not null,
+  sender_id varchar(128) not null,
   sender_role varchar(20) not null,
   message text not null,
   created_at timestamp not null default current_timestamp,

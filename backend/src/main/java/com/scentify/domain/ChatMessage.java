@@ -6,19 +6,18 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.time.OffsetDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "studio_chat_messages")
 public class ChatMessage {
   @Id
-  private UUID id;
+  private String id;
 
   @Column(name = "user_id", nullable = false)
-  private UUID userId;
+  private String userId;
 
   @Column(name = "sender_id", nullable = false)
-  private UUID senderId;
+  private String senderId;
 
   @Column(name = "sender_role", nullable = false)
   private String senderRole;
@@ -32,23 +31,23 @@ public class ChatMessage {
   protected ChatMessage() {
   }
 
-  public ChatMessage(UUID userId, UUID senderId, String senderRole, String message) {
-    this.id = UUID.randomUUID();
+  public ChatMessage(String userId, String senderId, String senderRole, String message) {
+    this.id = java.util.UUID.randomUUID().toString();
     this.userId = userId;
     this.senderId = senderId;
     this.senderRole = senderRole;
     this.message = message;
   }
 
-  public UUID getId() {
+  public String getId() {
     return id;
   }
 
-  public UUID getUserId() {
+  public String getUserId() {
     return userId;
   }
 
-  public UUID getSenderId() {
+  public String getSenderId() {
     return senderId;
   }
 

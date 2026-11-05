@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Check, AlertCircle, Loader2, ShieldCheck, Lock, KeyRound, Eye, EyeOff } from 'lucide-react';
-import { isSupabaseConfigured, supabase } from '../supabase';
+import { isFirebaseConfigured, firebaseAuth } from '../firebase';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -65,7 +65,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setAdminLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await firebaseAuth.auth.signInWithPassword({
         email: adminEmail.trim(),
         password: adminPassword,
       });
@@ -74,7 +74,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       }
       const role = data.user.app_metadata?.role;
       if (role !== 'admin' && role !== 'staff' && role !== 'perfumer') {
-        const { error: signOutError } = await supabase.auth.signOut();
+        const { error: signOutError } = await firebaseAuth.auth.signOut();
         if (signOutError) {
           throw signOutError;
         }
@@ -110,7 +110,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           throw new Error('Passwords do not match.');
         }
 
-        const { data, error } = await supabase.auth.signUp({
+        const { data, error } = await firebaseAuth.auth.signUp({
           email: email.trim(),
           password,
           options: { data: { display_name: name.trim() } },
@@ -127,7 +127,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           setEmailConfirmationRequired(true);
         }
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await firebaseAuth.auth.signInWithPassword({
           email: email.trim(),
           password,
         });
@@ -152,7 +152,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         onClose();
       }
     } catch (err) {
-      console.warn('Supabase auth error:', err);
+      console.warn('Google Identity Platform auth error:', err);
       let message = err instanceof Error ? err.message : 'Authentication failed. Please try again.';
       const lowerMessage = message.toLowerCase();
 
@@ -173,16 +173,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleGoogleAuth = async () => {
     setErrorMsg(null);
-    if (!isSupabaseConfigured) {
+    if (!isFirebaseConfigured) {
       setErrorMsg(
-        'Google sign-in is unavailable because Supabase is not configured for this deployment. Add VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY to Vercel, then redeploy.'
+        'Google sign-in is unavailable because Google Identity Platform is not configured. Add the VITE_FIREBASE_* variables, then redeploy.'
       );
       return;
     }
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { error } = await firebaseAuth.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: window.location.origin,
@@ -206,7 +206,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
     setErrorMsg(null);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      const { error } = await firebaseAuth.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: window.location.origin,
       });
       if (error) {
@@ -214,7 +214,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       }
       setForgotPasswordSent(true);
     } catch (err) {
-      console.warn('Supabase password reset error:', err);
+      console.warn('Google Identity Platform password reset error:', err);
       setErrorMsg(err instanceof Error ? err.message : 'Unable to send password reset email.');
     }
   };
@@ -295,10 +295,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-800" />
             <div>
               <p className="font-semibold text-amber-950">
-                Email sign-in is not enabled for this Supabase project.
+                Email sign-in is not enabled in Google Identity Platform.
               </p>
               <p className="text-[11px] text-amber-900 mt-1 leading-relaxed">
-                Enable Email under Authentication → Providers in the Supabase dashboard, then try again.
+                Enable Email/Password under Google Cloud → Identity Platform → Providers, then try again.
               </p>
             </div>
           </div>

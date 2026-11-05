@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -50,7 +49,7 @@ public class ChatController {
       Authentication authentication,
       @Valid @RequestBody MessageRequest request
   ) {
-    UUID userId = currentUser.id(authentication);
+    String userId = currentUser.id(authentication);
     ensureProfile(userId, authentication.getName());
     return response(messages.save(new ChatMessage(userId, userId, "customer", request.message())));
   }
@@ -58,7 +57,7 @@ public class ChatController {
   @GetMapping("/admin/messages")
   public List<MessageResponse> adminMessages(
       Authentication authentication,
-      @RequestParam(required = false) UUID userId
+      @RequestParam(required = false) String userId
   ) {
     currentUser.requireStaff(authentication);
     List<ChatMessage> result = userId == null
@@ -74,12 +73,12 @@ public class ChatController {
       @Valid @RequestBody AdminMessageRequest request
   ) {
     currentUser.requireStaff(authentication);
-    UUID senderId = currentUser.id(authentication);
+    String senderId = currentUser.id(authentication);
     ensureProfile(request.userId(), request.userId().toString());
     return response(messages.save(new ChatMessage(request.userId(), senderId, "admin", request.message())));
   }
 
-  private void ensureProfile(UUID id, String displayName) {
+  private void ensureProfile(String id, String displayName) {
     profiles.findById(id).orElseGet(() -> profiles.save(new Profile(id, displayName, "{}")));
   }
 
@@ -91,13 +90,13 @@ public class ChatController {
   public record MessageRequest(@NotBlank String message) {
   }
 
-  public record AdminMessageRequest(UUID userId, @NotBlank String message) {
+  public record AdminMessageRequest(String userId, @NotBlank String message) {
   }
 
   public record MessageResponse(
-      UUID id,
-      UUID userId,
-      UUID senderId,
+      String id,
+      String userId,
+      String senderId,
       String senderRole,
       String message,
       OffsetDateTime createdAt

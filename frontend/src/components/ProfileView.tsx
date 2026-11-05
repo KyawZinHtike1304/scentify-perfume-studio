@@ -14,7 +14,7 @@ import {
   Save,
 } from 'lucide-react';
 import { OrderDetails, PurchaseHistoryOrder, ViewMode } from '../types';
-import { updateShippingAddress } from '../supabase';
+import { updateShippingAddress } from '../firebase';
 
 interface ProfileViewProps {
   userName: string;
@@ -63,7 +63,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3500);
     } catch (err) {
-      console.error('Failed to save shipping address to Supabase:', err);
+      console.error('Failed to save shipping address to Google Cloud:', err);
       setSaveError(err instanceof Error ? err.message : 'Unable to save the shipping address.');
     } finally {
       setSaving(false);

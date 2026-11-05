@@ -5,15 +5,14 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
-import java.util.UUID;
 
 @Component
 public class CurrentUser {
-  public UUID id(Authentication authentication) {
+  public String id(Authentication authentication) {
     if (authentication == null || !authentication.isAuthenticated()) {
       throw new IllegalStateException("Authentication is required.");
     }
-    return UUID.fromString(authentication.getName());
+    return authentication.getName();
   }
 
   public void requireStaff(Authentication authentication) {
@@ -28,11 +27,11 @@ public class CurrentUser {
     if (!(authentication instanceof JwtAuthenticationToken jwtAuthentication)) {
       throw new IllegalStateException("A staff JWT is required.");
     }
-    Object metadata = jwtAuthentication.getToken().getClaims().get("app_metadata");
-    if (!(metadata instanceof Map<?, ?> appMetadata)) {
-      throw new IllegalStateException("Staff role is required.");
+    Object role = jwtAuthentication.getToken().getClaims().get("role");
+    if (role == null) {
+      Object metadata = jwtAuthentication.getToken().getClaims().get("app_metadata");
+      role = metadata instanceof Map<?, ?> appMetadata ? appMetadata.get("role") : null;
     }
-    Object role = appMetadata.get("role");
     if (adminOnly ? !"admin".equals(role)
         : (!"admin".equals(role) && !"staff".equals(role) && !"perfumer".equals(role))) {
       throw new IllegalStateException("Staff role is required.");

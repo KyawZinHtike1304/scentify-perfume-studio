@@ -1,10 +1,14 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
-
 # Scentify Perfume Studio
 
-## Team
+Scentify Perfume Studio is a full-stack web application for creating and
+ordering personalized perfumes. The project demonstrates a Spring Boot
+backend, Spring Data JPA persistence, a React frontend, MySQL database
+management, authentication, related entities, CRUD operations, and Google
+Cloud deployment.
+
+## Course submission
+
+### Team members
 
 | Student ID | Name |
 | --- | --- |
@@ -14,91 +18,101 @@
 | 6831503029 | Thuta Naing |
 | 6831503087 | Saw Keh Blu |
 
-This project is a Spring Boot perfume-studio web application for the course
-assignment. It demonstrates five related JPA entities, searchable ingredient
-listing, CRUD operations, order management, customer support messaging, and a
-React frontend.
+### Repository
 
-### Assignment entities
+GitHub repository:
 
-1. `Profile` - customer account and shipping address.
-2. `Ingredient` - searchable perfume ingredient catalog with staff CRUD.
-3. `Order` - customer purchase and payment/status workflow.
-4. `OrderItem` - products and quantities belonging to an order.
-5. `ChatMessage` - customer and staff support messages.
+<https://github.com/KyawZinHtike1304/scentify-perfume-studio>
 
-The frontend is a Vite/React application with client-side routing in
-[`frontend/`](./frontend/). The Spring Boot module in [`backend/`](./backend/)
-is the replacement API boundary for authentication, persistence, and studio
-operations. Supabase Auth is configured through the frontend environment
-variables and is used only for identity and JWT sessions.
+Each team member must commit to this repository to receive individual
+contribution credit.
 
-## Client-side routes
+## Assignment requirements
 
-| Route | View |
+| Requirement | Scentify implementation |
 | --- | --- |
-| `/` | Home |
+| Backend | Spring Boot REST API |
+| Persistence | Spring Data JPA and Hibernate |
+| Database | MySQL locally or Google Cloud SQL for MySQL |
+| Authentication | Google Identity Platform |
+| Frontend | React, TypeScript, Vite, Tailwind CSS |
+| Related entities | Profile, Ingredient, Order, OrderItem, ChatMessage |
+| Listing/searching | Ingredient catalog and ingredient search |
+| Creating | Ingredients, orders, order items, profiles, and chat messages |
+| Updating | Profiles, ingredients, order status, and payment status |
+| Deleting | Ingredients |
+| Related entity management | Orders contain order items; profiles own orders and chat messages |
+| Deployment | Google Cloud Run and Cloud SQL |
+
+## Main entities
+
+1. **Profile** - customer identity, display name, and shipping address.
+2. **Ingredient** - perfume ingredient catalog with scent family, description,
+   availability, search, and staff CRUD.
+3. **Order** - customer order, total, payment status, and fulfillment status.
+4. **OrderItem** - products, quantities, and prices belonging to an order.
+5. **ChatMessage** - customer and staff support messages.
+
+## System architecture
+
+```text
+React frontend
+      |
+      | HTTPS + Google Identity Platform JWT
+      v
+Spring Boot REST API on Cloud Run
+      |
+      | Spring Data JPA + Flyway
+      v
+Cloud SQL for MySQL
+```
+
+Google Identity Platform provides email/password and Google authentication.
+The frontend sends the user's bearer token to Spring Boot. Spring Security
+validates the token before allowing protected operations.
+
+## Project structure
+
+```text
+frontend/    React + TypeScript + Vite application
+backend/     Spring Boot + Spring Data JPA REST API
+```
+
+Important backend locations:
+
+```text
+backend/src/main/java/com/scentify/domain/
+backend/src/main/java/com/scentify/api/
+backend/src/main/java/com/scentify/repository/
+backend/src/main/resources/db/migration/
+backend/Dockerfile
+```
+
+## Frontend pages
+
+| Route | Feature |
+| --- | --- |
+| `/` | Home page |
 | `/ingredients` | Ingredient library |
-| `/scentify` | Scent builder |
+| `/scentify` | Custom perfume builder |
 | `/scentify/review` | Fragrance review |
 | `/cart` | Shopping cart |
 | `/checkout` | Order review |
 | `/checkout/payment` | Payment |
 | `/profile` | Profile and order history |
-| `/customer-care` | Customer care |
-| `/about` | About |
-| `/journal` | Journal |
-| `/admin` | Admin portal |
+| `/customer-care` | Customer support |
+| `/admin` | Staff and order administration |
 
-## Authentication setup
+## REST API
 
-Supabase Auth remains the identity provider. The application data database for
-the assignment is MySQL, either local MySQL or Google Cloud SQL for MySQL.
+### Profile
 
-1. Copy [`frontend/.env.example`](./frontend/.env.example) to `frontend/.env.local` and set your Supabase project URL and publishable key.
-2. Configure Supabase Auth and use its JWT issuer URL in the backend.
-3. In **Authentication → Providers**, enable Email and Google as needed. Add the local and deployed app URLs to **Authentication → URL Configuration**. For Google sign-in, configure the OAuth provider credentials in Supabase.
-4. To grant admin access, create the account with Supabase Auth, then run this in the SQL Editor, replacing the email:
-
-   ```sql
-   update auth.users
-   set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"role":"admin"}'::jsonb
-   where lower(email) = lower('admin@example.com');
-   ```
-
-   Sign out and back in so the new role is included in the session. The browser app does not use a secret/service-role key.
-
-Do not expose a Supabase secret/service-role key in the browser or commit it to source control. Accounts and data from any previous provider are not automatically imported; users must sign up again unless you separately migrate those records.
-
-## Run locally
-
-Prerequisites: Node.js, Java 25+, Maven, and MySQL for the Spring backend.
-
-```sh
-cd frontend
-npm install
-npm run dev
+```text
+GET /api/profile
+PUT /api/profile
 ```
 
-The frontend runs at `http://localhost:3000`.
-
-Run the backend separately after configuring its database and JWT issuer:
-
-```sh
-cd backend
-mvn spring-boot:run
-```
-
-The backend health check is available at `http://localhost:8080/api/health`.
-
-The backend defaults to `jdbc:mysql://localhost:3306/scentify`, with username
-`root` and password `root`. Override these values with `DATABASE_URL`,
-`DATABASE_USERNAME`, and `DATABASE_PASSWORD`. Flyway creates the MySQL schema
-on the first startup.
-
-## API examples
-
-The ingredient resource supports the assignment CRUD/search requirements:
+### Ingredients
 
 ```text
 GET    /api/ingredients?search=rose
@@ -107,25 +121,193 @@ PUT    /api/ingredients/{id}
 DELETE /api/ingredients/{id}
 ```
 
-Create, update, and delete operations require a staff or admin Supabase JWT.
-Orders and chat use the authenticated customer identity and demonstrate the
-relationship between `Profile`, `Order`, `OrderItem`, and `ChatMessage`.
+Ingredient create, update, and delete operations require a staff or admin
+account.
+
+### Orders
+
+```text
+GET   /api/orders/mine
+GET   /api/orders
+POST  /api/orders
+PATCH /api/orders/{id}/status
+```
+
+### Customer and staff chat
+
+```text
+GET  /api/chat/messages
+POST /api/chat/messages
+GET  /api/chat/admin/messages
+POST /api/chat/admin/messages
+```
+
+### Health check
+
+```text
+GET /api/health
+```
+
+## Local setup
+
+### Prerequisites
+
+- Node.js and npm
+- Java 25
+- Maven
+- MySQL 8
+- A Google Cloud project for deployed authentication
+
+### Configure the frontend
+
+```sh
+cd frontend
+cp .env.example .env.local
+npm install
+npm run dev
+```
+
+The frontend runs at <http://localhost:3000>.
+
+Set these values in `frontend/.env.local`:
+
+```env
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+VITE_FIREBASE_MESSAGING_SENDER_ID=
+VITE_FIREBASE_APP_ID=
+VITE_API_URL=http://localhost:8080
+```
+
+The Firebase web configuration is available in Google Cloud under Identity
+Platform project settings.
+
+### Configure the backend
+
+Create a local MySQL database named `scentify`, then run:
+
+```sh
+cd backend
+mvn spring-boot:run
+```
+
+The backend runs at <http://localhost:8080>. Flyway creates the tables from
+`backend/src/main/resources/db/migration/V1__create_scentify_tables.sql`.
+
+Default local database settings:
+
+```env
+DATABASE_URL=jdbc:mysql://localhost:3306/scentify
+DATABASE_USERNAME=root
+DATABASE_PASSWORD=root
+GOOGLE_CLOUD_PROJECT_ID=scentify-513806
+```
 
 ## Google Cloud deployment
 
-Create a Cloud SQL MySQL instance and database named `scentify`, then deploy
-the `backend/` directory to Cloud Run using its Dockerfile. Configure the
-following Cloud Run variables:
+The deployed architecture uses:
+
+- **Cloud Run** for the Spring Boot backend
+- **Cloud SQL for MySQL** for application data
+- **Cloud Run or Firebase Hosting** for the frontend
+- **Identity Platform** for authentication
+- **Artifact Registry and Cloud Build** for container builds
+
+### Cloud SQL
+
+Create a MySQL instance and database:
 
 ```text
-DATABASE_URL=jdbc:mysql://CLOUD_SQL_PUBLIC_IP:3306/scentify?useSSL=true&requireSSL=true
-DATABASE_USERNAME=cloudsql-user
-DATABASE_PASSWORD=cloudsql-password
-JWT_ISSUER_URI=https://YOUR_PROJECT.supabase.co/auth/v1
-SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=server-only-key
-CORS_ALLOWED_ORIGINS=https://YOUR_FRONTEND_DOMAIN
+Project: scentify-513806
+Instance: scentify-mysql
+Database: scentify
+Region: asia-southeast1
+Connection name: scentify-513806:asia-southeast1:scentify-mysql
 ```
 
-Never expose `DATABASE_PASSWORD` or `SUPABASE_SERVICE_ROLE_KEY` to the
-frontend. Set the frontend `VITE_API_URL` to the deployed Cloud Run URL.
+Create a dedicated database user and keep its password private.
+
+### Cloud Run backend
+
+Deploy the `backend/` directory using [backend/Dockerfile](./backend/Dockerfile).
+Grant the Cloud Run service account the **Cloud SQL Client** and Identity
+Platform administration roles.
+
+Configure these Cloud Run variables:
+
+```env
+DATABASE_URL=jdbc:mysql://google/scentify?cloudSqlInstance=scentify-513806:asia-southeast1:scentify-mysql&socketFactory=com.google.cloud.sql.mysql.SocketFactory&cloudSqlRefreshStrategy=lazy
+DATABASE_USERNAME=cloudsql-user
+DATABASE_PASSWORD=cloudsql-password
+GOOGLE_CLOUD_PROJECT_ID=scentify-513806
+CORS_ALLOWED_ORIGINS=https://your-frontend-domain
+```
+
+Attach the Cloud SQL connection:
+
+```text
+scentify-513806:asia-southeast1:scentify-mysql
+```
+
+After deployment, verify:
+
+```text
+https://your-cloud-run-url/api/health
+```
+
+Expected response:
+
+```json
+{"status":"ok"}
+```
+
+### Frontend deployment
+
+Deploy `frontend/` using Cloud Run or Firebase Hosting. Configure:
+
+```env
+VITE_FIREBASE_API_KEY=your-web-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=scentify-513806
+VITE_FIREBASE_STORAGE_BUCKET=your-storage-bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+VITE_FIREBASE_APP_ID=your-app-id
+VITE_API_URL=https://your-cloud-run-url
+```
+
+Add the deployed frontend domain to Identity Platform authorized domains and
+set the same domain in the backend `CORS_ALLOWED_ORIGINS` variable.
+
+## Security
+
+Never commit or expose:
+
+- Cloud SQL passwords
+- Service account JSON keys
+- Firebase Admin credentials
+- Database connection secrets
+
+Use Google Cloud service account permissions and Secret Manager for production
+secrets. Public frontend variables must contain only Firebase web
+configuration and the backend API URL.
+
+## Verification
+
+Run the backend tests:
+
+```sh
+cd backend
+mvn clean test
+```
+
+Build the frontend:
+
+```sh
+cd frontend
+npm run build
+```
+
+The project is ready for repository submission after both commands pass and
+the deployed Cloud Run health endpoint returns `{"status":"ok"}`.

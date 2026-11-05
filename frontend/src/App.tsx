@@ -18,9 +18,9 @@ import { SearchModal } from './components/SearchModal';
 import { StoryModal } from './components/StoryModal';
 import { AdminSidePanel } from './components/AdminSidePanel';
 
-import { supabase } from './supabase';
+import { firebaseAuth } from './firebase';
 import { backendApi } from './api';
-import type { User } from '@supabase/supabase-js';
+import type { User } from './firebase';
 
 import {
   Composition,
@@ -310,7 +310,7 @@ export default function App() {
   const [searchModalOpen, setSearchModalOpen] = useState(false);
   const [storyModalOpen, setStoryModalOpen] = useState(false);
 
-  // Resolve the current Supabase session and load the signed-in user's profile.
+  // Resolve the current Firebase session and load the signed-in user's profile.
   useEffect(() => {
     let active = true;
 
@@ -491,7 +491,7 @@ export default function App() {
       }
     };
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: authListener } = firebaseAuth.auth.onAuthStateChange((_event, session) => {
       queueMicrotask(() => {
         void resolveUser(session?.user ?? null);
       });
@@ -735,9 +735,9 @@ export default function App() {
   };
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await firebaseAuth.auth.signOut();
     if (error) {
-      console.error('Failed to sign out of Supabase:', error);
+      console.error('Failed to sign out of Firebase:', error);
       return;
     }
     setCurrentUser(null);

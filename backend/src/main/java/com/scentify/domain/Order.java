@@ -6,7 +6,6 @@ import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
-import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +21,7 @@ public class Order {
   private String orderNumber;
 
   @Column(name = "user_id", nullable = false)
-  private UUID userId;
+  private String userId;
 
   @Column(name = "customer_name", nullable = false)
   private String customerName;
@@ -76,11 +75,11 @@ public class Order {
     this.orderNumber = orderNumber;
   }
 
-  public UUID getUserId() {
+  public String getUserId() {
     return userId;
   }
 
-  public void setUserId(UUID userId) {
+  public void setUserId(String userId) {
     this.userId = userId;
   }
 
