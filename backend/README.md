@@ -6,10 +6,12 @@ authentication.
 
 ## Run locally
 
-Set `DATABASE_URL`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`, and
-`GOOGLE_CLOUD_PROJECT_ID`, then run:
+Run these commands from the `backend/` directory. Set `DATABASE_URL`,
+`DATABASE_USERNAME`, `DATABASE_PASSWORD`, and `GOOGLE_CLOUD_PROJECT_ID`, then
+run:
 
 ```sh
+cd backend
 mvn spring-boot:run
 ```
 
@@ -17,7 +19,14 @@ For a local UI/API smoke test without MySQL or an OAuth issuer, run the
 local profile:
 
 ```sh
+cd backend
 mvn spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+If you are at the repository root, use Maven's project-file option instead:
+
+```sh
+mvn -f backend/pom.xml spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
 The unauthenticated health endpoint is available at `GET /api/health`.
